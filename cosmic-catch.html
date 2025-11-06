@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Cosmic Catch 🌟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #0a0e27, #1a1a3e);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            touch-action: none;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 600px;
+            max-height: 100vh;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: linear-gradient(to bottom, #0f1436, #1e2456, #0f1436);
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #combo {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffcc00;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px 8px rgba(255,204,0,0.8);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #menu, #gameOver {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 100;
+        }
+
+        #gameOver {
+            display: none;
+        }
+
+        h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffcc00, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #aaa;
+            margin-bottom: 40px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .instructions {
+            margin: 30px 20px;
+            text-align: center;
+            color: #ccc;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .score-display {
+            font-size: 36px;
+            margin: 20px 0;
+            color: #ffcc00;
+        }
+
+        .emoji {
+            font-size: 64px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="ui">
+            <div>⭐ <span id="score">0</span></div>
+            <div>❤️ <span id="lives">3</span></div>
+        </div>
+
+        <div id="combo"></div>
+
+        <div id="menu">
+            <h1>🌟 Cosmic Catch 🌟</h1>
+            <p class="subtitle">Attrapez les étoiles, évitez les météorites !</p>
+            <div class="instructions">
+                👆 Touchez l'écran pour déplacer votre vaisseau<br>
+                ⭐ Attrapez les étoiles dorées (+10 points)<br>
+                ☄️ Évitez les météorites rouges (-1 vie)<br>
+                🔥 Enchaînez les combos pour plus de points !
+            </div>
+            <button id="startBtn" onclick="startGame()">🚀 Commencer</button>
+        </div>
+
+        <div id="gameOver">
+            <h1>Game Over</h1>
+            <div class="emoji">💫</div>
+            <div class="score-display">Score: <span id="finalScore">0</span></div>
+            <div class="score-display" style="font-size: 24px;">Meilleur: <span id="bestScore">0</span></div>
+            <button onclick="restartGame()">🔄 Rejouer</button>
+            <button onclick="backToMenu()">🏠 Menu</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameState = 'menu'; // menu, playing, gameOver
+        let score = 0;
+        let lives = 3;
+        let combo = 0;
+        let bestScore = localStorage.getItem('cosmicCatchBest') || 0;
+        let animationId;
+        let lastTime = 0;
+
+        // Resize canvas
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Game objects
+        let player = {
+            x: 0,
+            y: 0,
+            width: 60,
+            height: 60,
+            targetX: 0,
+            color: '#4ecdc4'
+        };
+
+        let fallingObjects = [];
+        let particles = [];
+        let stars = []; // Background stars
+
+        // Initialize background stars
+        function initBackgroundStars() {
+            stars = [];
+            for (let i = 0; i < 100; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2,
+                    speed: Math.random() * 0.5 + 0.2
+                });
+            }
+        }
+
+        // Initialize game
+        function initGame() {
+            score = 0;
+            lives = 3;
+            combo = 0;
+            fallingObjects = [];
+            particles = [];
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 80;
+            player.targetX = player.x;
+            updateUI();
+            initBackgroundStars();
+        }
+
+        // Start game
+        function startGame() {
+            document.getElementById('menu').style.display = 'none';
+            gameState = 'playing';
+            initGame();
+            lastTime = performance.now();
+            gameLoop(lastTime);
+        }
+
+        // Restart game
+        function restartGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            startGame();
+        }
+
+        // Back to menu
+        function backToMenu() {
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('menu').style.display = 'flex';
+            gameState = 'menu';
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+
+            const comboEl = document.getElementById('combo');
+            if (combo > 1) {
+                comboEl.textContent = `COMBO x${combo}! 🔥`;
+                comboEl.style.opacity = '1';
+            } else {
+                comboEl.style.opacity = '0';
+            }
+        }
+
+        // Input handling
+        let touchX = null;
+
+        canvas.addEventListener('touchstart', handleTouch);
+        canvas.addEventListener('touchmove', handleTouch);
+        canvas.addEventListener('mousemove', handleMouse);
+
+        function handleTouch(e) {
+            if (gameState !== 'playing') return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            touchX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+            player.targetX = touchX;
+        }
+
+        function handleMouse(e) {
+            if (gameState !== 'playing') return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            player.targetX = mouseX;
+        }
+
+        // Spawn falling object
+        let spawnTimer = 0;
+        const spawnInterval = 1000; // ms
+
+        function spawnFallingObject() {
+            const type = Math.random() < 0.7 ? 'star' : 'meteor';
+            fallingObjects.push({
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: -30,
+                width: 30,
+                height: 30,
+                speed: Math.random() * 2 + 2,
+                type: type,
+                rotation: 0
+            });
+        }
+
+        // Create particles
+        function createParticles(x, y, color, count = 10) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    life: 1,
+                    color: color,
+                    size: Math.random() * 4 + 2
+                });
+            }
+        }
+
+        // Check collision
+        function checkCollision(obj1, obj2) {
+            return obj1.x < obj2.x + obj2.width &&
+                   obj1.x + obj1.width > obj2.x &&
+                   obj1.y < obj2.y + obj2.height &&
+                   obj1.y + obj1.height > obj2.y;
+        }
+
+        // Update game
+        function update(deltaTime) {
+            if (gameState !== 'playing') return;
+
+            // Update player position (smooth movement)
+            const playerSpeed = 0.2;
+            player.x += (player.targetX - player.x) * playerSpeed;
+            player.x = Math.max(player.width / 2, Math.min(canvas.width - player.width / 2, player.x));
+
+            // Update background stars
+            stars.forEach(star => {
+                star.y += star.speed * (deltaTime / 16);
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+
+            // Spawn falling objects
+            spawnTimer += deltaTime;
+            if (spawnTimer > spawnInterval) {
+                spawnFallingObject();
+                spawnTimer = 0;
+            }
+
+            // Update falling objects
+            for (let i = fallingObjects.length - 1; i >= 0; i--) {
+                const obj = fallingObjects[i];
+                obj.y += obj.speed * (deltaTime / 16);
+                obj.rotation += 0.05 * (deltaTime / 16);
+
+                // Check collision with player
+                if (checkCollision(player, obj)) {
+                    if (obj.type === 'star') {
+                        combo++;
+                        const points = 10 * combo;
+                        score += points;
+                        createParticles(obj.x, obj.y, '#ffcc00', 15);
+                        updateUI();
+                    } else {
+                        lives--;
+                        combo = 0;
+                        createParticles(obj.x, obj.y, '#ff6b6b', 20);
+                        updateUI();
+
+                        if (lives <= 0) {
+                            gameOver();
+                        }
+                    }
+                    fallingObjects.splice(i, 1);
+                    continue;
+                }
+
+                // Remove if off screen
+                if (obj.y > canvas.height + 50) {
+                    if (obj.type === 'star') {
+                        combo = 0;
+                        updateUI();
+                    }
+                    fallingObjects.splice(i, 1);
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02 * (deltaTime / 16);
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        // Draw game
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = 'rgba(15, 20, 54, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background stars
+            ctx.fillStyle = 'white';
+            stars.forEach(star => {
+                ctx.globalAlpha = star.size / 2;
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+            });
+            ctx.globalAlpha = 1;
+
+            // Draw particles
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+
+            // Draw falling objects
+            fallingObjects.forEach(obj => {
+                ctx.save();
+                ctx.translate(obj.x + obj.width / 2, obj.y + obj.height / 2);
+                ctx.rotate(obj.rotation);
+
+                if (obj.type === 'star') {
+                    // Draw star
+                    ctx.fillStyle = '#ffcc00';
+                    ctx.strokeStyle = '#ffaa00';
+                    ctx.lineWidth = 2;
+                    drawStar(0, 0, 5, obj.width / 2, obj.width / 4);
+                    ctx.fill();
+                    ctx.stroke();
+                } else {
+                    // Draw meteor
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.strokeStyle = '#ff4444';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, obj.width / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Add crater effect
+                    ctx.fillStyle = '#cc5555';
+                    ctx.beginPath();
+                    ctx.arc(-5, -5, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(6, 3, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            });
+
+            // Draw player (spaceship/basket)
+            ctx.save();
+            ctx.translate(player.x, player.y);
+
+            // Ship body
+            ctx.fillStyle = player.color;
+            ctx.strokeStyle = '#3ab3aa';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, -player.height / 2);
+            ctx.lineTo(-player.width / 2, player.height / 2);
+            ctx.lineTo(player.width / 2, player.height / 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Ship window
+            ctx.fillStyle = '#667eea';
+            ctx.beginPath();
+            ctx.arc(0, 0, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ship glow
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.arc(0, 0, player.width / 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+
+            ctx.restore();
+        }
+
+        // Draw star shape
+        function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            const step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+        }
+
+        // Game loop
+        function gameLoop(currentTime) {
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            update(deltaTime);
+            draw();
+
+            if (gameState === 'playing') {
+                animationId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // Game over
+        function gameOver() {
+            gameState = 'gameOver';
+            document.getElementById('finalScore').textContent = score;
+
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('cosmicCatchBest', bestScore);
+            }
+
+            document.getElementById('bestScore').textContent = bestScore;
+            document.getElementById('gameOver').style.display = 'flex';
+        }
+
+        // Initialize
+        initBackgroundStars();
+    </script>
+</body>
+</html>
