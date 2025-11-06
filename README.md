@@ -9,33 +9,34 @@ Un jeu mobile fun et sans prise de tête où vous devez attraper des étoiles to
 - **Évitez** : Les météorites rouges ☄️ qui vous font perdre une vie
 - **Combos** : Enchaînez les étoiles pour multiplier vos points ! 🔥
 
-## 📱 Test sur votre iPhone/iPad
+## 📱 Jouer depuis votre iPhone (sans PC)
 
-### Méthode 1 : Test local rapide (recommandé)
+**⚡ GUIDE COMPLET :** Consultez le fichier **[INSTRUCTIONS-IOS.md](INSTRUCTIONS-IOS.md)** pour 3 méthodes simples !
 
-1. Ouvrez le fichier `cosmic-catch.html` dans votre navigateur
-2. Utilisez les outils de développement pour obtenir une URL locale
-3. Ou utilisez un serveur local simple :
+### Méthode la plus rapide : CodePen
+
+1. Sur votre iPhone, allez sur : **https://codepen.io/pen/**
+2. Copiez tout le code de `cosmic-catch.html` depuis GitHub
+3. Collez-le dans l'onglet "HTML" de CodePen
+4. Le jeu s'affiche automatiquement - cliquez "Change View" → "Full Page" pour jouer !
+
+### Méthode permanente : GitHub Pages
+
+1. Sur GitHub, allez dans **Settings** → **Pages** de ce repository
+2. Sélectionnez la branche `claude/ios-game-tech-discussion-011CUocgaShPuwdSTPCTyziz`
+3. Cliquez "Save" et attendez 1-2 minutes
+4. Votre jeu sera accessible à : `https://[votre-compte].github.io/ProjectA/cosmic-catch.html`
+
+## 💻 Test sur PC (optionnel)
+
+Si vous avez un ordinateur :
 
 ```bash
 # Python 3
 python3 -m http.server 8000
 
-# Ou avec Node.js
-npx http-server -p 8000
+# Puis sur votre iPhone : http://[votre-ip]:8000/cosmic-catch.html
 ```
-
-4. Sur votre iPhone, ouvrez Safari et accédez à `http://[votre-ip]:8000/cosmic-catch.html`
-
-### Méthode 2 : Partage de fichier (le plus simple)
-
-1. Envoyez-vous le fichier `cosmic-catch.html` par email ou via AirDrop
-2. Ouvrez le fichier directement dans Safari sur votre iPhone
-3. Appuyez sur le bouton "Partager" puis "Ajouter à l'écran d'accueil" pour en faire une icône d'app !
-
-### Méthode 3 : GitHub Pages (en ligne)
-
-Si vous voulez le partager en ligne, poussez ce repo sur GitHub et activez GitHub Pages.
 
 ## 🎯 Fonctionnalités
 
