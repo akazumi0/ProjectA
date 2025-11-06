@@ -1,13 +1,14 @@
-# 🌟 Cosmic Catch - Jeu iOS 2D
+# 🌟 Cosmic Idle - Jeu Incrémental iOS
 
-Un jeu mobile fun et sans prise de tête où vous devez attraper des étoiles tombantes tout en évitant les météorites !
+Un jeu idle/incrémental spatial relaxant où vous collectez des étoiles dans l'espace infini ! Cliquez, achetez des améliorations et automatisez votre empire cosmique.
 
 ## 🎮 Comment jouer
 
-- **Objectif** : Attrapez un maximum d'étoiles dorées ⭐
-- **Contrôles** : Touchez l'écran pour déplacer votre vaisseau
-- **Évitez** : Les météorites rouges ☄️ qui vous font perdre une vie
-- **Combos** : Enchaînez les étoiles pour multiplier vos points ! 🔥
+- **Cliquez sur l'étoile** pour collecter des étoiles manuellement ⭐
+- **Achetez des améliorations** pour automatiser la production
+- **Progressez hors ligne** - Le jeu continue même fermé (jusqu'à 4h)
+- **Débloquez des collecteurs** : Drones, Stations, Usines, Collecteurs galactiques
+- **Multipliez vos gains** avec des amplificateurs et accélérateurs 🚀
 
 ## 📱 Jouer depuis votre iPhone (sans PC)
 
@@ -47,39 +48,54 @@ python3 -m http.server 8000
 
 ## 🎯 Fonctionnalités
 
-- ✅ Contrôles tactiles optimisés pour mobile
-- ✅ Système de score avec combos
-- ✅ Sauvegarde automatique du meilleur score
-- ✅ Effets visuels et particules
-- ✅ Responsive (s'adapte à toutes les tailles d'écran)
-- ✅ Fonctionne hors ligne
-- ✅ Pas de dépendances externes
+- ✅ **Mécaniques idle/incrémentales** complètes
+- ✅ **7 types d'améliorations** différentes à débloquer
+- ✅ **Effets sonores** générés avec Web Audio API
+- ✅ **Progression hors ligne** - Collectez même quand le jeu est fermé
+- ✅ **Sauvegarde automatique** toutes les 10 secondes
+- ✅ **Export/Import** de sauvegarde
+- ✅ **Statistiques détaillées** de jeu
+- ✅ **Optimisé mobile** - Contrôles tactiles parfaits
+- ✅ **Responsive** - S'adapte à toutes les tailles d'écran
+- ✅ **Fonctionne hors ligne** - Pas de connexion nécessaire
+- ✅ **100% gratuit** - Pas de pubs, pas d'achats intégrés
+
+## 🎵 Améliorations Disponibles
+
+### Collecteurs Automatiques
+- 🛸 **Drone Collecteur** - +0.5 étoiles/sec par niveau
+- 🛰️ **Station Spatiale** - +5 étoiles/sec par niveau
+- 🏭 **Usine à Étoiles** - +50 étoiles/sec par niveau
+- 🌌 **Collecteur Galactique** - +500 étoiles/sec par niveau
+
+### Multiplicateurs
+- 👆 **Gants Stellaires** - +1 étoile par clic
+- ⚡ **Amplificateur de Clics** - +50% puissance de clic
+- 🚀 **Accélérateur Cosmique** - +25% production automatique
 
 ## 🚀 Prochaines étapes possibles
 
-Si vous souhaitez aller plus loin :
+Idées pour améliorer le jeu :
 
-1. **Conversion en app native iOS** : Utiliser Capacitor pour créer une vraie app iOS
-2. **App Store** : Configuration Xcode pour publication
-3. **Fonctionnalités supplémentaires** :
-   - Power-ups (boucliers, slow-motion, aimants)
-   - Niveaux de difficulté croissante
-   - Mode multijoueur
-   - Personnalisation du vaisseau
-   - Sons et musique
+1. **Système de Prestige** - Réinitialiser pour des bonus permanents
+2. **Achievements** - Débloquer des succès et récompenses
+3. **Événements temporaires** - Boosts x2, pluie d'étoiles
+4. **Thèmes visuels** - Différents univers à débloquer
+5. **Classement** - Comparer avec d'amis
+6. **Musique d'ambiance** - Bande-son spatiale relaxante
+7. **App Store** - Publication comme app native iOS
 
 ## 🛠️ Technologies utilisées
 
-- HTML5 Canvas pour le rendu graphique
-- JavaScript pur (pas de frameworks)
-- CSS3 pour l'interface
-- LocalStorage pour sauvegarder le score
+- **HTML5** - Structure et canvas pour animations
+- **JavaScript ES6+** - Logique de jeu et mécaniques idle
+- **Web Audio API** - Génération d'effets sonores en temps réel
+- **CSS3** - Interface moderne et animations fluides
+- **LocalStorage** - Sauvegarde automatique et progression
+- **100% vanilla** - Aucune dépendance externe
 
-## 📊 Système de scoring
+## 📝 Note
 
-- Étoile attrapée : **10 points × combo**
-- Combo : Se multiplie à chaque étoile consécutive
-- Manquer une étoile : Reset le combo
-- Toucher une météorite : -1 vie + reset combo
+L'ancien jeu "Cosmic Catch" (action/arcade) est toujours disponible dans `cosmic-catch.html` si vous préférez ce style de gameplay !
 
 Amusez-vous bien ! 🎮✨
