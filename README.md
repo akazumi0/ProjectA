@@ -11,21 +11,28 @@ Un jeu mobile fun et sans prise de tête où vous devez attraper des étoiles to
 
 ## 📱 Jouer depuis votre iPhone (sans PC)
 
-**⚡ GUIDE COMPLET :** Consultez le fichier **[INSTRUCTIONS-IOS.md](INSTRUCTIONS-IOS.md)** pour 3 méthodes simples !
+### 🎯 Méthode recommandée : GitHub Pages (GRATUIT et permanent)
 
-### Méthode la plus rapide : CodePen
+**👉 [GUIDE DÉTAILLÉ : GITHUB-PAGES-SETUP.md](GITHUB-PAGES-SETUP.md)**
+
+**Étapes rapides :**
+1. Sur Safari, allez sur `https://github.com/[votre-nom]/ProjectA/settings/pages`
+2. Sous "Branch", sélectionnez `claude/ios-game-tech-discussion-011CUocgaShPuwdSTPCTyziz`
+3. Cliquez "Save" et attendez 1-2 minutes ⏱️
+4. Votre jeu sera en ligne à : `https://[votre-nom].github.io/ProjectA/` 🎮
+
+**C'est gratuit, permanent et sans pub !**
+
+---
+
+### Alternative rapide : CodePen (pour tester immédiatement)
+
+**👉 [Autres méthodes : INSTRUCTIONS-IOS.md](INSTRUCTIONS-IOS.md)**
 
 1. Sur votre iPhone, allez sur : **https://codepen.io/pen/**
-2. Copiez tout le code de `cosmic-catch.html` depuis GitHub
+2. Copiez le code de `cosmic-catch.html` depuis GitHub
 3. Collez-le dans l'onglet "HTML" de CodePen
-4. Le jeu s'affiche automatiquement - cliquez "Change View" → "Full Page" pour jouer !
-
-### Méthode permanente : GitHub Pages
-
-1. Sur GitHub, allez dans **Settings** → **Pages** de ce repository
-2. Sélectionnez la branche `claude/ios-game-tech-discussion-011CUocgaShPuwdSTPCTyziz`
-3. Cliquez "Save" et attendez 1-2 minutes
-4. Votre jeu sera accessible à : `https://[votre-compte].github.io/ProjectA/cosmic-catch.html`
+4. Jouez !
 
 ## 💻 Test sur PC (optionnel)
 
