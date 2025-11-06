@@ -1,20 +1,63 @@
-# 🌟 Cosmic Idle - Jeu Incrémental iOS
+# ⭐ Falling Stars – Foundations of Light
 
-Un jeu idle/incrémental spatial relaxant où vous collectez des étoiles dans l'espace infini ! Cliquez, achetez des améliorations et automatisez votre empire cosmique.
+Un jeu idle/incrémental narratif où vous gérez le flux d'énergie cosmique pour sauver la Terre.
 
-## 🎮 Comment jouer
+## 🌌 Histoire
 
-- **Cliquez sur l'étoile** pour collecter des étoiles manuellement ⭐
-- **Achetez des améliorations** pour automatiser la production
-- **Progressez hors ligne** - Le jeu continue même fermé (jusqu'à 4h)
-- **Débloquez des collecteurs** : Drones, Stations, Usines, Collecteurs galactiques
-- **Multipliez vos gains** avec des amplificateurs et accélérateurs 🚀
+Il y a des millénaires, l'humanité a découvert que les **étoiles mortes** laissaient derrière elles des **fragments de cœur stellaire** : de minuscules noyaux contenant une énergie pure appelée **Lumen**.
 
-## 📱 Jouer depuis votre iPhone (sans PC)
+Ces fragments pleuvent sur la Terre depuis l'affaiblissement de la magnétosphère. Sans contrôle, ils détruisent tout sur leur passage. Bien canalisés, ils peuvent régénérer la planète et créer une ère nouvelle.
 
-### 🎯 Méthode recommandée : GitHub Pages (GRATUIT et permanent)
+Vous êtes le **Commandant du Réseau Orbital "Astra"**, une IA chargée de stabiliser le flux stellaire et de sauver l'humanité.
 
-**👉 [GUIDE DÉTAILLÉ : GITHUB-PAGES-SETUP.md](GITHUB-PAGES-SETUP.md)**
+## 🎮 Gameplay
+
+### Mécaniques Hybrides
+- **Cliquez sur les fragments** qui tombent pour les capturer manuellement
+- **Achetez des technologies orbitales** pour automatiser la collecte
+- **Débloquez des améliorations** scientifiquement cohérentes
+- **Regardez la Terre évoluer** visuellement selon votre progression
+- **Progression hors ligne** - Le réseau Astra travaille même quand vous n'êtes pas là
+
+### Système de Prestige : Renaissance Stellaire
+Quand votre réseau sature, déclenchez une **Renaissance Stellaire** :
+- Réinitialisez vos technologies
+- Obtenez de la **Poussière d'Aube** (ressource rare permanente)
+- Débloquez des améliorations permanentes puissantes
+- Recommencez avec des bonus globaux
+
+## 🛰️ Technologies Disponibles
+
+### Systèmes de Collecte
+- **👆 Gants Gravitationnels** - Capture manuelle améliorée
+- **🛸 Drone de Canalisation** - Collection automatique de base
+- **〰️ Résonance Atmosphérique** - Amélioration par vibration ionique
+- **⚛️ Grille de Newton** - Stabilisation gravitationnelle
+- **💠 Matrice de Photons** - Stockage d'énergie avancé
+- **☀️ Catalyseur d'Aube** - Synthèse de matière vivante
+
+### Multiplicateurs
+- **⚡ Amplificateur Quantique** - Multiplie la puissance de capture (+50% par niveau)
+- **🚀 Accélérateur Orbital** - Multiplie la production automatique (+25% par niveau)
+
+### Améliorations Permanentes (Prestige)
+- **Mémoire Temporelle** - Augmente les gains hors ligne (jusqu'à 24h)
+- **Catalyse Universelle** - Multiplie TOUS les gains de Lumen
+- **Capture Automatique** - Simule des captures automatiques/seconde
+
+## 🌍 Évolution Visuelle
+
+La Terre change d'apparence selon votre progression :
+- **Rouge** (< 25% stabilité) - Planète abîmée, atmosphère hostile
+- **Jaune** (25-50%) - Stabilisation en cours
+- **Vert** (50-75%) - Océans qui reprennent vie
+- **Bleu Cyan** (> 75%) - Planète florissante, aurores géantes
+
+## 📱 Jouer sur iPhone (sans PC)
+
+### 🎯 GitHub Pages (Gratuit et permanent)
+
+**👉 [GUIDE COMPLET : GITHUB-PAGES-SETUP.md](GITHUB-PAGES-SETUP.md)**
 
 **Étapes rapides :**
 1. Sur Safari, allez sur `https://github.com/[votre-nom]/ProjectA/settings/pages`
@@ -22,80 +65,80 @@ Un jeu idle/incrémental spatial relaxant où vous collectez des étoiles dans l
 3. Cliquez "Save" et attendez 1-2 minutes ⏱️
 4. Votre jeu sera en ligne à : `https://[votre-nom].github.io/ProjectA/` 🎮
 
-**C'est gratuit, permanent et sans pub !**
+**C'est 100% gratuit et sans publicité !**
 
----
+### Alternative : CodePen (test immédiat)
 
-### Alternative rapide : CodePen (pour tester immédiatement)
-
-**👉 [Autres méthodes : INSTRUCTIONS-IOS.md](INSTRUCTIONS-IOS.md)**
-
-1. Sur votre iPhone, allez sur : **https://codepen.io/pen/**
-2. Copiez le code de `cosmic-catch.html` depuis GitHub
-3. Collez-le dans l'onglet "HTML" de CodePen
+1. Allez sur : **https://codepen.io/pen/**
+2. Copiez le code de `falling-stars.html`
+3. Collez dans l'onglet "HTML"
 4. Jouez !
-
-## 💻 Test sur PC (optionnel)
-
-Si vous avez un ordinateur :
-
-```bash
-# Python 3
-python3 -m http.server 8000
-
-# Puis sur votre iPhone : http://[votre-ip]:8000/cosmic-catch.html
-```
 
 ## 🎯 Fonctionnalités
 
-- ✅ **Mécaniques idle/incrémentales** complètes
-- ✅ **7 types d'améliorations** différentes à débloquer
-- ✅ **Effets sonores** générés avec Web Audio API
-- ✅ **Progression hors ligne** - Collectez même quand le jeu est fermé
-- ✅ **Sauvegarde automatique** toutes les 10 secondes
-- ✅ **Export/Import** de sauvegarde
-- ✅ **Statistiques détaillées** de jeu
-- ✅ **Optimisé mobile** - Contrôles tactiles parfaits
-- ✅ **Responsive** - S'adapte à toutes les tailles d'écran
-- ✅ **Fonctionne hors ligne** - Pas de connexion nécessaire
-- ✅ **100% gratuit** - Pas de pubs, pas d'achats intégrés
+- ✅ **Narration progressive** - Histoire qui se dévoile selon vos progrès
+- ✅ **Mécaniques hybrides** - Action + idle combinées
+- ✅ **Système de prestige complet** avec boucle de jeu profonde
+- ✅ **8 technologies orbitales** + 3 améliorations permanentes
+- ✅ **Évolution visuelle** de la Terre en temps réel
+- ✅ **Canvas HTML5** - Rendu graphique fluide avec fragments tombants
+- ✅ **Web Audio API** - Effets sonores spatiaux générés en temps réel
+- ✅ **Progression hors ligne** - Jusqu'à 24h avec améliorations
+- ✅ **Sauvegarde auto** - Toutes les 10 secondes
+- ✅ **Export/Import** - Transférez votre progression
+- ✅ **Cohérence scientifique** - Noms et descriptions réalistes
+- ✅ **Optimisé mobile** - Interface tactile parfaite pour iOS
+- ✅ **100% gratuit** - Pas de pubs, pas d'achats
 
-## 🎵 Améliorations Disponibles
+## 🎵 Design Sonore
 
-### Collecteurs Automatiques
-- 🛸 **Drone Collecteur** - +0.5 étoiles/sec par niveau
-- 🛰️ **Station Spatiale** - +5 étoiles/sec par niveau
-- 🏭 **Usine à Étoiles** - +50 étoiles/sec par niveau
-- 🌌 **Collecteur Galactique** - +500 étoiles/sec par niveau
+Trois types de sons générés dynamiquement :
+- **Capture** - Son cristallin quand vous captez un fragment
+- **Achat** - Tonalité de confirmation pour les technologies
+- **Prestige** - Son épique pour la Renaissance Stellaire
 
-### Multiplicateurs
-- 👆 **Gants Stellaires** - +1 étoile par clic
-- ⚡ **Amplificateur de Clics** - +50% puissance de clic
-- 🚀 **Accélérateur Cosmique** - +25% production automatique
+Tous désactivables dans les paramètres.
 
-## 🚀 Prochaines étapes possibles
+## 🛠️ Technologies Utilisées
 
-Idées pour améliorer le jeu :
+- **HTML5 Canvas** - Rendu graphique avec Terre animée
+- **JavaScript ES6+** - Logique de jeu et système de prestige
+- **Web Audio API** - Génération procédurale de sons
+- **CSS3** - Interface sci-fi immersive
+- **LocalStorage** - Persistance avec compression
+- **100% vanilla** - Zéro dépendance externe
 
-1. **Système de Prestige** - Réinitialiser pour des bonus permanents
-2. **Achievements** - Débloquer des succès et récompenses
-3. **Événements temporaires** - Boosts x2, pluie d'étoiles
-4. **Thèmes visuels** - Différents univers à débloquer
-5. **Classement** - Comparer avec d'amis
-6. **Musique d'ambiance** - Bande-son spatiale relaxante
-7. **App Store** - Publication comme app native iOS
+## 📖 Versions du Jeu
 
-## 🛠️ Technologies utilisées
+Ce repository contient plusieurs versions :
 
-- **HTML5** - Structure et canvas pour animations
-- **JavaScript ES6+** - Logique de jeu et mécaniques idle
-- **Web Audio API** - Génération d'effets sonores en temps réel
-- **CSS3** - Interface moderne et animations fluides
-- **LocalStorage** - Sauvegarde automatique et progression
-- **100% vanilla** - Aucune dépendance externe
+- **`falling-stars.html`** ⭐ - Version narrative complète (RECOMMANDÉ)
+- **`cosmic-idle.html`** - Version idle simple sans narration
+- **`cosmic-catch.html`** - Version action/arcade originale
 
-## 📝 Note
+## 🚀 Roadmap Possible
 
-L'ancien jeu "Cosmic Catch" (action/arcade) est toujours disponible dans `cosmic-catch.html` si vous préférez ce style de gameplay !
+Idées d'améliorations futures :
 
-Amusez-vous bien ! 🎮✨
+1. **Achievements/Succès** - Objectifs à long terme
+2. **Événements temporels** - Pluies stellaires x2
+3. **Nouvelles ères** - Débloquer différentes époques
+4. **Mode Défi** - Contraintes spéciales
+5. **Statistiques étendues** - Graphiques de progression
+6. **Thèmes visuels** - Différents styles graphiques
+7. **Musique d'ambiance** - Soundtrack spatiale
+8. **App Store** - Version native iOS
+
+## 💡 Philosophie de Design
+
+**Cohérence narrative** : Chaque mécanique a une justification scientifique dans l'univers du jeu. Vous ne "tuez" pas les étoiles, vous gérez un flux naturel.
+
+**Progression respectueuse** : Pas de murs artificiels, pas de timers frustrants. Le jeu récompense à la fois l'engagement actif et le jeu décontracté.
+
+**Pas de monétisation** : Jeu complet gratuit, aucun paywall, aucune pub. Fait pour le plaisir, pas pour le profit.
+
+---
+
+Créé avec passion. Profitez de votre voyage cosmique ! 🌟✨
+
+**Bon jeu, Commandant Astra !** ⚡

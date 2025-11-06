@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Falling Stars – Foundations of Light</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: #000;
+            font-family: 'Courier New', monospace;
+            color: white;
+            touch-action: manipulation;
+        }
+
+        #gameCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        #ui {
+            position: relative;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        #ui > * {
+            pointer-events: auto;
+        }
+
+        /* Header Stats */
+        #header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+            z-index: 100;
+        }
+
+        #lumenDisplay {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0,212,255,0.8);
+            margin-bottom: 5px;
+        }
+
+        #lumenPerSec {
+            font-size: 16px;
+            color: #4ecdc4;
+        }
+
+        #earthStatus {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        #stabilityBar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        #stabilityFill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f);
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        /* Narrative Box */
+        #narrative {
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 500px;
+            width: 90%;
+            background: rgba(0,0,0,0.95);
+            border: 2px solid #00d4ff;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            box-shadow: 0 0 20px rgba(0,212,255,0.3);
+        }
+
+        #narrative.show {
+            opacity: 1;
+        }
+
+        #narrative .title {
+            color: #00d4ff;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        /* Bottom Controls */
+        #controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+            padding: 15px;
+            z-index: 100;
+        }
+
+        #tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0,100,150,0.3);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 5px;
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: rgba(0,212,255,0.3);
+            border-color: #00d4ff;
+            box-shadow: 0 0 10px rgba(0,212,255,0.5);
+        }
+
+        .tab-content {
+            display: none;
+            max-height: 40vh;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Scrollbar styling */
+        .tab-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tab-content::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+
+        .tab-content::-webkit-scrollbar-thumb {
+            background: rgba(0,212,255,0.5);
+            border-radius: 10px;
+        }
+
+        /* Upgrade Cards */
+        .upgrade-card {
+            background: rgba(0,20,40,0.8);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .upgrade-card.affordable {
+            border-color: rgba(0,212,255,0.8);
+            background: rgba(0,50,80,0.8);
+        }
+
+        .upgrade-card.maxed {
+            opacity: 0.5;
+        }
+
+        .upgrade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .upgrade-name {
+            font-weight: bold;
+            color: #00d4ff;
+            font-size: 14px;
+        }
+
+        .upgrade-level {
+            background: rgba(0,212,255,0.2);
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+        }
+
+        .upgrade-desc {
+            color: #aaa;
+            margin-bottom: 8px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .upgrade-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upgrade-effect {
+            color: #4ecdc4;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .buy-btn {
+            background: linear-gradient(135deg, #00a8cc, #0077b6);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .buy-btn:disabled {
+            background: #333;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* Prestige Section */
+        #prestigePanel {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.9);
+            border-radius: 10px;
+        }
+
+        #prestigePanel h3 {
+            color: #ffd93d;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .prestige-info {
+            color: #aaa;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .prestige-gain {
+            color: #ffd93d;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .prestige-btn {
+            background: linear-gradient(135deg, #ffd93d, #ff9500);
+            border: none;
+            color: #000;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,217,61,0.4);
+        }
+
+        .prestige-btn:disabled {
+            background: #555;
+            color: #999;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Welcome Screen */
+        #welcome {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.98);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        #welcome h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #00d4ff;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(0,212,255,0.8);
+        }
+
+        #welcome .subtitle {
+            font-size: 16px;
+            color: #ffd93d;
+            margin-bottom: 30px;
+        }
+
+        #welcome .story {
+            max-width: 500px;
+            color: #aaa;
+            font-size: 13px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        #welcome button {
+            background: linear-gradient(135deg, #00a8cc, #0077b6);
+            border: 2px solid #00d4ff;
+            color: white;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0,212,255,0.5);
+        }
+
+        /* Notification */
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,212,255,0.95);
+            color: #000;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 2000;
+            box-shadow: 0 4px 15px rgba(0,212,255,0.6);
+        }
+
+        #notification.show {
+            opacity: 1;
+        }
+
+        .floating-text {
+            position: absolute;
+            font-size: 20px;
+            font-weight: bold;
+            color: #00d4ff;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            text-shadow: 0 0 10px rgba(0,212,255,0.8);
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            to {
+                transform: translateY(-80px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="notification"></div>
+
+    <div id="welcome">
+        <h1>⭐ FALLING STARS ⭐</h1>
+        <div class="subtitle">Foundations of Light</div>
+        <div class="story">
+            Il y a des millénaires, l'humanité a découvert que les étoiles mortes laissaient derrière elles des <strong>fragments de cœur stellaire</strong>.<br><br>
+
+            Ces noyaux d'énergie pure, appelés <strong>Lumen</strong>, pleuvent sur la Terre depuis l'affaiblissement de la magnétosphère.<br><br>
+
+            Sans contrôle, ils détruisent tout. Bien canalisés, ils peuvent <strong>régénérer la planète</strong> et créer une ère nouvelle.<br><br>
+
+            Tu es le <strong>Commandant du Réseau Orbital "Astra"</strong>, chargé de stabiliser le flux stellaire et sauver l'humanité.
+        </div>
+        <button onclick="startGame()">⚡ INITIALISER ASTRA</button>
+    </div>
+
+    <div id="ui">
+        <div id="header">
+            <div id="lumenDisplay">0 Lumen</div>
+            <div id="lumenPerSec">+0 L/s</div>
+            <div id="earthStatus">
+                🌍 Stabilité Planétaire: <span id="stabilityPercent">0</span>%
+            </div>
+            <div id="stabilityBar">
+                <div id="stabilityFill"></div>
+            </div>
+        </div>
+
+        <div id="narrative"></div>
+
+        <div id="controls">
+            <div id="tabs">
+                <div class="tab active" onclick="switchTab(0)">🛰️ ORBITAL</div>
+                <div class="tab" onclick="switchTab(1)">🌌 PRESTIGE</div>
+                <div class="tab" onclick="switchTab(2)">⚙️ SYSTEM</div>
+            </div>
+
+            <div id="orbital" class="tab-content active">
+                <div id="upgradesList"></div>
+            </div>
+
+            <div id="prestige" class="tab-content">
+                <div id="prestigePanel"></div>
+            </div>
+
+            <div id="system" class="tab-content">
+                <div style="background: rgba(0,20,40,0.8); padding: 15px; border-radius: 8px; font-size: 12px;">
+                    <div style="margin-bottom: 15px;">
+                        <div style="color: #00d4ff; font-weight: bold; margin-bottom: 10px;">PARAMÈTRES</div>
+                        <label style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span>🔊 Audio</span>
+                            <input type="checkbox" id="soundToggle" checked onchange="toggleSound()">
+                        </label>
+                        <label style="display: flex; justify-content: space-between;">
+                            <span>💾 Sauvegarde auto</span>
+                            <input type="checkbox" id="autoSaveToggle" checked onchange="toggleAutoSave()">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <div style="color: #00d4ff; font-weight: bold; margin-bottom: 10px;">DONNÉES</div>
+                        <button onclick="exportSave()" style="width: 100%; padding: 10px; margin-bottom: 8px; background: #0077b6; border: none; color: white; border-radius: 5px; cursor: pointer;">📤 Exporter</button>
+                        <button onclick="importSave()" style="width: 100%; padding: 10px; margin-bottom: 8px; background: #0077b6; border: none; color: white; border-radius: 5px; cursor: pointer;">📥 Importer</button>
+                        <button onclick="resetGame()" style="width: 100%; padding: 10px; background: #c92a2a; border: none; color: white; border-radius: 5px; cursor: pointer;">🔄 Réinitialiser</button>
+                    </div>
+                    <div>
+                        <div style="color: #00d4ff; font-weight: bold; margin-bottom: 10px;">STATISTIQUES</div>
+                        <div style="color: #aaa; line-height: 1.8;">
+                            Fragments capturés: <span id="totalFragments">0</span><br>
+                            Lumen total: <span id="totalLumen">0</span><br>
+                            Cycles complétés: <span id="totalCycles">0</span><br>
+                            Poussière d'Aube: <span id="totalStardust" style="color: #ffd93d;">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Audio Context
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let soundEnabled = true;
+        let autoSaveEnabled = true;
+
+        // Sound Effects
+        function playSound(type) {
+            if (!soundEnabled) return;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            switch(type) {
+                case 'catch':
+                    osc.frequency.value = 600;
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                    osc.stop(now + 0.15);
+                    break;
+                case 'buy':
+                    osc.type = 'square';
+                    osc.frequency.value = 400;
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+                    osc.stop(now + 0.2);
+                    break;
+                case 'prestige':
+                    osc.type = 'sine';
+                    osc.frequency.value = 200;
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
+                    osc.start(now);
+                    osc.frequency.exponentialRampToValueAtTime(1600, now + 0.8);
+                    osc.stop(now + 1);
+                    break;
+            }
+        }
+
+        // Game State
+        let game = {
+            lumen: 0,
+            totalLumen: 0,
+            totalFragments: 0,
+            lumenPerSec: 0,
+            clickPower: 1,
+            stardust: 0,
+            totalCycles: 0,
+            stability: 0,
+            lastTick: Date.now(),
+            startTime: Date.now(),
+            upgrades: {},
+            prestigeUpgrades: {},
+            narrativeIndex: 0,
+            nextNarrative: 0
+        };
+
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let fallingFragments = [];
+        let particles = [];
+        let backgroundStars = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initBackgroundStars();
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function initBackgroundStars() {
+            backgroundStars = [];
+            for (let i = 0; i < 150; i++) {
+                backgroundStars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.5,
+                    twinkle: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        // Upgrade definitions
+        const upgradeData = {
+            clickPower: {
+                name: "Gants Gravitationnels",
+                desc: "Captez manuellement les fragments avec plus d'efficacité",
+                icon: "👆",
+                baseCost: 15,
+                costMult: 1.15,
+                effect: level => level,
+                display: level => `+${level} par capture`
+            },
+            autoDrone: {
+                name: "Drone de Canalisation",
+                desc: "Intercepte et convertit automatiquement les fragments stellaires",
+                icon: "🛸",
+                baseCost: 100,
+                costMult: 1.18,
+                effect: level => level * 0.5,
+                display: level => `+${(level * 0.5).toFixed(1)} L/s`
+            },
+            resonance: {
+                name: "Résonance Atmosphérique",
+                desc: "Améliore la conversion des fragments par vibration ionique",
+                icon: "〰️",
+                baseCost: 800,
+                costMult: 1.22,
+                effect: level => level * 5,
+                display: level => `+${level * 5} L/s`
+            },
+            newtonGrid: {
+                name: "Grille de Newton",
+                desc: "Stabilise les champs de gravité locaux pour attirer plus de fragments",
+                icon: "⚛️",
+                baseCost: 5000,
+                costMult: 1.25,
+                effect: level => level * 40,
+                display: level => `+${level * 40} L/s`
+            },
+            photonMatrix: {
+                name: "Matrice de Photons Compressés",
+                desc: "Stocke et multiplie l'énergie Lumen sans perte",
+                icon: "💠",
+                baseCost: 30000,
+                costMult: 1.28,
+                effect: level => level * 200,
+                display: level => `+${level * 200} L/s`
+            },
+            dawnCatalyst: {
+                name: "Catalyseur d'Aube",
+                desc: "Accélère la synthèse des matériaux issus du Lumen",
+                icon: "☀️",
+                baseCost: 150000,
+                costMult: 1.3,
+                effect: level => level * 1000,
+                display: level => `+${level * 1000} L/s`
+            },
+            clickMult: {
+                name: "Amplificateur Quantique",
+                desc: "Multiplie la puissance de capture manuelle",
+                icon: "⚡",
+                baseCost: 2000,
+                costMult: 1.8,
+                effect: level => level * 0.5,
+                display: level => `+${level * 50}% captures`,
+                max: 25
+            },
+            prodMult: {
+                name: "Accélérateur Orbital",
+                desc: "Multiplie toute la production automatique d'Astra",
+                icon: "🚀",
+                baseCost: 20000,
+                costMult: 2.2,
+                effect: level => level * 0.25,
+                display: level => `+${level * 25}% production`,
+                max: 25
+            }
+        };
+
+        // Initialize upgrades
+        for (let key in upgradeData) {
+            game.upgrades[key] = 0;
+        }
+
+        // Prestige upgrades
+        const prestigeUpgradeData = {
+            offlineBonus: {
+                name: "Mémoire Temporelle",
+                desc: "Augmente les gains hors ligne (durée max)",
+                cost: level => (level + 1) * 5,
+                effect: level => level * 2,
+                display: level => `+${level * 2}h hors ligne`,
+                max: 10
+            },
+            globalMult: {
+                name: "Catalyse Universelle",
+                desc: "Multiplie tous les gains de Lumen",
+                cost: level => (level + 1) * 10,
+                effect: level => level * 0.1,
+                display: level => `+${level * 10}% tous gains`,
+                max: 20
+            },
+            autoClick: {
+                name: "Capture Automatique",
+                desc: "Simule des clics automatiques par seconde",
+                cost: level => (level + 1) * 15,
+                effect: level => level * 0.5,
+                display: level => `${(level * 0.5).toFixed(1)} captures/s`,
+                max: 10
+            }
+        };
+
+        for (let key in prestigeUpgradeData) {
+            game.prestigeUpgrades[key] = 0;
+        }
+
+        // Narratives
+        const narratives = [
+            { trigger: 0, title: "INITIALISATION", text: "Réseau Astra opérationnel. Premiers fragments détectés. Commencez la capture manuelle." },
+            { trigger: 100, title: "PREMIERS DRONES", text: "Les drones de canalisation sont maintenant disponibles. L'automatisation commence." },
+            { trigger: 1000, title: "RÉSONANCE DÉTECTÉE", text: "La résonance atmosphérique amplifie notre signal. Les fragments arrivent plus nombreux." },
+            { trigger: 10000, title: "GRILLE STABILISÉE", text: "La Grille de Newton est en place. La gravité locale attire naturellement les cœurs stellaires." },
+            { trigger: 100000, title: "PHOTONS MAÎTRISÉS", text: "La Matrice de Photons stocke l'énergie efficacement. La Terre commence à rayonner." },
+            { trigger: 1000000, title: "AUBE NOUVELLE", text: "Le Catalyseur d'Aube transforme le Lumen en matière vivante. La planète renaît." }
+        ];
+
+        function showNarrative(index) {
+            const narr = narratives[index];
+            if (!narr) return;
+
+            const box = document.getElementById('narrative');
+            box.innerHTML = `<div class="title">${narr.title}</div>${narr.text}`;
+            box.classList.add('show');
+
+            setTimeout(() => box.classList.remove('show'), 5000);
+        }
+
+        // Calculate stats
+        function calculateLumenPerSec() {
+            let base = 0;
+
+            base += upgradeData.autoDrone.effect(game.upgrades.autoDrone);
+            base += upgradeData.resonance.effect(game.upgrades.resonance);
+            base += upgradeData.newtonGrid.effect(game.upgrades.newtonGrid);
+            base += upgradeData.photonMatrix.effect(game.upgrades.photonMatrix);
+            base += upgradeData.dawnCatalyst.effect(game.upgrades.dawnCatalyst);
+
+            // Prestige multipliers
+            const globalMult = 1 + prestigeUpgradeData.globalMult.effect(game.prestigeUpgrades.globalMult);
+            const prodMult = 1 + upgradeData.prodMult.effect(game.upgrades.prodMult);
+
+            return base * globalMult * prodMult;
+        }
+
+        function calculateClickPower() {
+            let base = 1 + upgradeData.clickPower.effect(game.upgrades.clickPower);
+
+            const globalMult = 1 + prestigeUpgradeData.globalMult.effect(game.prestigeUpgrades.globalMult);
+            const clickMult = 1 + upgradeData.clickMult.effect(game.upgrades.clickMult);
+
+            return base * globalMult * clickMult;
+        }
+
+        function getUpgradeCost(key) {
+            const data = upgradeData[key];
+            const level = game.upgrades[key];
+            return Math.floor(data.baseCost * Math.pow(data.costMult, level));
+        }
+
+        function buyUpgrade(key) {
+            const cost = getUpgradeCost(key);
+            const data = upgradeData[key];
+            const maxLevel = data.max || Infinity;
+
+            if (game.lumen >= cost && game.upgrades[key] < maxLevel) {
+                game.lumen -= cost;
+                game.upgrades[key]++;
+
+                game.lumenPerSec = calculateLumenPerSec();
+                game.clickPower = calculateClickPower();
+
+                playSound('buy');
+                showNotification(`✓ ${data.name} acquis`);
+                updateUI();
+                saveGame();
+            }
+        }
+
+        function buyPrestigeUpgrade(key) {
+            const data = prestigeUpgradeData[key];
+            const level = game.prestigeUpgrades[key];
+            const cost = data.cost(level);
+            const maxLevel = data.max || Infinity;
+
+            if (game.stardust >= cost && level < maxLevel) {
+                game.stardust -= cost;
+                game.prestigeUpgrades[key]++;
+
+                game.lumenPerSec = calculateLumenPerSec();
+                game.clickPower = calculateClickPower();
+
+                playSound('buy');
+                showNotification(`✓ ${data.name} amélioré`);
+                updateUI();
+                saveGame();
+            }
+        }
+
+        // Prestige
+        function calculatePrestigeGain() {
+            return Math.floor(Math.pow(game.totalLumen / 1000000, 0.5));
+        }
+
+        function canPrestige() {
+            return calculatePrestigeGain() > 0;
+        }
+
+        function doPrestige() {
+            if (!canPrestige()) return;
+
+            if (confirm("Renaissance Stellaire : Réinitialiser pour obtenir de la Poussière d'Aube et des améliorations permanentes ?")) {
+                const gain = calculatePrestigeGain();
+
+                game.stardust += gain;
+                game.totalCycles++;
+                game.lumen = 0;
+                game.stability = 0;
+
+                for (let key in game.upgrades) {
+                    game.upgrades[key] = 0;
+                }
+
+                game.lumenPerSec = calculateLumenPerSec();
+                game.clickPower = calculateClickPower();
+
+                playSound('prestige');
+                showNotification(`🌟 RENAISSANCE STELLAIRE : +${gain} Poussière d'Aube`);
+                showNarrative(0);
+
+                fallingFragments = [];
+                particles = [];
+
+                updateUI();
+                saveGame();
+            }
+        }
+
+        // Spawn falling fragment
+        let spawnTimer = 0;
+        const spawnInterval = 1500;
+
+        function spawnFragment() {
+            fallingFragments.push({
+                x: Math.random() * (canvas.width - 60) + 30,
+                y: -30,
+                size: 25 + Math.random() * 15,
+                speed: 1.5 + Math.random() * 1.5,
+                rotation: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 0.1,
+                glow: Math.random()
+            });
+        }
+
+        // Create particles
+        function createParticles(x, y, count = 15) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    life: 1,
+                    size: Math.random() * 3 + 2
+                });
+            }
+        }
+
+        // Click handler
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            // Check if clicked on fragment
+            for (let i = fallingFragments.length - 1; i >= 0; i--) {
+                const frag = fallingFragments[i];
+                const dist = Math.sqrt((clickX - frag.x) ** 2 + (clickY - frag.y) ** 2);
+
+                if (dist < frag.size) {
+                    const gain = game.clickPower;
+                    game.lumen += gain;
+                    game.totalLumen += gain;
+                    game.totalFragments++;
+
+                    createParticles(frag.x, frag.y);
+                    fallingFragments.splice(i, 1);
+
+                    // Floating text
+                    const ft = document.createElement('div');
+                    ft.className = 'floating-text';
+                    ft.textContent = `+${formatNumber(gain)}`;
+                    ft.style.left = e.clientX + 'px';
+                    ft.style.top = e.clientY + 'px';
+                    document.body.appendChild(ft);
+                    setTimeout(() => ft.remove(), 1000);
+
+                    playSound('catch');
+                    updateUI();
+                    break;
+                }
+            }
+        });
+
+        // Touch handler
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const clickX = touch.clientX - rect.left;
+            const clickY = touch.clientY - rect.top;
+
+            for (let i = fallingFragments.length - 1; i >= 0; i--) {
+                const frag = fallingFragments[i];
+                const dist = Math.sqrt((clickX - frag.x) ** 2 + (clickY - frag.y) ** 2);
+
+                if (dist < frag.size) {
+                    const gain = game.clickPower;
+                    game.lumen += gain;
+                    game.totalLumen += gain;
+                    game.totalFragments++;
+
+                    createParticles(frag.x, frag.y);
+                    fallingFragments.splice(i, 1);
+
+                    const ft = document.createElement('div');
+                    ft.className = 'floating-text';
+                    ft.textContent = `+${formatNumber(gain)}`;
+                    ft.style.left = touch.clientX + 'px';
+                    ft.style.top = touch.clientY + 'px';
+                    document.body.appendChild(ft);
+                    setTimeout(() => ft.remove(), 1000);
+
+                    playSound('catch');
+                    updateUI();
+                    break;
+                }
+            }
+        });
+
+        // Game loop
+        function gameLoop() {
+            const now = Date.now();
+            const delta = (now - game.lastTick) / 1000;
+            game.lastTick = now;
+
+            // Update game
+            const passiveGain = game.lumenPerSec * delta;
+            if (passiveGain > 0) {
+                game.lumen += passiveGain;
+                game.totalLumen += passiveGain;
+            }
+
+            // Auto-clicks from prestige
+            const autoClicks = prestigeUpgradeData.autoClick.effect(game.prestigeUpgrades.autoClick) * delta;
+            if (autoClicks > 0) {
+                const autoGain = game.clickPower * autoClicks;
+                game.lumen += autoGain;
+                game.totalLumen += autoGain;
+            }
+
+            // Calculate stability
+            game.stability = Math.min(100, (game.totalLumen / 10000) * 100);
+
+            // Spawn fragments
+            spawnTimer += delta * 1000;
+            if (spawnTimer > spawnInterval) {
+                spawnFragment();
+                spawnTimer = 0;
+            }
+
+            // Update fragments
+            for (let i = fallingFragments.length - 1; i >= 0; i--) {
+                const frag = fallingFragments[i];
+                frag.y += frag.speed;
+                frag.rotation += frag.rotSpeed;
+                frag.glow = (frag.glow + delta * 2) % (Math.PI * 2);
+
+                if (frag.y > canvas.height + 50) {
+                    fallingFragments.splice(i, 1);
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= delta * 2;
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            // Check narratives
+            while (game.narrativeIndex < narratives.length &&
+                   game.totalLumen >= narratives[game.narrativeIndex].trigger) {
+                showNarrative(game.narrativeIndex);
+                game.narrativeIndex++;
+            }
+
+            // Draw
+            draw();
+            updateUI();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function draw() {
+            // Clear
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background stars
+            ctx.fillStyle = 'white';
+            backgroundStars.forEach(star => {
+                const alpha = 0.3 + Math.sin(star.twinkle) * 0.3;
+                ctx.globalAlpha = alpha;
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+                star.twinkle += 0.02;
+            });
+            ctx.globalAlpha = 1;
+
+            // Draw Earth
+            const earthX = canvas.width / 2;
+            const earthY = canvas.height - 100;
+            const earthRadius = 60;
+
+            // Earth glow based on stability
+            const glowSize = earthRadius + (game.stability / 100) * 30;
+            const gradient = ctx.createRadialGradient(earthX, earthY, earthRadius, earthX, earthY, glowSize);
+
+            if (game.stability < 25) {
+                gradient.addColorStop(0, '#ff6b6b');
+                gradient.addColorStop(0.6, 'rgba(255,107,107,0.3)');
+            } else if (game.stability < 50) {
+                gradient.addColorStop(0, '#ffd93d');
+                gradient.addColorStop(0.6, 'rgba(255,217,61,0.3)');
+            } else if (game.stability < 75) {
+                gradient.addColorStop(0, '#6bcf7f');
+                gradient.addColorStop(0.6, 'rgba(107,207,127,0.3)');
+            } else {
+                gradient.addColorStop(0, '#00d4ff');
+                gradient.addColorStop(0.6, 'rgba(0,212,255,0.3)');
+            }
+            gradient.addColorStop(1, 'transparent');
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(earthX, earthY, glowSize, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Earth body
+            ctx.fillStyle = '#1a5f7a';
+            ctx.beginPath();
+            ctx.arc(earthX, earthY, earthRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Earth continents (simple)
+            ctx.fillStyle = '#2d8f5f';
+            ctx.beginPath();
+            ctx.arc(earthX - 20, earthY - 15, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(earthX + 15, earthY + 10, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Falling fragments
+            fallingFragments.forEach(frag => {
+                ctx.save();
+                ctx.translate(frag.x, frag.y);
+                ctx.rotate(frag.rotation);
+
+                // Glow
+                const glowAlpha = 0.3 + Math.sin(frag.glow) * 0.2;
+                ctx.globalAlpha = glowAlpha;
+                const fragGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, frag.size * 1.5);
+                fragGradient.addColorStop(0, '#00d4ff');
+                fragGradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = fragGradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, frag.size * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Star shape
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = '#00d4ff';
+                ctx.strokeStyle = '#0099cc';
+                ctx.lineWidth = 2;
+                drawStar(0, 0, 5, frag.size, frag.size * 0.5);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.restore();
+            });
+
+            // Particles
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = '#00d4ff';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.globalAlpha = 1;
+        }
+
+        function drawStar(cx, cy, spikes, outer, inner) {
+            let rot = Math.PI / 2 * 3;
+            const step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outer);
+
+            for (let i = 0; i < spikes; i++) {
+                let x = cx + Math.cos(rot) * outer;
+                let y = cy + Math.sin(rot) * outer;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * inner;
+                y = cy + Math.sin(rot) * inner;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+
+            ctx.lineTo(cx, cy - outer);
+            ctx.closePath();
+        }
+
+        // Format numbers
+        function formatNumber(num) {
+            if (num < 1000) return Math.floor(num);
+            if (num < 1000000) return (num / 1000).toFixed(1) + 'K';
+            if (num < 1000000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num < 1000000000000) return (num / 1000000000).toFixed(1) + 'B';
+            return (num / 1000000000000).toFixed(1) + 'T';
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('lumenDisplay').textContent = formatNumber(game.lumen) + ' Lumen';
+            document.getElementById('lumenPerSec').textContent = '+' + formatNumber(game.lumenPerSec) + ' L/s';
+            document.getElementById('stabilityPercent').textContent = game.stability.toFixed(1);
+            document.getElementById('stabilityFill').style.width = game.stability + '%';
+
+            document.getElementById('totalFragments').textContent = formatNumber(game.totalFragments);
+            document.getElementById('totalLumen').textContent = formatNumber(game.totalLumen);
+            document.getElementById('totalCycles').textContent = game.totalCycles;
+            document.getElementById('totalStardust').textContent = game.stardust;
+
+            renderUpgrades();
+            renderPrestige();
+        }
+
+        function renderUpgrades() {
+            const list = document.getElementById('upgradesList');
+            list.innerHTML = '';
+
+            for (const [key, data] of Object.entries(upgradeData)) {
+                const level = game.upgrades[key];
+                const cost = getUpgradeCost(key);
+                const affordable = game.lumen >= cost;
+                const maxed = level >= (data.max || Infinity);
+
+                const card = document.createElement('div');
+                card.className = 'upgrade-card';
+                if (affordable && !maxed) card.classList.add('affordable');
+                if (maxed) card.classList.add('maxed');
+
+                card.innerHTML = `
+                    <div class="upgrade-header">
+                        <div class="upgrade-name">${data.icon} ${data.name}</div>
+                        <div class="upgrade-level">Niv.${level}</div>
+                    </div>
+                    <div class="upgrade-desc">${data.desc}</div>
+                    <div class="upgrade-footer">
+                        <div class="upgrade-effect">${data.display(level + 1)}</div>
+                        <button class="buy-btn" ${!affordable || maxed ? 'disabled' : ''}
+                                onclick="buyUpgrade('${key}')">
+                            ${maxed ? 'MAX' : formatNumber(cost) + ' L'}
+                        </button>
+                    </div>
+                `;
+
+                list.appendChild(card);
+            }
+        }
+
+        function renderPrestige() {
+            const panel = document.getElementById('prestigePanel');
+            const gain = calculatePrestigeGain();
+            const canDo = canPrestige();
+
+            let html = `
+                <h3>🌟 RENAISSANCE STELLAIRE 🌟</h3>
+                <div class="prestige-info">
+                    Quand le réseau Astra sature, la Terre libère son énergie dans l'espace.<br>
+                    Réinitialisez vos technologies pour obtenir de la <strong style="color: #ffd93d;">Poussière d'Aube</strong>.
+                </div>
+                <div class="prestige-gain">Gain actuel : ${gain} Poussière d'Aube</div>
+                <button class="prestige-btn" ${!canDo ? 'disabled' : ''} onclick="doPrestige()">
+                    ⚡ DÉCLENCHER LA RENAISSANCE
+                </button>
+                <div style="margin-top: 20px; text-align: left;">
+                    <div style="color: #ffd93d; font-weight: bold; margin-bottom: 10px;">Améliorations Permanentes</div>
+            `;
+
+            for (const [key, data] of Object.entries(prestigeUpgradeData)) {
+                const level = game.prestigeUpgrades[key];
+                const cost = data.cost(level);
+                const affordable = game.stardust >= cost;
+                const maxed = level >= data.max;
+
+                html += `
+                    <div class="upgrade-card ${affordable && !maxed ? 'affordable' : ''} ${maxed ? 'maxed' : ''}">
+                        <div class="upgrade-header">
+                            <div class="upgrade-name">${data.name}</div>
+                            <div class="upgrade-level">Niv.${level}</div>
+                        </div>
+                        <div class="upgrade-desc">${data.desc}</div>
+                        <div class="upgrade-footer">
+                            <div class="upgrade-effect">${data.display(level + 1)}</div>
+                            <button class="buy-btn" ${!affordable || maxed ? 'disabled' : ''}
+                                    onclick="buyPrestigeUpgrade('${key}')">
+                                ${maxed ? 'MAX' : cost + ' PA'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            panel.innerHTML = html;
+        }
+
+        // Tab switching
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+
+            tabs[index].classList.add('active');
+            contents[index].classList.add('active');
+        }
+
+        // Settings
+        function toggleSound() {
+            soundEnabled = document.getElementById('soundToggle').checked;
+            saveGame();
+        }
+
+        function toggleAutoSave() {
+            autoSaveEnabled = document.getElementById('autoSaveToggle').checked;
+            saveGame();
+        }
+
+        // Notification
+        function showNotification(msg) {
+            const notif = document.getElementById('notification');
+            notif.textContent = msg;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 2000);
+        }
+
+        // Save/Load
+        function saveGame() {
+            const save = {
+                ...game,
+                soundEnabled,
+                autoSaveEnabled,
+                version: 1
+            };
+            localStorage.setItem('fallingStarsSave', JSON.stringify(save));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('fallingStarsSave');
+            if (saved) {
+                const data = JSON.parse(saved);
+
+                // Calculate offline progress
+                const offlineTime = (Date.now() - data.lastTick) / 1000;
+                const maxOffline = 3600 * (4 + prestigeUpgradeData.offlineBonus.effect(data.prestigeUpgrades.offlineBonus || 0));
+                const actualOffline = Math.min(offlineTime, maxOffline);
+
+                game = data;
+                game.lastTick = Date.now();
+
+                game.lumenPerSec = calculateLumenPerSec();
+                game.clickPower = calculateClickPower();
+
+                const offlineGain = game.lumenPerSec * actualOffline;
+                if (offlineGain > 0) {
+                    game.lumen += offlineGain;
+                    game.totalLumen += offlineGain;
+                    showNotification(`⏱️ Gains hors ligne : +${formatNumber(offlineGain)} Lumen`);
+                }
+
+                soundEnabled = data.soundEnabled !== undefined ? data.soundEnabled : true;
+                autoSaveEnabled = data.autoSaveEnabled !== undefined ? data.autoSaveEnabled : true;
+
+                document.getElementById('soundToggle').checked = soundEnabled;
+                document.getElementById('autoSaveToggle').checked = autoSaveEnabled;
+
+                return true;
+            }
+            return false;
+        }
+
+        function resetGame() {
+            if (confirm('⚠️ Réinitialiser complètement ? Vous perdrez TOUTE progression !')) {
+                localStorage.removeItem('fallingStarsSave');
+                location.reload();
+            }
+        }
+
+        function exportSave() {
+            const save = localStorage.getItem('fallingStarsSave');
+            if (save) {
+                navigator.clipboard.writeText(save);
+                showNotification('💾 Sauvegarde copiée !');
+            }
+        }
+
+        function importSave() {
+            const data = prompt('Collez votre sauvegarde :');
+            if (data) {
+                try {
+                    JSON.parse(data);
+                    localStorage.setItem('fallingStarsSave', data);
+                    location.reload();
+                } catch {
+                    alert('❌ Sauvegarde invalide !');
+                }
+            }
+        }
+
+        // Start game
+        function startGame() {
+            document.getElementById('welcome').style.display = 'none';
+
+            loadGame();
+
+            game.lumenPerSec = calculateLumenPerSec();
+            game.clickPower = calculateClickPower();
+
+            updateUI();
+            gameLoop();
+
+            if (game.totalLumen === 0) {
+                showNarrative(0);
+            }
+
+            // Auto-save
+            setInterval(() => {
+                if (autoSaveEnabled) saveGame();
+            }, 10000);
+        }
+
+        // Prevent unload without save
+        window.addEventListener('beforeunload', () => {
+            saveGame();
+        });
+    </script>
+</body>
+</html>
