@@ -108,9 +108,9 @@
         #leftIconBar {
             position: fixed;
             left: 0;
-            top: 70px;
+            top: 120px;
             width: 45px;
-            max-height: calc(100vh - 300px);
+            max-height: calc(100vh - 350px);
             background: linear-gradient(to right, rgba(0,0,0,0.9), rgba(0,0,0,0.7));
             border-right: 1px solid rgba(0,212,255,0.3);
             z-index: 99;
@@ -169,10 +169,12 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            pointer-events: none;
         }
 
         .modal-overlay.active {
             display: flex;
+            pointer-events: auto;
         }
 
         .modal-content {
@@ -2029,8 +2031,8 @@
         }
 
         function closeModal(type, event) {
-            // If event is provided, check if clicking on overlay (not content)
-            if (event && event.target.classList.contains('modal-content')) {
+            // If event is provided and it's not the overlay itself, don't close
+            if (event && !event.target.classList.contains('modal-overlay')) {
                 return;
             }
             const modalId = type + 'Modal';
