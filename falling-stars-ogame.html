@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Falling Stars – Foundations of Light</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            width: 100%;
+            min-height: 100vh;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Courier New', monospace;
+            color: white;
+        }
+
+        #gameCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* Header */
+        #header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.95), rgba(0,0,0,0.7));
+            padding: 10px 15px;
+            z-index: 100;
+            border-bottom: 1px solid rgba(0,212,255,0.3);
+        }
+
+        .resources {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 5px;
+        }
+
+        .resource {
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .resource-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .resource-rate {
+            font-size: 10px;
+            color: #4ecdc4;
+        }
+
+        #planetSelector {
+            text-align: center;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #ffd93d;
+        }
+
+        #planetSelector select {
+            background: rgba(0,50,100,0.8);
+            color: white;
+            border: 1px solid #00d4ff;
+            padding: 3px 8px;
+            border-radius: 5px;
+            margin-left: 5px;
+            font-family: inherit;
+        }
+
+        /* Bottom UI */
+        #bottomUI {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.98), rgba(0,0,0,0.85));
+            z-index: 100;
+            border-top: 1px solid rgba(0,212,255,0.3);
+        }
+
+        #tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(0,212,255,0.3);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px 5px;
+            text-align: center;
+            font-size: 11px;
+            background: rgba(0,20,40,0.5);
+            border-right: 1px solid rgba(0,212,255,0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab:last-child {
+            border-right: none;
+        }
+
+        .tab.active {
+            background: rgba(0,100,150,0.6);
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            max-height: 30vh;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Scrollbar */
+        .tab-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .tab-content::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+        }
+
+        .tab-content::-webkit-scrollbar-thumb {
+            background: rgba(0,212,255,0.5);
+            border-radius: 2px;
+        }
+
+        /* Building/Tech Card */
+        .item-card {
+            background: rgba(0,30,60,0.9);
+            border: 1px solid rgba(0,212,255,0.4);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+
+        .item-card.buildable {
+            border-color: #00d4ff;
+            background: rgba(0,50,100,0.9);
+        }
+
+        .item-card.locked {
+            opacity: 0.5;
+            border-color: #555;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .item-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .item-level {
+            background: rgba(0,212,255,0.3);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+        }
+
+        .item-desc {
+            font-size: 10px;
+            color: #aaa;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .item-stats {
+            font-size: 11px;
+            color: #4ecdc4;
+            margin-bottom: 6px;
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-cost {
+            font-size: 10px;
+            color: #ffd93d;
+        }
+
+        .build-btn {
+            background: linear-gradient(135deg, #00a8cc, #0077b6);
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .build-btn:disabled {
+            background: #333;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .build-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .tech-req {
+            font-size: 9px;
+            color: #ff6b6b;
+            margin-top: 3px;
+        }
+
+        /* Planet Card */
+        .planet-card {
+            background: rgba(0,30,60,0.9);
+            border: 2px solid rgba(0,212,255,0.4);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .planet-card.current {
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0,212,255,0.5);
+        }
+
+        .planet-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+
+        .planet-bonus {
+            font-size: 11px;
+            color: #4ecdc4;
+            margin-bottom: 8px;
+        }
+
+        .unlock-btn {
+            background: linear-gradient(135deg, #ffd93d, #ff9500);
+            border: none;
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        /* Welcome Screen */
+        #welcome {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.98);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        #welcome h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0,212,255,0.8);
+        }
+
+        #welcome .subtitle {
+            font-size: 14px;
+            color: #ffd93d;
+            margin-bottom: 20px;
+        }
+
+        #welcome .story {
+            max-width: 450px;
+            color: #aaa;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-align: justify;
+        }
+
+        #welcome button {
+            background: linear-gradient(135deg, #00a8cc, #0077b6);
+            border: 2px solid #00d4ff;
+            color: white;
+            padding: 12px 35px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0,212,255,0.5);
+            font-family: inherit;
+        }
+
+        /* Notification */
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,212,255,0.95);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 2000;
+            box-shadow: 0 4px 15px rgba(0,212,255,0.6);
+        }
+
+        #notification.show {
+            opacity: 1;
+        }
+
+        .floating-text {
+            position: absolute;
+            font-size: 18px;
+            font-weight: bold;
+            color: #00d4ff;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            text-shadow: 0 0 10px rgba(0,212,255,0.8);
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            to {
+                transform: translateY(-70px);
+                opacity: 0;
+            }
+        }
+
+        /* Ranking */
+        .rank-item {
+            background: rgba(0,30,60,0.8);
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .rank-title {
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .rank-value {
+            color: #4ecdc4;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="notification"></div>
+
+    <div id="welcome">
+        <h1>⭐ FALLING STARS ⭐</h1>
+        <div class="subtitle">Foundations of Light</div>
+        <div class="story">
+            Les <strong>fragments stellaires</strong> pleuvent sur la Terre. Sans contrôle, ils détruisent tout. Bien canalisés, ils peuvent régénérer la planète.<br><br>
+
+            En tant que <strong>Commandant Astra</strong>, gérez vos ressources, construisez des infrastructures, recherchez de nouvelles technologies et colonisez le système solaire.<br><br>
+
+            <strong>Capturez les fragments</strong> en cliquant dessus et développez votre empire cosmique.
+        </div>
+        <button onclick="startGame()">⚡ INITIALISER ASTRA</button>
+    </div>
+
+    <div id="header" style="display: none;">
+        <div class="resources">
+            <div class="resource">
+                <div>⭐ Lumen</div>
+                <div class="resource-value" id="lumenVal">0</div>
+                <div class="resource-rate" id="lumenRate">+0/s</div>
+            </div>
+            <div class="resource">
+                <div>⚡ Énergie</div>
+                <div class="resource-value" id="energyVal">0</div>
+                <div class="resource-rate" id="energyRate">+0/s</div>
+            </div>
+            <div class="resource">
+                <div>🌑 Matière</div>
+                <div class="resource-value" id="matterVal">0</div>
+                <div class="resource-rate" id="matterRate">+0/s</div>
+            </div>
+        </div>
+        <div id="planetSelector">
+            🌍 Planète: <select id="planetSelect" onchange="switchPlanet(this.value)"></select>
+        </div>
+    </div>
+
+    <div id="bottomUI" style="display: none;">
+        <div id="tabs">
+            <div class="tab active" onclick="switchTab(0)">🏗️ BÂTIMENTS</div>
+            <div class="tab" onclick="switchTab(1)">🔬 TECHNOLOGIES</div>
+            <div class="tab" onclick="switchTab(2)">🌍 PLANÈTES</div>
+            <div class="tab" onclick="switchTab(3)">🏆 EMPIRE</div>
+        </div>
+
+        <div id="buildings" class="tab-content active"></div>
+        <div id="technologies" class="tab-content"></div>
+        <div id="planets" class="tab-content"></div>
+        <div id="empire" class="tab-content"></div>
+    </div>
+
+    <script>
+        // Audio
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let soundEnabled = true;
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            switch(type) {
+                case 'catch':
+                    osc.frequency.value = 600;
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                    osc.stop(now + 0.15);
+                    break;
+                case 'build':
+                    osc.frequency.value = 400;
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+                    osc.stop(now + 0.2);
+                    break;
+            }
+        }
+
+        // Game State
+        let game = {
+            currentPlanet: 'earth',
+            planets: {
+                earth: {
+                    name: 'Terre',
+                    unlocked: true,
+                    bonus: { lumen: 1, energy: 1, matter: 1 },
+                    buildings: {}
+                },
+                mars: {
+                    name: 'Mars',
+                    unlocked: false,
+                    bonus: { lumen: 1.2, energy: 1, matter: 1 },
+                    unlockCost: { matter: 1000 }
+                },
+                titan: {
+                    name: 'Titan',
+                    unlocked: false,
+                    bonus: { lumen: 1, energy: 1.2, matter: 1.3 },
+                    unlockCost: { matter: 5000, energy: 10000 }
+                }
+            },
+            resources: {
+                lumen: 0,
+                energy: 0,
+                matter: 0
+            },
+            totalResources: {
+                lumen: 0,
+                energy: 0,
+                matter: 0
+            },
+            technologies: {},
+            clickPower: 1,
+            lastTick: Date.now()
+        };
+
+        // Buildings Definition
+        const buildingData = {
+            lumenMine: {
+                name: 'Mine de Lumen',
+                icon: '⛏️',
+                desc: 'Extrait du Lumen des fragments stellaires',
+                baseCost: { lumen: 50 },
+                costMult: 1.5,
+                production: level => ({ lumen: level * 2 }),
+                max: 20
+            },
+            energyCollector: {
+                name: 'Collecteur d\'Énergie',
+                icon: '⚡',
+                desc: 'Capte l\'énergie cosmique ambiante',
+                baseCost: { lumen: 100, energy: 20 },
+                costMult: 1.5,
+                production: level => ({ energy: level * 3 }),
+                max: 20
+            },
+            matterExtractor: {
+                name: 'Extracteur de Matière',
+                icon: '🌑',
+                desc: 'Récolte la matière noire de l\'espace',
+                baseCost: { lumen: 500, energy: 100 },
+                costMult: 1.6,
+                production: level => ({ matter: level * 0.5 }),
+                requires: { tech: 'quantumResonance' },
+                max: 15
+            },
+            researchLab: {
+                name: 'Laboratoire de Recherche',
+                icon: '🔬',
+                desc: 'Nécessaire pour débloquer les technologies',
+                baseCost: { lumen: 200, energy: 50 },
+                costMult: 1.8,
+                production: level => ({}),
+                max: 10
+            },
+            orbitalDefense: {
+                name: 'Défense Orbitale',
+                icon: '🛡️',
+                desc: 'Capture automatiquement les fragments manqués',
+                baseCost: { lumen: 1000, energy: 200, matter: 50 },
+                costMult: 1.7,
+                production: level => ({ lumen: level * 5 }),
+                requires: { tech: 'planetaryShields' },
+                max: 10
+            }
+        };
+
+        // Technologies Definition
+        const techData = {
+            miningEfficiency: {
+                name: 'Efficacité Minière',
+                icon: '⛏️',
+                desc: 'Augmente la production des mines de 10% par niveau',
+                baseCost: { lumen: 300, energy: 100 },
+                costMult: 2,
+                max: 10,
+                requires: {}
+            },
+            advancedCapture: {
+                name: 'Capture Avancée',
+                icon: '👆',
+                desc: 'Augmente la puissance de capture manuelle',
+                baseCost: { lumen: 200, energy: 50 },
+                costMult: 1.8,
+                max: 15,
+                requires: {}
+            },
+            quantumResonance: {
+                name: 'Résonance Quantique',
+                icon: '〰️',
+                desc: 'Débloque l\'Extracteur de Matière',
+                baseCost: { lumen: 1000, energy: 300 },
+                costMult: 1,
+                max: 1,
+                requires: { building: 'researchLab', level: 2 }
+            },
+            stellarPropulsion: {
+                name: 'Propulsion Stellaire',
+                icon: '🚀',
+                desc: 'Permet de coloniser de nouvelles planètes',
+                baseCost: { lumen: 2000, energy: 500, matter: 100 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'quantumResonance' }
+            },
+            planetaryShields: {
+                name: 'Boucliers Planétaires',
+                icon: '🛡️',
+                desc: 'Débloque la Défense Orbitale',
+                baseCost: { lumen: 3000, energy: 1000, matter: 200 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'stellarPropulsion' }
+            },
+            astraAI: {
+                name: 'IA Astra',
+                icon: '🤖',
+                desc: 'Améliore l\'efficacité globale de 5% par niveau',
+                baseCost: { lumen: 5000, energy: 2000, matter: 500 },
+                costMult: 2.5,
+                max: 5,
+                requires: { building: 'researchLab', level: 5 }
+            }
+        };
+
+        // Initialize planet buildings
+        for (let planetKey in game.planets) {
+            if (!game.planets[planetKey].buildings) {
+                game.planets[planetKey].buildings = {};
+            }
+            for (let buildKey in buildingData) {
+                if (!game.planets[planetKey].buildings[buildKey]) {
+                    game.planets[planetKey].buildings[buildKey] = 0;
+                }
+            }
+        }
+
+        // Initialize technologies
+        for (let techKey in techData) {
+            if (!game.technologies[techKey]) {
+                game.technologies[techKey] = 0;
+            }
+        }
+
+        // Get building cost
+        function getBuildingCost(buildKey, level) {
+            const data = buildingData[buildKey];
+            const cost = {};
+            for (let res in data.baseCost) {
+                cost[res] = Math.floor(data.baseCost[res] * Math.pow(data.costMult, level));
+            }
+            return cost;
+        }
+
+        // Get tech cost
+        function getTechCost(techKey, level) {
+            const data = techData[techKey];
+            const cost = {};
+            for (let res in data.baseCost) {
+                cost[res] = Math.floor(data.baseCost[res] * Math.pow(data.costMult, level));
+            }
+            return cost;
+        }
+
+        // Check if can afford
+        function canAfford(cost) {
+            for (let res in cost) {
+                if (game.resources[res] < cost[res]) return false;
+            }
+            return true;
+        }
+
+        // Spend resources
+        function spendResources(cost) {
+            for (let res in cost) {
+                game.resources[res] -= cost[res];
+            }
+        }
+
+        // Check building requirements
+        function checkBuildingReqs(buildKey) {
+            const data = buildingData[buildKey];
+            if (!data.requires) return true;
+
+            if (data.requires.tech) {
+                if (!game.technologies[data.requires.tech] || game.technologies[data.requires.tech] < 1) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Check tech requirements
+        function checkTechReqs(techKey) {
+            const data = techData[techKey];
+            if (!data.requires) return true;
+
+            if (data.requires.tech) {
+                if (!game.technologies[data.requires.tech] || game.technologies[data.requires.tech] < 1) {
+                    return false;
+                }
+            }
+
+            if (data.requires.building) {
+                const planet = game.planets[game.currentPlanet];
+                const level = planet.buildings[data.requires.building] || 0;
+                if (level < (data.requires.level || 1)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Build building
+        function buildBuilding(buildKey) {
+            const planet = game.planets[game.currentPlanet];
+            const level = planet.buildings[buildKey] || 0;
+            const data = buildingData[buildKey];
+
+            if (level >= data.max) return;
+            if (!checkBuildingReqs(buildKey)) return;
+
+            const cost = getBuildingCost(buildKey, level);
+            if (!canAfford(cost)) return;
+
+            spendResources(cost);
+            planet.buildings[buildKey] = level + 1;
+
+            playSound('build');
+            showNotification(`✓ ${data.name} Niv.${level + 1}`);
+            updateUI();
+            saveGame();
+        }
+
+        // Research tech
+        function researchTech(techKey) {
+            const level = game.technologies[techKey] || 0;
+            const data = techData[techKey];
+
+            if (level >= data.max) return;
+            if (!checkTechReqs(techKey)) return;
+
+            const cost = getTechCost(techKey, level);
+            if (!canAfford(cost)) return;
+
+            spendResources(cost);
+            game.technologies[techKey] = level + 1;
+
+            playSound('build');
+            showNotification(`✓ ${data.name} Niv.${level + 1}`);
+            updateUI();
+            saveGame();
+        }
+
+        // Unlock planet
+        function unlockPlanet(planetKey) {
+            const planet = game.planets[planetKey];
+            if (planet.unlocked) return;
+
+            const cost = planet.unlockCost;
+            if (!canAfford(cost)) return;
+
+            spendResources(cost);
+            planet.unlocked = true;
+
+            // Initialize buildings for new planet
+            planet.buildings = {};
+            for (let buildKey in buildingData) {
+                planet.buildings[buildKey] = 0;
+            }
+
+            playSound('build');
+            showNotification(`🌍 ${planet.name} débloquée !`);
+            updateUI();
+            saveGame();
+        }
+
+        // Switch planet
+        function switchPlanet(planetKey) {
+            game.currentPlanet = planetKey;
+            updateUI();
+        }
+
+        // Calculate production
+        function calculateProduction() {
+            const prod = { lumen: 0, energy: 0, matter: 0 };
+
+            for (let planetKey in game.planets) {
+                const planet = game.planets[planetKey];
+                if (!planet.unlocked) continue;
+
+                for (let buildKey in planet.buildings) {
+                    const level = planet.buildings[buildKey];
+                    if (level > 0) {
+                        const buildProd = buildingData[buildKey].production(level);
+                        for (let res in buildProd) {
+                            let amount = buildProd[res] * planet.bonus[res];
+
+                            // Apply mining efficiency
+                            if (buildKey === 'lumenMine' && game.technologies.miningEfficiency) {
+                                amount *= (1 + game.technologies.miningEfficiency * 0.1);
+                            }
+
+                            // Apply AI Astra
+                            if (game.technologies.astraAI) {
+                                amount *= (1 + game.technologies.astraAI * 0.05);
+                            }
+
+                            prod[res] += amount;
+                        }
+                    }
+                }
+            }
+
+            return prod;
+        }
+
+        // Calculate click power
+        function calculateClickPower() {
+            let power = 1;
+
+            if (game.technologies.advancedCapture) {
+                power += game.technologies.advancedCapture * 2;
+            }
+
+            return power;
+        }
+
+        // Canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let fallingFragments = [];
+        let particles = [];
+        let backgroundStars = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initBackgroundStars();
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function initBackgroundStars() {
+            backgroundStars = [];
+            for (let i = 0; i < 100; i++) {
+                backgroundStars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.5,
+                    twinkle: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        // Spawn fragment
+        let spawnTimer = 0;
+        const spawnInterval = 1500;
+
+        function spawnFragment() {
+            fallingFragments.push({
+                x: Math.random() * (canvas.width - 60) + 30,
+                y: -30,
+                size: 12 + Math.random() * 8,
+                speed: 1.5 + Math.random() * 1,
+                rotation: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 0.1,
+                glow: Math.random()
+            });
+        }
+
+        // Create particles
+        function createParticles(x, y, count = 12) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    life: 1,
+                    size: Math.random() * 2 + 1
+                });
+            }
+        }
+
+        // Click handler
+        function handleFragmentClick(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = clientX - rect.left;
+            const clickY = clientY - rect.top;
+
+            for (let i = fallingFragments.length - 1; i >= 0; i--) {
+                const frag = fallingFragments[i];
+                const dist = Math.sqrt((clickX - frag.x) ** 2 + (clickY - frag.y) ** 2);
+
+                if (dist < frag.size) {
+                    const gain = game.clickPower;
+                    game.resources.lumen += gain;
+                    game.totalResources.lumen += gain;
+
+                    createParticles(frag.x, frag.y);
+                    fallingFragments.splice(i, 1);
+
+                    const ft = document.createElement('div');
+                    ft.className = 'floating-text';
+                    ft.textContent = `+${formatNumber(gain)}`;
+                    ft.style.left = clientX + 'px';
+                    ft.style.top = clientY + 'px';
+                    document.body.appendChild(ft);
+                    setTimeout(() => ft.remove(), 1000);
+
+                    playSound('catch');
+                    updateUI();
+                    break;
+                }
+            }
+        }
+
+        canvas.addEventListener('click', (e) => handleFragmentClick(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            handleFragmentClick(touch.clientX, touch.clientY);
+        });
+
+        // Game loop
+        function gameLoop() {
+            const now = Date.now();
+            const delta = (now - game.lastTick) / 1000;
+            game.lastTick = now;
+
+            // Production
+            const prod = calculateProduction();
+            for (let res in prod) {
+                const gain = prod[res] * delta;
+                game.resources[res] += gain;
+                game.totalResources[res] += gain;
+            }
+
+            // Spawn fragments
+            spawnTimer += delta * 1000;
+            if (spawnTimer > spawnInterval) {
+                spawnFragment();
+                spawnTimer = 0;
+            }
+
+            // Update fragments
+            const menuHeight = 220;
+            for (let i = fallingFragments.length - 1; i >= 0; i--) {
+                const frag = fallingFragments[i];
+                frag.y += frag.speed;
+                frag.rotation += frag.rotSpeed;
+                frag.glow = (frag.glow + delta * 2) % (Math.PI * 2);
+
+                if (frag.y > canvas.height - menuHeight) {
+                    fallingFragments.splice(i, 1);
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= delta * 2;
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Background stars
+            ctx.fillStyle = 'white';
+            backgroundStars.forEach(star => {
+                const alpha = 0.3 + Math.sin(star.twinkle) * 0.3;
+                ctx.globalAlpha = alpha;
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+                star.twinkle += 0.02;
+            });
+            ctx.globalAlpha = 1;
+
+            // Falling fragments
+            fallingFragments.forEach(frag => {
+                ctx.save();
+                ctx.translate(frag.x, frag.y);
+                ctx.rotate(frag.rotation);
+
+                // Glow
+                const glowAlpha = 0.3 + Math.sin(frag.glow) * 0.2;
+                ctx.globalAlpha = glowAlpha;
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, frag.size * 1.5);
+                gradient.addColorStop(0, '#00d4ff');
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, frag.size * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Star
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = '#00d4ff';
+                ctx.strokeStyle = '#0099cc';
+                ctx.lineWidth = 2;
+                drawStar(0, 0, 5, frag.size, frag.size * 0.5);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.restore();
+            });
+
+            // Particles
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = '#00d4ff';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.globalAlpha = 1;
+        }
+
+        function drawStar(cx, cy, spikes, outer, inner) {
+            let rot = Math.PI / 2 * 3;
+            const step = Math.PI / spikes;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outer);
+            for (let i = 0; i < spikes; i++) {
+                let x = cx + Math.cos(rot) * outer;
+                let y = cy + Math.sin(rot) * outer;
+                ctx.lineTo(x, y);
+                rot += step;
+                x = cx + Math.cos(rot) * inner;
+                y = cy + Math.sin(rot) * inner;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outer);
+            ctx.closePath();
+        }
+
+        // Format numbers
+        function formatNumber(num) {
+            if (num < 1000) return Math.floor(num);
+            if (num < 1000000) return (num / 1000).toFixed(1) + 'K';
+            if (num < 1000000000) return (num / 1000000).toFixed(1) + 'M';
+            return (num / 1000000000).toFixed(1) + 'B';
+        }
+
+        function formatCost(cost) {
+            const parts = [];
+            if (cost.lumen) parts.push(`${formatNumber(cost.lumen)} L`);
+            if (cost.energy) parts.push(`${formatNumber(cost.energy)} E`);
+            if (cost.matter) parts.push(`${formatNumber(cost.matter)} M`);
+            return parts.join(' | ');
+        }
+
+        // Update UI
+        function updateUI() {
+            // Update resources
+            document.getElementById('lumenVal').textContent = formatNumber(game.resources.lumen);
+            document.getElementById('energyVal').textContent = formatNumber(game.resources.energy);
+            document.getElementById('matterVal').textContent = formatNumber(game.resources.matter);
+
+            const prod = calculateProduction();
+            document.getElementById('lumenRate').textContent = '+' + formatNumber(prod.lumen) + '/s';
+            document.getElementById('energyRate').textContent = '+' + formatNumber(prod.energy) + '/s';
+            document.getElementById('matterRate').textContent = '+' + formatNumber(prod.matter) + '/s';
+
+            // Update planet selector
+            const planetSelect = document.getElementById('planetSelect');
+            planetSelect.innerHTML = '';
+            for (let planetKey in game.planets) {
+                if (game.planets[planetKey].unlocked) {
+                    const option = document.createElement('option');
+                    option.value = planetKey;
+                    option.textContent = game.planets[planetKey].name;
+                    if (planetKey === game.currentPlanet) option.selected = true;
+                    planetSelect.appendChild(option);
+                }
+            }
+
+            // Update click power
+            game.clickPower = calculateClickPower();
+
+            renderBuildings();
+            renderTechnologies();
+            renderPlanets();
+            renderEmpire();
+        }
+
+        function renderBuildings() {
+            const container = document.getElementById('buildings');
+            container.innerHTML = '';
+
+            const planet = game.planets[game.currentPlanet];
+
+            for (let buildKey in buildingData) {
+                const data = buildingData[buildKey];
+                const level = planet.buildings[buildKey] || 0;
+                const cost = getBuildingCost(buildKey, level);
+                const affordable = canAfford(cost);
+                const maxed = level >= data.max;
+                const locked = !checkBuildingReqs(buildKey);
+
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                if (affordable && !maxed && !locked) card.classList.add('buildable');
+                if (locked || maxed) card.classList.add('locked');
+
+                let statsHTML = '';
+                const prod = data.production(level + 1);
+                if (Object.keys(prod).length > 0) {
+                    const prodParts = [];
+                    for (let res in prod) {
+                        prodParts.push(`${formatNumber(prod[res])} ${res}/s`);
+                    }
+                    statsHTML = `<div class="item-stats">Production: ${prodParts.join(', ')}</div>`;
+                }
+
+                let reqHTML = '';
+                if (locked && data.requires && data.requires.tech) {
+                    reqHTML = `<div class="tech-req">Requis: ${techData[data.requires.tech].name}</div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="item-header">
+                        <div class="item-title">${data.icon} ${data.name}</div>
+                        <div class="item-level">Niv.${level}</div>
+                    </div>
+                    <div class="item-desc">${data.desc}</div>
+                    ${statsHTML}
+                    ${reqHTML}
+                    <div class="item-footer">
+                        <div class="item-cost">${maxed ? 'MAX' : formatCost(cost)}</div>
+                        <button class="build-btn" ${!affordable || maxed || locked ? 'disabled' : ''}
+                                onclick="buildBuilding('${buildKey}')">
+                            ${maxed ? 'MAX' : locked ? '🔒' : 'CONSTRUIRE'}
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            }
+        }
+
+        function renderTechnologies() {
+            const container = document.getElementById('technologies');
+            container.innerHTML = '';
+
+            for (let techKey in techData) {
+                const data = techData[techKey];
+                const level = game.technologies[techKey] || 0;
+                const cost = getTechCost(techKey, level);
+                const affordable = canAfford(cost);
+                const maxed = level >= data.max;
+                const locked = !checkTechReqs(techKey);
+
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                if (affordable && !maxed && !locked) card.classList.add('buildable');
+                if (locked || maxed) card.classList.add('locked');
+
+                let reqHTML = '';
+                if (locked) {
+                    if (data.requires.tech) {
+                        reqHTML = `<div class="tech-req">Requis: ${techData[data.requires.tech].name}</div>`;
+                    }
+                    if (data.requires.building) {
+                        const reqLevel = data.requires.level || 1;
+                        reqHTML = `<div class="tech-req">Requis: ${buildingData[data.requires.building].name} Niv.${reqLevel}</div>`;
+                    }
+                }
+
+                card.innerHTML = `
+                    <div class="item-header">
+                        <div class="item-title">${data.icon} ${data.name}</div>
+                        <div class="item-level">Niv.${level}</div>
+                    </div>
+                    <div class="item-desc">${data.desc}</div>
+                    ${reqHTML}
+                    <div class="item-footer">
+                        <div class="item-cost">${maxed ? 'RECHERCHÉ' : formatCost(cost)}</div>
+                        <button class="build-btn" ${!affordable || maxed || locked ? 'disabled' : ''}
+                                onclick="researchTech('${techKey}')">
+                            ${maxed ? 'MAX' : locked ? '🔒' : 'RECHERCHER'}
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            }
+        }
+
+        function renderPlanets() {
+            const container = document.getElementById('planets');
+            container.innerHTML = '';
+
+            for (let planetKey in game.planets) {
+                const planet = game.planets[planetKey];
+                const isCurrent = planetKey === game.currentPlanet;
+
+                const card = document.createElement('div');
+                card.className = 'planet-card';
+                if (isCurrent) card.classList.add('current');
+
+                let bonusText = [];
+                if (planet.bonus.lumen > 1) bonusText.push(`+${Math.round((planet.bonus.lumen - 1) * 100)}% Lumen`);
+                if (planet.bonus.energy > 1) bonusText.push(`+${Math.round((planet.bonus.energy - 1) * 100)}% Énergie`);
+                if (planet.bonus.matter > 1) bonusText.push(`+${Math.round((planet.bonus.matter - 1) * 100)}% Matière`);
+
+                let content = `
+                    <div class="planet-name">${planet.name}</div>
+                    <div class="planet-bonus">${bonusText.join(' | ') || 'Aucun bonus'}</div>
+                `;
+
+                if (!planet.unlocked) {
+                    const cost = planet.unlockCost;
+                    const affordable = canAfford(cost);
+                    content += `
+                        <div style="font-size: 10px; color: #ffd93d; margin-bottom: 5px;">${formatCost(cost)}</div>
+                        <button class="unlock-btn" ${!affordable ? 'disabled' : ''}
+                                onclick="unlockPlanet('${planetKey}')">
+                            ${affordable ? 'COLONISER' : '🔒 Locked'}
+                        </button>
+                    `;
+                } else if (!isCurrent) {
+                    content += `<div style="font-size: 11px; color: #4ecdc4;">✓ Colonisée</div>`;
+                } else {
+                    content += `<div style="font-size: 11px; color: #00d4ff; font-weight: bold;">⚡ ACTIVE</div>`;
+                }
+
+                card.innerHTML = content;
+                container.appendChild(card);
+            }
+        }
+
+        function renderEmpire() {
+            const container = document.getElementById('empire');
+
+            // Calculate total score
+            let totalScore = 0;
+            for (let res in game.totalResources) {
+                totalScore += game.totalResources[res];
+            }
+
+            let planetsUnlocked = 0;
+            for (let planetKey in game.planets) {
+                if (game.planets[planetKey].unlocked) planetsUnlocked++;
+            }
+
+            let techsResearched = 0;
+            for (let techKey in game.technologies) {
+                techsResearched += game.technologies[techKey];
+            }
+
+            container.innerHTML = `
+                <div style="text-align: center; padding: 10px;">
+                    <div style="font-size: 16px; color: #00d4ff; font-weight: bold; margin-bottom: 15px;">
+                        🏆 EMPIRE ASTRA
+                    </div>
+
+                    <div class="rank-item">
+                        <div class="rank-title">Score Total</div>
+                        <div class="rank-value">${formatNumber(totalScore)}</div>
+                    </div>
+
+                    <div class="rank-item">
+                        <div class="rank-title">Planètes Colonisées</div>
+                        <div class="rank-value">${planetsUnlocked}/3</div>
+                    </div>
+
+                    <div class="rank-item">
+                        <div class="rank-title">Technologies Recherchées</div>
+                        <div class="rank-value">${techsResearched}</div>
+                    </div>
+
+                    <div class="rank-item">
+                        <div class="rank-title">Lumen Total</div>
+                        <div class="rank-value">${formatNumber(game.totalResources.lumen)}</div>
+                    </div>
+
+                    <div class="rank-item">
+                        <div class="rank-title">Énergie Totale</div>
+                        <div class="rank-value">${formatNumber(game.totalResources.energy)}</div>
+                    </div>
+
+                    <div class="rank-item">
+                        <div class="rank-title">Matière Totale</div>
+                        <div class="rank-value">${formatNumber(game.totalResources.matter)}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Tab switching
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+
+            tabs[index].classList.add('active');
+            contents[index].classList.add('active');
+        }
+
+        // Notification
+        function showNotification(msg) {
+            const notif = document.getElementById('notification');
+            notif.textContent = msg;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 2000);
+        }
+
+        // Save/Load
+        function saveGame() {
+            const save = {
+                ...game,
+                version: 2
+            };
+            localStorage.setItem('fallingStarsOGame', JSON.stringify(save));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('fallingStarsOGame');
+            if (saved) {
+                const data = JSON.parse(saved);
+
+                // Calculate offline progress
+                const offlineTime = (Date.now() - data.lastTick) / 1000;
+                const maxOffline = 3600 * 4; // 4 hours
+                const actualOffline = Math.min(offlineTime, maxOffline);
+
+                game = data;
+                game.lastTick = Date.now();
+
+                // Restore production calculation
+                const prod = calculateProduction();
+                for (let res in prod) {
+                    const gain = prod[res] * actualOffline;
+                    game.resources[res] += gain;
+                    game.totalResources[res] += gain;
+                }
+
+                if (actualOffline > 60) {
+                    showNotification(`⏱️ Gains hors ligne calculés`);
+                }
+
+                return true;
+            }
+            return false;
+        }
+
+        // Start game
+        function startGame() {
+            document.getElementById('welcome').style.display = 'none';
+            document.getElementById('header').style.display = 'block';
+            document.getElementById('bottomUI').style.display = 'block';
+
+            loadGame();
+            updateUI();
+            gameLoop();
+
+            // Auto-save
+            setInterval(() => saveGame(), 10000);
+        }
+
+        window.addEventListener('beforeunload', () => saveGame());
+    </script>
+</body>
+</html>
