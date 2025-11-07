@@ -2333,7 +2333,37 @@
                 const maxOffline = 3600 * 4;
                 const actualOffline = Math.min(offlineTime, maxOffline);
 
-                game = data;
+                // Merge saved data with default game object to ensure new fields exist
+                game = Object.assign({}, game, data);
+
+                // Ensure new fields exist (for old saves)
+                if (!game.dailyRewards) {
+                    game.dailyRewards = { lastClaim: 0, streak: 0 };
+                }
+                if (!game.freeLootbox) {
+                    game.freeLootbox = { lastOpen: 0 };
+                }
+                if (!game.prestige) {
+                    game.prestige = { level: 0, totalLumenEarned: 0 };
+                }
+                if (!game.activeBoosts) {
+                    game.activeBoosts = [];
+                }
+                if (!game.activeEvents) {
+                    game.activeEvents = [];
+                }
+                if (!game.achievements) {
+                    game.achievements = {};
+                }
+                if (!game.stats) {
+                    game.stats = {
+                        totalClicks: 0,
+                        buildingsBuilt: 0,
+                        fragmentsCaught: 0,
+                        timePlayed: 0
+                    };
+                }
+
                 game.lastTick = Date.now();
 
                 const prod = calculateProduction();
