@@ -60,7 +60,7 @@ La Terre change d'apparence selon votre progression :
 **👉 [GUIDE COMPLET : GITHUB-PAGES-SETUP.md](GITHUB-PAGES-SETUP.md)**
 
 **Étapes rapides :**
-1. Sur Safari, allez sur `https://github.com/[votre-nom]/ProjectA/settings/pages`
+1. Sur Safari, allez sur `https://github.com/akazumi0/ProjectA/settings/pages`
 2. Sous "Branch", sélectionnez `claude/ios-game-tech-discussion-011CUocgaShPuwdSTPCTyziz`
 3. Cliquez "Save" et attendez 1-2 minutes ⏱️
 4. Votre jeu sera en ligne à : `https://[votre-nom].github.io/ProjectA/` 🎮
