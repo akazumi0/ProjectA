@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Falling Stars">
+    <meta name="description" content="Gérez le flux stellaire, construisez votre empire cosmique et sauvez la Terre">
+    <meta name="theme-color" content="#00d4ff">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <title>Falling Stars – Foundations of Light</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            width: 100%;
+            min-height: 100vh;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Courier New', monospace;
+            color: white;
+        }
+
+        #gameCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* Top Bar */
+        #topBar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.95), rgba(0,0,0,0.85));
+            border-bottom: 2px solid rgba(0,212,255,0.3);
+            z-index: 100;
+            display: flex;
+            padding: 10px;
+            gap: 10px;
+        }
+
+        /* Profile Section */
+        #profileSection {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px;
+            background: rgba(0,50,100,0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #profileSection:active {
+            background: rgba(0,100,150,0.5);
+        }
+
+        #avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #00d4ff;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        #username {
+            font-size: 10px;
+            color: #00d4ff;
+            font-weight: bold;
+            max-width: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Resources Section */
+        #resourcesSection {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .resource-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .resource-item {
+            flex: 1;
+            background: rgba(0,30,60,0.8);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 6px;
+            padding: 5px 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .resource-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .resource-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .resource-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .resource-label {
+            font-size: 8px;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        .resource-value {
+            font-size: 12px;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .resource-rate {
+            font-size: 8px;
+            color: #4ecdc4;
+        }
+
+        /* Planet Selector */
+        #planetSelector {
+            flex: 0 0 auto;
+            background: rgba(0,30,60,0.8);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 6px;
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-width: 80px;
+        }
+
+        #planetSelector select {
+            background: transparent;
+            color: #00d4ff;
+            border: none;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        #planetSelector select option {
+            background: #001020;
+        }
+
+        #planetBonus {
+            font-size: 8px;
+            color: #4ecdc4;
+            margin-top: 2px;
+        }
+
+        /* Bottom UI */
+        #bottomUI {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.98), rgba(0,0,0,0.9));
+            z-index: 100;
+            border-top: 2px solid rgba(0,212,255,0.3);
+        }
+
+        #tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(0,212,255,0.3);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 5px;
+            text-align: center;
+            font-size: 10px;
+            font-weight: bold;
+            background: rgba(0,20,40,0.5);
+            border-right: 1px solid rgba(0,212,255,0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab:last-child {
+            border-right: none;
+        }
+
+        .tab.active {
+            background: rgba(0,100,150,0.8);
+            color: #00d4ff;
+        }
+
+        .tab-icon {
+            width: 20px;
+            height: 20px;
+            margin: 0 auto 4px;
+        }
+
+        .tab-content {
+            display: none;
+            max-height: 35vh;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 2-Column Grid */
+        .items-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        /* Item Card */
+        .item-card {
+            background: rgba(0,30,60,0.9);
+            border: 1px solid rgba(0,212,255,0.4);
+            border-radius: 6px;
+            padding: 8px;
+        }
+
+        .item-card.buildable {
+            border-color: #00d4ff;
+            box-shadow: 0 0 8px rgba(0,212,255,0.3);
+        }
+
+        .item-card.locked {
+            opacity: 0.5;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 4px;
+        }
+
+        .item-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .item-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+            margin-left: 6px;
+        }
+
+        .item-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #00d4ff;
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+
+        .item-level {
+            font-size: 9px;
+            color: #4ecdc4;
+        }
+
+        .item-desc {
+            font-size: 8px;
+            color: #aaa;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .item-stats {
+            font-size: 9px;
+            color: #4ecdc4;
+            margin-bottom: 4px;
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .item-cost {
+            font-size: 8px;
+            color: #ffd93d;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .build-btn {
+            background: linear-gradient(135deg, #00a8cc, #0077b6);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .build-btn:disabled {
+            background: #333;
+            opacity: 0.5;
+        }
+
+        .build-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        /* Scrollbar */
+        .tab-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .tab-content::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+        }
+
+        .tab-content::-webkit-scrollbar-thumb {
+            background: rgba(0,212,255,0.5);
+            border-radius: 2px;
+        }
+
+        /* Welcome */
+        #welcome {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.98);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        #welcome h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0,212,255,0.8);
+        }
+
+        #welcome .subtitle {
+            font-size: 14px;
+            color: #ffd93d;
+            margin-bottom: 20px;
+        }
+
+        #welcome input {
+            background: rgba(0,50,100,0.8);
+            border: 2px solid #00d4ff;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-family: inherit;
+            text-align: center;
+            margin-bottom: 20px;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        #welcome button {
+            background: linear-gradient(135deg, #00a8cc, #0077b6);
+            border: 2px solid #00d4ff;
+            color: white;
+            padding: 12px 35px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0,212,255,0.5);
+            font-family: inherit;
+        }
+
+        /* Notification */
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,212,255,0.95);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 2000;
+            box-shadow: 0 4px 15px rgba(0,212,255,0.6);
+        }
+
+        #notification.show {
+            opacity: 1;
+        }
+
+        .floating-text {
+            position: absolute;
+            font-size: 18px;
+            font-weight: bold;
+            color: #00d4ff;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            text-shadow: 0 0 10px rgba(0,212,255,0.8);
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            to {
+                transform: translateY(-70px);
+                opacity: 0;
+            }
+        }
+
+        /* Profile Modal */
+        #profileModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        #profileModal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(0,30,60,0.95);
+            border: 2px solid #00d4ff;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .modal-body {
+            margin-bottom: 15px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            background: rgba(0,50,100,0.3);
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .stat-label {
+            color: #aaa;
+        }
+
+        .stat-value {
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: linear-gradient(135deg, #ff6b6b, #c92a2a);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="notification"></div>
+
+    <!-- Welcome Screen -->
+    <div id="welcome">
+        <h1>⭐ FALLING STARS ⭐</h1>
+        <div class="subtitle">Foundations of Light</div>
+        <p style="font-size: 12px; color: #aaa; margin-bottom: 20px;">Choisissez votre nom de Commandant :</p>
+        <input type="text" id="usernameInput" placeholder="Commandant..." maxlength="15">
+        <button onclick="startGame()">⚡ INITIALISER ASTRA</button>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">PROFIL DU COMMANDANT</div>
+            <div class="modal-body">
+                <div class="stat-row">
+                    <span class="stat-label">Nom</span>
+                    <span class="stat-value" id="modalUsername">-</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Score Total</span>
+                    <span class="stat-value" id="modalScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Lumen Total</span>
+                    <span class="stat-value" id="modalLumen">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Planètes</span>
+                    <span class="stat-value" id="modalPlanets">1/3</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Technologies</span>
+                    <span class="stat-value" id="modalTechs">0</span>
+                </div>
+            </div>
+            <button class="close-btn" onclick="closeProfile()">FERMER</button>
+        </div>
+    </div>
+
+    <!-- Top Bar -->
+    <div id="topBar" style="display: none;">
+        <div id="profileSection" onclick="openProfile()">
+            <div id="avatar">👤</div>
+            <div id="username">Commandant</div>
+        </div>
+
+        <div id="resourcesSection">
+            <div class="resource-row">
+                <div class="resource-item">
+                    <div class="resource-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path fill="#ffcc00" d="M12 2 L15 9 L22 10 L17 15 L18 22 L12 18 L6 22 L7 15 L2 10 L9 9 Z"/>
+                        </svg>
+                    </div>
+                    <div class="resource-info">
+                        <div class="resource-label">Lumen</div>
+                        <div class="resource-value" id="lumenVal">0</div>
+                        <div class="resource-rate" id="lumenRate">+0/s</div>
+                    </div>
+                </div>
+
+                <div class="resource-item">
+                    <div class="resource-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path fill="#ffd93d" d="M12 2 L14 8 L20 8 L15 12 L17 18 L12 14 L7 18 L9 12 L4 8 L10 8 Z"/>
+                            <circle cx="12" cy="12" r="3" fill="#ffaa00"/>
+                        </svg>
+                    </div>
+                    <div class="resource-info">
+                        <div class="resource-label">Énergie</div>
+                        <div class="resource-value" id="energyVal">0</div>
+                        <div class="resource-rate" id="energyRate">+0/s</div>
+                    </div>
+                </div>
+
+                <div class="resource-item">
+                    <div class="resource-icon">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="#1a1a3e"/>
+                            <circle cx="12" cy="12" r="6" fill="#000"/>
+                            <circle cx="10" cy="10" r="2" fill="#4a4a6e" opacity="0.5"/>
+                        </svg>
+                    </div>
+                    <div class="resource-info">
+                        <div class="resource-label">Matière</div>
+                        <div class="resource-value" id="matterVal">0</div>
+                        <div class="resource-rate" id="matterRate">+0/s</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="planetSelector">
+            <div style="font-size: 8px; color: #aaa; margin-bottom: 2px;">PLANÈTE</div>
+            <select id="planetSelect" onchange="switchPlanet(this.value)"></select>
+            <div id="planetBonus">-</div>
+        </div>
+    </div>
+
+    <!-- Bottom UI -->
+    <div id="bottomUI" style="display: none;">
+        <div id="tabs">
+            <div class="tab active" onclick="switchTab(0)">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="9" fill="none" stroke="#00d4ff" stroke-width="2"/>
+                        <path fill="#00d4ff" d="M12 6 L13 11 L18 12 L13 13 L12 18 L11 13 L6 12 L11 11 Z"/>
+                    </svg>
+                </div>
+                DÉFENSE
+            </div>
+            <div class="tab" onclick="switchTab(1)">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="4" y="8" width="16" height="12" fill="none" stroke="#00d4ff" stroke-width="2"/>
+                        <rect x="7" y="11" width="4" height="4" fill="#00d4ff"/>
+                        <rect x="13" y="11" width="4" height="4" fill="#00d4ff"/>
+                        <path d="M4 8 L12 4 L20 8" fill="#00d4ff"/>
+                    </svg>
+                </div>
+                BÂTIMENTS
+            </div>
+            <div class="tab" onclick="switchTab(2)">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="8" fill="none" stroke="#00d4ff" stroke-width="2"/>
+                        <path d="M12 4 L12 12 L18 12" stroke="#00d4ff" stroke-width="2" fill="none"/>
+                        <circle cx="12" cy="12" r="2" fill="#00d4ff"/>
+                    </svg>
+                </div>
+                TECHNOLOGIES
+            </div>
+        </div>
+
+        <div id="defense" class="tab-content active"></div>
+        <div id="buildings" class="tab-content"></div>
+        <div id="technologies" class="tab-content"></div>
+    </div>
+
+    <script>
+        // Audio
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let soundEnabled = true;
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            switch(type) {
+                case 'catch':
+                    osc.frequency.value = 600;
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                    osc.stop(now + 0.15);
+                    break;
+                case 'build':
+                    osc.frequency.value = 400;
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+                    osc.stop(now + 0.2);
+                    break;
+            }
+        }
+
+        // Game State
+        let game = {
+            username: 'Commandant',
+            currentPlanet: 'earth',
+            planets: {
+                earth: {
+                    name: 'Terre',
+                    unlocked: true,
+                    bonus: { lumen: 1, energy: 1, matter: 1 },
+                    buildings: {}
+                },
+                mars: {
+                    name: 'Mars',
+                    unlocked: false,
+                    bonus: { lumen: 1.2, energy: 1, matter: 1 },
+                    unlockCost: { matter: 1000 }
+                },
+                titan: {
+                    name: 'Titan',
+                    unlocked: false,
+                    bonus: { lumen: 1, energy: 1.2, matter: 1.3 },
+                    unlockCost: { matter: 5000, energy: 10000 }
+                }
+            },
+            resources: {
+                lumen: 0,
+                energy: 0,
+                matter: 0
+            },
+            totalResources: {
+                lumen: 0,
+                energy: 0,
+                matter: 0
+            },
+            technologies: {},
+            defense: {},
+            clickPower: 10,
+            fragmentSpawnRate: 1,
+            lastTick: Date.now()
+        };
+
+        // Defense/Attack Items (clicking)
+        const defenseData = {
+            clickPower: {
+                name: 'Gants Gravitationnels',
+                desc: 'Augmente la puissance de capture',
+                baseCost: { lumen: 50 },
+                costMult: 1.5,
+                effect: level => level * 5,
+                display: level => `+${level * 5} par clic`,
+                max: 30
+            },
+            fragmentRate: {
+                name: 'Attracteur de Fragments',
+                desc: 'Augmente le nombre de fragments qui tombent',
+                baseCost: { lumen: 200, energy: 50 },
+                costMult: 1.8,
+                effect: level => level * 0.1,
+                display: level => `+${level * 10}% fragments`,
+                max: 20
+            },
+            fragmentGlow: {
+                name: 'Illuminateur Stellaire',
+                desc: 'Rend les fragments plus visibles',
+                baseCost: { lumen: 500, energy: 100 },
+                costMult: 2,
+                effect: level => level,
+                display: level => `Niveau ${level}`,
+                max: 5
+            },
+            autoCapture: {
+                name: 'Capture Automatique',
+                desc: 'Simule des clics automatiques',
+                baseCost: { lumen: 1000, energy: 300, matter: 100 },
+                costMult: 2.2,
+                effect: level => level * 0.5,
+                display: level => `${(level * 0.5).toFixed(1)} clics/s`,
+                max: 10
+            }
+        };
+
+        // Buildings (passive production)
+        const buildingData = {
+            lumenMine: {
+                name: 'Mine de Lumen',
+                desc: 'Extrait du Lumen',
+                baseCost: { lumen: 50 },
+                costMult: 1.5,
+                production: level => ({ lumen: level * 1 }),
+                max: 20
+            },
+            energyCollector: {
+                name: 'Collecteur d\'Énergie',
+                desc: 'Génère de l\'Énergie',
+                baseCost: { lumen: 100, energy: 20 },
+                costMult: 1.5,
+                production: level => ({ energy: level * 3 }),
+                max: 20
+            },
+            matterExtractor: {
+                name: 'Extracteur de Matière',
+                desc: 'Récolte la Matière Noire',
+                baseCost: { lumen: 500, energy: 100 },
+                costMult: 1.6,
+                production: level => ({ matter: level * 0.5 }),
+                requires: { tech: 'quantumResonance' },
+                max: 15
+            },
+            solarPlant: {
+                name: 'Centrale Solaire',
+                desc: 'Production d\'Énergie avancée',
+                baseCost: { lumen: 300, energy: 50 },
+                costMult: 1.6,
+                production: level => ({ energy: level * 5 }),
+                max: 15
+            }
+        };
+
+        // Technologies
+        const techData = {
+            miningEfficiency: {
+                name: 'Efficacité Minière',
+                desc: '+10% production mines/niveau',
+                baseCost: { lumen: 300, energy: 100 },
+                costMult: 2,
+                max: 10
+            },
+            quantumResonance: {
+                name: 'Résonance Quantique',
+                desc: 'Débloque Extracteur de Matière',
+                baseCost: { lumen: 1000, energy: 300 },
+                costMult: 1,
+                max: 1
+            },
+            stellarPropulsion: {
+                name: 'Propulsion Stellaire',
+                desc: 'Permet colonisation planètes',
+                baseCost: { lumen: 2000, energy: 500, matter: 100 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'quantumResonance' }
+            },
+            astraAI: {
+                name: 'IA Astra',
+                desc: '+5% efficacité globale/niveau',
+                baseCost: { lumen: 5000, energy: 2000, matter: 500 },
+                costMult: 2.5,
+                max: 5
+            }
+        };
+
+        // Initialize
+        for (let planetKey in game.planets) {
+            if (!game.planets[planetKey].buildings) {
+                game.planets[planetKey].buildings = {};
+            }
+            for (let buildKey in buildingData) {
+                if (!game.planets[planetKey].buildings[buildKey]) {
+                    game.planets[planetKey].buildings[buildKey] = 0;
+                }
+            }
+        }
+
+        for (let techKey in techData) {
+            game.technologies[techKey] = 0;
+        }
+
+        for (let defKey in defenseData) {
+            game.defense[defKey] = 0;
+        }
+
+        // Cost functions
+        function getCost(data, level) {
+            const cost = {};
+            for (let res in data.baseCost) {
+                cost[res] = Math.floor(data.baseCost[res] * Math.pow(data.costMult, level));
+            }
+            return cost;
+        }
+
+        function canAfford(cost) {
+            for (let res in cost) {
+                if (game.resources[res] < cost[res]) return false;
+            }
+            return true;
+        }
+
+        function spendResources(cost) {
+            for (let res in cost) {
+                game.resources[res] -= cost[res];
+            }
+        }
+
+        function checkRequires(data) {
+            if (!data.requires) return true;
+            if (data.requires.tech && !game.technologies[data.requires.tech]) return false;
+            return true;
+        }
+
+        // Buy functions
+        function buyDefense(key) {
+            const level = game.defense[key] || 0;
+            const data = defenseData[key];
+            if (level >= data.max) return;
+
+            const cost = getCost(data, level);
+            if (!canAfford(cost)) return;
+
+            spendResources(cost);
+            game.defense[key] = level + 1;
+            playSound('build');
+            showNotification(`✓ ${data.name} Niv.${level + 1}`);
+            updateAll();
+            saveGame();
+        }
+
+        function buyBuilding(key) {
+            const planet = game.planets[game.currentPlanet];
+            const level = planet.buildings[key] || 0;
+            const data = buildingData[key];
+            if (level >= data.max) return;
+            if (!checkRequires(data)) return;
+
+            const cost = getCost(data, level);
+            if (!canAfford(cost)) return;
+
+            spendResources(cost);
+            planet.buildings[key] = level + 1;
+            playSound('build');
+            showNotification(`✓ ${data.name} Niv.${level + 1}`);
+            updateAll();
+            saveGame();
+        }
+
+        function buyTech(key) {
+            const level = game.technologies[key] || 0;
+            const data = techData[key];
+            if (level >= data.max) return;
+            if (!checkRequires(data)) return;
+
+            const cost = getCost(data, level);
+            if (!canAfford(cost)) return;
+
+            spendResources(cost);
+            game.technologies[key] = level + 1;
+            playSound('build');
+            showNotification(`✓ ${data.name} Niv.${level + 1}`);
+            updateAll();
+            saveGame();
+        }
+
+        // Calculate production
+        function calculateProduction() {
+            const prod = { lumen: 0, energy: 0, matter: 0 };
+
+            for (let planetKey in game.planets) {
+                const planet = game.planets[planetKey];
+                if (!planet.unlocked) continue;
+
+                for (let buildKey in planet.buildings) {
+                    const level = planet.buildings[buildKey];
+                    if (level > 0) {
+                        const buildProd = buildingData[buildKey].production(level);
+                        for (let res in buildProd) {
+                            let amount = buildProd[res] * planet.bonus[res];
+
+                            if (buildKey === 'lumenMine' && game.technologies.miningEfficiency) {
+                                amount *= (1 + game.technologies.miningEfficiency * 0.1);
+                            }
+
+                            if (game.technologies.astraAI) {
+                                amount *= (1 + game.technologies.astraAI * 0.05);
+                            }
+
+                            prod[res] += amount;
+                        }
+                    }
+                }
+            }
+
+            return prod;
+        }
+
+        function calculateClickPower() {
+            let power = 10;
+            if (game.defense.clickPower) {
+                power += defenseData.clickPower.effect(game.defense.clickPower);
+            }
+            return power;
+        }
+
+        function calculateSpawnRate() {
+            let rate = 1;
+            if (game.defense.fragmentRate) {
+                rate += defenseData.fragmentRate.effect(game.defense.fragmentRate);
+            }
+            return rate;
+        }
+
+        // Canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let fallingFragments = [];
+        let particles = [];
+        let backgroundStars = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initBackgroundStars();
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function initBackgroundStars() {
+            backgroundStars = [];
+            for (let i = 0; i < 100; i++) {
+                backgroundStars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.5,
+                    twinkle: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        let spawnTimer = 0;
+        const baseSpawnInterval = 1500;
+
+        function spawnFragment() {
+            const glowLevel = game.defense.fragmentGlow || 0;
+            fallingFragments.push({
+                x: Math.random() * (canvas.width - 60) + 30,
+                y: -30,
+                size: 16 + Math.random() * 10,
+                speed: 1.5 + Math.random() * 1,
+                rotation: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 0.1,
+                glow: Math.random(),
+                glowIntensity: 0.3 + (glowLevel * 0.15)
+            });
+        }
+
+        function createParticles(x, y, count = 12) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    life: 1,
+                    size: Math.random() * 2 + 1
+                });
+            }
+        }
+
+        function handleFragmentClick(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = clientX - rect.left;
+            const clickY = clientY - rect.top;
+
+            for (let i = fallingFragments.length - 1; i >= 0; i--) {
+                const frag = fallingFragments[i];
+                const dist = Math.sqrt((clickX - frag.x) ** 2 + (clickY - frag.y) ** 2);
+
+                if (dist < frag.size * 3.5) {
+                    const gain = game.clickPower;
+                    game.resources.lumen += gain;
+                    game.totalResources.lumen += gain;
+
+                    createParticles(frag.x, frag.y);
+                    fallingFragments.splice(i, 1);
+
+                    const ft = document.createElement('div');
+                    ft.className = 'floating-text';
+                    ft.textContent = `+${formatNumber(gain)}`;
+                    ft.style.left = clientX + 'px';
+                    ft.style.top = clientY + 'px';
+                    document.body.appendChild(ft);
+                    setTimeout(() => ft.remove(), 1000);
+
+                    playSound('catch');
+                    break;
+                }
+            }
+        }
+
+        canvas.addEventListener('click', (e) => handleFragmentClick(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            handleFragmentClick(touch.clientX, touch.clientY);
+        });
+
+        // Game loop
+        function gameLoop() {
+            const now = Date.now();
+            const delta = (now - game.lastTick) / 1000;
+            game.lastTick = now;
+
+            // Production
+            const prod = calculateProduction();
+            for (let res in prod) {
+                const gain = prod[res] * delta;
+                game.resources[res] += gain;
+                game.totalResources[res] += gain;
+            }
+
+            // Auto-clicks
+            if (game.defense.autoCapture) {
+                const autoClicks = defenseData.autoCapture.effect(game.defense.autoCapture) * delta;
+                const autoGain = game.clickPower * autoClicks;
+                game.resources.lumen += autoGain;
+                game.totalResources.lumen += autoGain;
+            }
+
+            // Spawn fragments
+            const spawnInterval = baseSpawnInterval / game.fragmentSpawnRate;
+            spawnTimer += delta * 1000;
+            if (spawnTimer > spawnInterval) {
+                spawnFragment();
+                spawnTimer = 0;
+            }
+
+            // Update fragments
+            const menuHeight = 280;
+            for (let i = fallingFragments.length - 1; i >= 0; i--) {
+                const frag = fallingFragments[i];
+                frag.y += frag.speed;
+                frag.rotation += frag.rotSpeed;
+                frag.glow = (frag.glow + delta * 2) % (Math.PI * 2);
+
+                if (frag.y > canvas.height - menuHeight) {
+                    fallingFragments.splice(i, 1);
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= delta * 2;
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Background stars
+            ctx.fillStyle = 'white';
+            backgroundStars.forEach(star => {
+                const alpha = 0.3 + Math.sin(star.twinkle) * 0.3;
+                ctx.globalAlpha = alpha;
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+                star.twinkle += 0.02;
+            });
+            ctx.globalAlpha = 1;
+
+            // Falling fragments
+            fallingFragments.forEach(frag => {
+                ctx.save();
+                ctx.translate(frag.x, frag.y);
+                ctx.rotate(frag.rotation);
+
+                // Glow
+                const glowAlpha = frag.glowIntensity + Math.sin(frag.glow) * 0.2;
+                ctx.globalAlpha = glowAlpha;
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, frag.size * 1.5);
+                gradient.addColorStop(0, '#00d4ff');
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, frag.size * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Star
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = '#00d4ff';
+                ctx.strokeStyle = '#0099cc';
+                ctx.lineWidth = 2;
+                drawStar(0, 0, 5, frag.size, frag.size * 0.5);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.restore();
+            });
+
+            // Particles
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = '#00d4ff';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.globalAlpha = 1;
+        }
+
+        function drawStar(cx, cy, spikes, outer, inner) {
+            let rot = Math.PI / 2 * 3;
+            const step = Math.PI / spikes;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outer);
+            for (let i = 0; i < spikes; i++) {
+                let x = cx + Math.cos(rot) * outer;
+                let y = cy + Math.sin(rot) * outer;
+                ctx.lineTo(x, y);
+                rot += step;
+                x = cx + Math.cos(rot) * inner;
+                y = cy + Math.sin(rot) * inner;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outer);
+            ctx.closePath();
+        }
+
+        // Format functions
+        function formatNumber(num) {
+            if (num < 1000) return Math.floor(num);
+            if (num < 1000000) return (num / 1000).toFixed(1) + 'K';
+            if (num < 1000000000) return (num / 1000000).toFixed(1) + 'M';
+            return (num / 1000000000).toFixed(1) + 'B';
+        }
+
+        function formatCost(cost) {
+            const parts = [];
+            if (cost.lumen) parts.push(`${formatNumber(cost.lumen)}L`);
+            if (cost.energy) parts.push(`${formatNumber(cost.energy)}E`);
+            if (cost.matter) parts.push(`${formatNumber(cost.matter)}M`);
+            return parts.join(' ');
+        }
+
+        // Update UI - called every second
+        function updateUI() {
+            document.getElementById('lumenVal').textContent = formatNumber(game.resources.lumen);
+            document.getElementById('energyVal').textContent = formatNumber(game.resources.energy);
+            document.getElementById('matterVal').textContent = formatNumber(game.resources.matter);
+
+            const prod = calculateProduction();
+            document.getElementById('lumenRate').textContent = '+' + formatNumber(prod.lumen) + '/s';
+            document.getElementById('energyRate').textContent = '+' + formatNumber(prod.energy) + '/s';
+            document.getElementById('matterRate').textContent = '+' + formatNumber(prod.matter) + '/s';
+
+            // Planet selector
+            const planetSelect = document.getElementById('planetSelect');
+            planetSelect.innerHTML = '';
+            for (let planetKey in game.planets) {
+                if (game.planets[planetKey].unlocked) {
+                    const option = document.createElement('option');
+                    option.value = planetKey;
+                    option.textContent = game.planets[planetKey].name;
+                    if (planetKey === game.currentPlanet) option.selected = true;
+                    planetSelect.appendChild(option);
+                }
+            }
+
+            const currentPlanet = game.planets[game.currentPlanet];
+            const bonusParts = [];
+            if (currentPlanet.bonus.lumen > 1) bonusParts.push(`+${Math.round((currentPlanet.bonus.lumen-1)*100)}% L`);
+            if (currentPlanet.bonus.energy > 1) bonusParts.push(`+${Math.round((currentPlanet.bonus.energy-1)*100)}% E`);
+            if (currentPlanet.bonus.matter > 1) bonusParts.push(`+${Math.round((currentPlanet.bonus.matter-1)*100)}% M`);
+            document.getElementById('planetBonus').textContent = bonusParts.join(' ') || 'Pas de bonus';
+
+            game.clickPower = calculateClickPower();
+            game.fragmentSpawnRate = calculateSpawnRate();
+        }
+
+        function updateAll() {
+            updateUI();
+            renderDefense();
+            renderBuildings();
+            renderTechnologies();
+        }
+
+        // Render functions
+        function renderDefense() {
+            const container = document.getElementById('defense');
+            container.innerHTML = '<div class="items-grid"></div>';
+            const grid = container.querySelector('.items-grid');
+
+            for (let key in defenseData) {
+                const data = defenseData[key];
+                const level = game.defense[key] || 0;
+                const cost = getCost(data, level);
+                const affordable = canAfford(cost);
+                const maxed = level >= data.max;
+
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                if (affordable && !maxed) card.classList.add('buildable');
+                if (maxed) card.classList.add('locked');
+
+                card.innerHTML = `
+                    <div class="item-header">
+                        <div class="item-icon">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" fill="#00d4ff" opacity="0.3"/>
+                                <path fill="#00d4ff" d="M12 4 L13 11 L20 12 L13 13 L12 20 L11 13 L4 12 L11 11 Z"/>
+                            </svg>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">${data.name}</div>
+                            <div class="item-level">Niv. ${level}</div>
+                        </div>
+                    </div>
+                    <div class="item-desc">${data.desc}</div>
+                    <div class="item-stats">${data.display(level + 1)}</div>
+                    <div class="item-footer">
+                        <div class="item-cost">${maxed ? 'MAX' : formatCost(cost)}</div>
+                        <button class="build-btn" ${!affordable || maxed ? 'disabled' : ''}
+                                onclick="buyDefense('${key}')">
+                            ${maxed ? 'MAX' : 'ACHETER'}
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            }
+        }
+
+        function renderBuildings() {
+            const container = document.getElementById('buildings');
+            container.innerHTML = '<div class="items-grid"></div>';
+            const grid = container.querySelector('.items-grid');
+
+            const planet = game.planets[game.currentPlanet];
+
+            for (let key in buildingData) {
+                const data = buildingData[key];
+                const level = planet.buildings[key] || 0;
+                const cost = getCost(data, level);
+                const affordable = canAfford(cost);
+                const maxed = level >= data.max;
+                const locked = !checkRequires(data);
+
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                if (affordable && !maxed && !locked) card.classList.add('buildable');
+                if (maxed || locked) card.classList.add('locked');
+
+                let statsHTML = '';
+                const prod = data.production(level + 1);
+                if (Object.keys(prod).length > 0) {
+                    const prodParts = [];
+                    for (let res in prod) {
+                        prodParts.push(`+${formatNumber(prod[res])} ${res}/s`);
+                    }
+                    statsHTML = `<div class="item-stats">${prodParts.join(', ')}</div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="item-header">
+                        <div class="item-icon">
+                            <svg viewBox="0 0 24 24">
+                                <rect x="4" y="8" width="16" height="12" fill="#00d4ff" opacity="0.3"/>
+                                <rect x="7" y="11" width="4" height="4" fill="#00d4ff"/>
+                                <rect x="13" y="11" width="4" height="4" fill="#00d4ff"/>
+                            </svg>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">${data.name}</div>
+                            <div class="item-level">Niv. ${level}</div>
+                        </div>
+                    </div>
+                    <div class="item-desc">${data.desc}</div>
+                    ${statsHTML}
+                    <div class="item-footer">
+                        <div class="item-cost">${maxed ? 'MAX' : locked ? '🔒' : formatCost(cost)}</div>
+                        <button class="build-btn" ${!affordable || maxed || locked ? 'disabled' : ''}
+                                onclick="buyBuilding('${key}')">
+                            ${maxed ? 'MAX' : locked ? '🔒' : 'CONSTRUIRE'}
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            }
+        }
+
+        function renderTechnologies() {
+            const container = document.getElementById('technologies');
+            container.innerHTML = '<div class="items-grid"></div>';
+            const grid = container.querySelector('.items-grid');
+
+            for (let key in techData) {
+                const data = techData[key];
+                const level = game.technologies[key] || 0;
+                const cost = getCost(data, level);
+                const affordable = canAfford(cost);
+                const maxed = level >= data.max;
+                const locked = !checkRequires(data);
+
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                if (affordable && !maxed && !locked) card.classList.add('buildable');
+                if (maxed || locked) card.classList.add('locked');
+
+                card.innerHTML = `
+                    <div class="item-header">
+                        <div class="item-icon">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="8" fill="none" stroke="#00d4ff" stroke-width="2"/>
+                                <circle cx="12" cy="12" r="3" fill="#00d4ff"/>
+                            </svg>
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">${data.name}</div>
+                            <div class="item-level">Niv. ${level}</div>
+                        </div>
+                    </div>
+                    <div class="item-desc">${data.desc}</div>
+                    <div class="item-footer">
+                        <div class="item-cost">${maxed ? 'MAX' : locked ? '🔒' : formatCost(cost)}</div>
+                        <button class="build-btn" ${!affordable || maxed || locked ? 'disabled' : ''}
+                                onclick="buyTech('${key}')">
+                            ${maxed ? 'MAX' : locked ? '🔒' : 'RECHERCHER'}
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            }
+        }
+
+        // UI functions
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+
+            tabs[index].classList.add('active');
+            contents[index].classList.add('active');
+        }
+
+        function switchPlanet(planetKey) {
+            game.currentPlanet = planetKey;
+            updateAll();
+        }
+
+        function openProfile() {
+            document.getElementById('modalUsername').textContent = game.username;
+            document.getElementById('modalScore').textContent = formatNumber(game.totalResources.lumen + game.totalResources.energy + game.totalResources.matter);
+            document.getElementById('modalLumen').textContent = formatNumber(game.totalResources.lumen);
+
+            let planetsUnlocked = 0;
+            for (let key in game.planets) {
+                if (game.planets[key].unlocked) planetsUnlocked++;
+            }
+            document.getElementById('modalPlanets').textContent = `${planetsUnlocked}/3`;
+
+            let techsTotal = 0;
+            for (let key in game.technologies) {
+                techsTotal += game.technologies[key];
+            }
+            document.getElementById('modalTechs').textContent = techsTotal;
+
+            document.getElementById('profileModal').classList.add('show');
+        }
+
+        function closeProfile() {
+            document.getElementById('profileModal').classList.remove('show');
+        }
+
+        function showNotification(msg) {
+            const notif = document.getElementById('notification');
+            notif.textContent = msg;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 2000);
+        }
+
+        // Save/Load
+        function saveGame() {
+            const save = { ...game, version: 3 };
+            localStorage.setItem('fallingStarsV3', JSON.stringify(save));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('fallingStarsV3');
+            if (saved) {
+                const data = JSON.parse(saved);
+                const offlineTime = (Date.now() - data.lastTick) / 1000;
+                const maxOffline = 3600 * 4;
+                const actualOffline = Math.min(offlineTime, maxOffline);
+
+                game = data;
+                game.lastTick = Date.now();
+
+                const prod = calculateProduction();
+                for (let res in prod) {
+                    const gain = prod[res] * actualOffline;
+                    game.resources[res] += gain;
+                    game.totalResources[res] += gain;
+                }
+
+                if (actualOffline > 60) {
+                    showNotification(`⏱️ Gains hors ligne calculés`);
+                }
+
+                return true;
+            }
+            return false;
+        }
+
+        // Start game
+        function startGame() {
+            const usernameInput = document.getElementById('usernameInput').value.trim();
+            if (usernameInput) {
+                game.username = usernameInput;
+            }
+
+            document.getElementById('username').textContent = game.username;
+            document.getElementById('welcome').style.display = 'none';
+            document.getElementById('topBar').style.display = 'flex';
+            document.getElementById('bottomUI').style.display = 'block';
+
+            loadGame();
+            updateAll();
+            gameLoop();
+
+            // Update UI every second
+            setInterval(() => updateUI(), 1000);
+
+            // Auto-save every 10s
+            setInterval(() => saveGame(), 10000);
+        }
+
+        window.addEventListener('beforeunload', () => saveGame());
+
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/ProjectA/sw.js').catch(() => {});
+            });
+        }
+    </script>
+</body>
+</html>
