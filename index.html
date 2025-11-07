@@ -104,6 +104,132 @@
             font-size: 10px;
         }
 
+        /* Left Sidebar */
+        #leftSidebar {
+            position: fixed;
+            left: 0;
+            top: 70px;
+            width: 180px;
+            max-height: calc(100vh - 300px);
+            background: linear-gradient(to right, rgba(0,0,0,0.98), rgba(0,0,0,0.85));
+            border-right: 1px solid rgba(0,212,255,0.3);
+            z-index: 99;
+            overflow-y: auto;
+            padding: 8px;
+            display: none;
+        }
+
+        #leftSidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #leftSidebar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+        }
+
+        #leftSidebar::-webkit-scrollbar-thumb {
+            background: rgba(0,212,255,0.5);
+            border-radius: 2px;
+        }
+
+        .sidebar-section {
+            background: rgba(0,30,60,0.7);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 5px;
+            padding: 6px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-title {
+            font-size: 10px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 4px;
+            text-align: center;
+            border-bottom: 1px solid rgba(0,212,255,0.2);
+            padding-bottom: 3px;
+        }
+
+        .sidebar-content {
+            font-size: 8px;
+            color: #fff;
+            line-height: 1.4;
+        }
+
+        .sidebar-btn {
+            background: linear-gradient(135deg, #00a8cc, #0077b6);
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 4px;
+            font-family: inherit;
+        }
+
+        .sidebar-btn:disabled {
+            background: #333;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .sidebar-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .sidebar-btn.gold {
+            background: linear-gradient(135deg, #ffd700, #daa520);
+            color: #000;
+        }
+
+        .sidebar-btn.green {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+        }
+
+        .timer-text {
+            color: #ffd93d;
+            font-size: 9px;
+            text-align: center;
+        }
+
+        .reward-text {
+            color: #00ff88;
+            font-size: 8px;
+            text-align: center;
+        }
+
+        .daily-day {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            text-align: center;
+            background: rgba(0,100,150,0.3);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 3px;
+            font-size: 8px;
+            margin: 2px;
+        }
+
+        .daily-day.claimed {
+            background: rgba(0,255,100,0.3);
+            border-color: #00ff88;
+        }
+
+        .daily-day.available {
+            background: rgba(255,215,0,0.3);
+            border-color: #ffd700;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
         /* Bottom UI */
         #bottomUI {
             position: fixed;
@@ -1175,20 +1301,16 @@
                 ctx.strokeStyle = strokeColor;
                 ctx.lineWidth = 2;
 
-                // Draw different shapes
+                // Draw different shapes with enhanced visuals
                 if (frag.shape === 'circle') {
-                    ctx.beginPath();
-                    ctx.arc(0, 0, frag.size, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.stroke();
+                    // Lumen: Glowing crystal
+                    drawCrystal(0, 0, frag.size, frag.color, strokeColor);
                 } else if (frag.shape === 'diamond') {
-                    drawDiamond(0, 0, frag.size);
-                    ctx.fill();
-                    ctx.stroke();
+                    // Energy: Spinning coin
+                    drawCoin(0, 0, frag.size, frag.color, strokeColor, frag.rotation);
                 } else if (frag.shape === 'hexagon') {
-                    drawHexagon(0, 0, frag.size);
-                    ctx.fill();
-                    ctx.stroke();
+                    // Matter: Dark gem with aura
+                    drawGem(0, 0, frag.size, frag.color, strokeColor);
                 }
 
                 ctx.restore();
@@ -1244,6 +1366,127 @@
                 else ctx.lineTo(x, y);
             }
             ctx.closePath();
+        }
+
+        // Enhanced visuals
+        function drawCrystal(cx, cy, size, color, strokeColor) {
+            // Crystal with facets
+            ctx.save();
+
+            // Main crystal body (hexagonal)
+            ctx.fillStyle = color;
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 3) * i - Math.PI / 6;
+                const x = cx + size * Math.cos(angle);
+                const y = cy + size * Math.sin(angle);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Inner highlight facets (lighter)
+            ctx.globalAlpha = 0.6;
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 3) * i - Math.PI / 6;
+                const x = cx + (size * 0.4) * Math.cos(angle);
+                const y = cy + (size * 0.4) * Math.sin(angle);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawCoin(cx, cy, size, color, strokeColor, rotation) {
+            // Spinning coin effect
+            ctx.save();
+
+            const perspective = Math.abs(Math.cos(rotation));
+            const width = size * perspective;
+
+            // Coin face
+            ctx.fillStyle = color;
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, width, size, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Inner circle detail
+            if (perspective > 0.3) {
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, width * 0.7, size * 0.7, 0, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Center symbol
+                ctx.fillStyle = strokeColor;
+                ctx.font = `${size * 0.8}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('⚡', cx, cy);
+            }
+
+            ctx.restore();
+        }
+
+        function drawGem(cx, cy, size, color, strokeColor) {
+            // Dark gem with facets
+            ctx.save();
+
+            // Main gem (octagon for complexity)
+            ctx.fillStyle = color;
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const angle = (Math.PI / 4) * i;
+                const x = cx + size * Math.cos(angle);
+                const y = cy + size * Math.sin(angle);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Top facet (lighter)
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.4;
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - size * 0.5);
+            ctx.lineTo(cx + size * 0.3, cy);
+            ctx.lineTo(cx, cy + size * 0.2);
+            ctx.lineTo(cx - size * 0.3, cy);
+            ctx.closePath();
+            ctx.fill();
+
+            // Mystical glow particles around gem
+            ctx.globalAlpha = 0.6;
+            for (let i = 0; i < 4; i++) {
+                const angle = (Math.PI / 2) * i + Date.now() * 0.001;
+                const dist = size * 1.3;
+                const px = cx + Math.cos(angle) * dist;
+                const py = cy + Math.sin(angle) * dist;
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(px, py, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
         }
 
         // Format functions
