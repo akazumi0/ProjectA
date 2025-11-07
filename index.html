@@ -689,12 +689,366 @@
             width: 100%;
             font-family: inherit;
         }
+
+        /* ASTRA Dialogue Bubble */
+        #astraDialogue {
+            position: fixed;
+            bottom: 360px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(0,100,200,0.95), rgba(0,50,150,0.95));
+            border: 2px solid rgba(0,212,255,0.8);
+            border-radius: 15px;
+            padding: 12px 18px;
+            max-width: 80%;
+            z-index: 150;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0,212,255,0.4);
+            animation: slideUp 0.4s ease-out;
+        }
+
+        #astraDialogue.show {
+            display: block;
+        }
+
+        .astra-text {
+            color: #fff;
+            font-size: 11px;
+            line-height: 1.4;
+            margin-bottom: 5px;
+        }
+
+        .astra-name {
+            color: #00d4ff;
+            font-size: 9px;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Combo Counter */
+        #comboDisplay {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(255,100,0,0.9), rgba(255,50,0,0.9));
+            border: 3px solid rgba(255,200,0,0.8);
+            border-radius: 10px;
+            padding: 10px 20px;
+            z-index: 150;
+            display: none;
+            box-shadow: 0 0 30px rgba(255,100,0,0.8);
+            animation: comboPulse 0.5s ease infinite;
+        }
+
+        #comboDisplay.show {
+            display: block;
+        }
+
+        .combo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,200,0,1);
+            text-align: center;
+        }
+
+        .combo-multiplier {
+            font-size: 14px;
+            color: #ffd700;
+            text-align: center;
+            margin-top: 3px;
+        }
+
+        @keyframes comboPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Flash Mission Banner */
+        #flashMission {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(255,0,100,0.95), rgba(200,0,80,0.95));
+            border: 3px solid rgba(255,100,150,0.9);
+            border-radius: 15px;
+            padding: 12px 24px;
+            z-index: 151;
+            display: none;
+            box-shadow: 0 4px 25px rgba(255,0,100,0.6);
+            animation: flashBounce 0.6s ease-out;
+        }
+
+        #flashMission.show {
+            display: block;
+        }
+
+        .flash-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255,200,0,1);
+            margin-bottom: 5px;
+        }
+
+        .flash-desc {
+            font-size: 11px;
+            color: #ffe0e0;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .flash-progress {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            height: 16px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .flash-progress-bar {
+            background: linear-gradient(90deg, #00ff88, #00d4ff);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .flash-timer {
+            font-size: 12px;
+            color: #ffd700;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        @keyframes flashBounce {
+            0% { transform: translateX(-50%) translateY(-30px); opacity: 0; }
+            60% { transform: translateX(-50%) translateY(5px); }
+            100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        /* Story Event Modal */
+        #storyEventModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1500;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #storyEventModal.show {
+            display: flex;
+        }
+
+        .story-event-content {
+            background: linear-gradient(135deg, #1a0033, #330066);
+            border: 3px solid rgba(138,43,226,0.8);
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 40px rgba(138,43,226,0.6);
+            animation: eventZoom 0.5s ease-out;
+        }
+
+        @keyframes eventZoom {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .story-event-icon {
+            font-size: 64px;
+            text-align: center;
+            margin-bottom: 15px;
+            animation: iconFloat 2s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .story-event-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff00ff;
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 0 0 15px rgba(255,0,255,0.8);
+        }
+
+        .story-event-desc {
+            font-size: 13px;
+            color: #ddd;
+            text-align: center;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .story-choice {
+            background: rgba(0,100,200,0.3);
+            border: 2px solid rgba(0,212,255,0.5);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .story-choice:hover {
+            background: rgba(0,100,200,0.6);
+            border-color: #00d4ff;
+            transform: translateX(5px);
+        }
+
+        .story-choice-text {
+            font-size: 13px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+
+        .story-choice-cost {
+            font-size: 10px;
+            color: #ffd93d;
+        }
+
+        .story-choice-chance {
+            font-size: 9px;
+            color: #aaa;
+            margin-top: 3px;
+        }
+
+        /* Golden Fragment */
+        .golden-fragment {
+            filter: drop-shadow(0 0 20px #ffd700);
+        }
+
+        .danger-zone {
+            position: absolute;
+            border: 3px dashed #ff0000;
+            border-radius: 50%;
+            animation: dangerPulse 1s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes dangerPulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        /* Artifact notification */
+        .artifact-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ffd700, #ff8800);
+            border: 4px solid #fff;
+            border-radius: 20px;
+            padding: 30px;
+            z-index: 2000;
+            box-shadow: 0 0 60px rgba(255,215,0,0.9);
+            animation: artifactReveal 1s ease-out;
+            text-align: center;
+        }
+
+        @keyframes artifactReveal {
+            0% {
+                transform: translate(-50%, -50%) scale(0) rotate(180deg);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .artifact-icon-big {
+            font-size: 72px;
+            margin-bottom: 15px;
+        }
+
+        .artifact-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 10px;
+        }
+
+        .artifact-desc {
+            font-size: 14px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
 
     <div id="notification"></div>
+
+    <!-- ASTRA Dialogue -->
+    <div id="astraDialogue">
+        <div class="astra-text" id="astraText"></div>
+        <div class="astra-name">— ASTRA</div>
+    </div>
+
+    <!-- Combo Display -->
+    <div id="comboDisplay">
+        <div class="combo-text">COMBO x<span id="comboCount">1</span></div>
+        <div class="combo-multiplier" id="comboMultiplier">+100%</div>
+    </div>
+
+    <!-- Flash Mission -->
+    <div id="flashMission">
+        <div class="flash-title"><span id="flashMissionIcon"></span> <span id="flashMissionName"></span></div>
+        <div class="flash-desc" id="flashMissionDesc"></div>
+        <div class="flash-progress">
+            <div class="flash-progress-bar" id="flashProgressBar" style="width: 0%">
+                <span id="flashProgressText">0/0</span>
+            </div>
+        </div>
+        <div class="flash-timer" id="flashTimer">⏱️ 00:00</div>
+    </div>
+
+    <!-- Story Event Modal -->
+    <div id="storyEventModal">
+        <div class="story-event-content">
+            <div class="story-event-icon" id="storyEventIcon"></div>
+            <div class="story-event-title" id="storyEventTitle"></div>
+            <div class="story-event-desc" id="storyEventDesc"></div>
+            <div id="storyEventChoices"></div>
+        </div>
+    </div>
 
     <!-- Welcome Screen -->
     <div id="welcome">
@@ -1003,6 +1357,34 @@
             },
             permanentBoosts: {
                 offlineBonus: 1
+            },
+            // Gameplay Systems
+            astraDialogue: {
+                lastDialogue: 0,
+                storyProgress: 0,
+                dialoguesSeen: []
+            },
+            combo: {
+                count: 0,
+                lastClick: 0,
+                multiplier: 1
+            },
+            flashMission: {
+                active: false,
+                type: null,
+                startTime: 0,
+                duration: 0,
+                progress: 0,
+                goal: 0,
+                reward: null
+            },
+            artifacts: {
+                discovered: [],
+                active: []
+            },
+            storyEvents: {
+                lastEvent: 0,
+                activeEvent: null
             }
         };
 
@@ -1478,6 +1860,273 @@
             }
         };
 
+        // ASTRA AI Dialogue System
+        const astraDialogues = [
+            // Story progression 0-5
+            { id: 0, text: "Systèmes initialisés. Bonjour Commandant. Je suis ASTRA, votre Intelligence Artificielle de Navigation Stellaire.", trigger: 'start' },
+            { id: 1, text: "Les fragments stellaires... ils tombent de plus en plus vite. C'est inhabituel.", trigger: 'clicks', requirement: 50 },
+            { id: 2, text: "Commandant, j'ai détecté des anomalies dans les flux énergétiques. Ces fragments... ils ne sont pas naturels.", trigger: 'lumen', requirement: 1000 },
+            { id: 3, text: "Analyse terminée. Les fragments contiennent des données cryptées d'une civilisation ancienne.", trigger: 'buildings', requirement: 5 },
+            { id: 4, text: "Fascinant. Les inscriptions parlent d'un 'Grand Éveil'. Quelque chose s'approche...", trigger: 'tech', requirement: 1 },
+            { id: 5, text: "Commandant, les capteurs détectent une perturbation spatiale massive. L'origine est... la Terre elle-même.", trigger: 'prestige', requirement: 1 },
+
+            // Random contextual messages
+            { id: 10, text: "Efficacité de collecte : impressionnante, Commandant.", random: true, weight: 1 },
+            { id: 11, text: "Les systèmes de défense sont opérationnels. Nous sommes prêts.", random: true, weight: 1 },
+            { id: 12, text: "Scan en cours... Rien d'anormal pour l'instant.", random: true, weight: 1 },
+            { id: 13, text: "Commandant, pensez-vous que nous sommes seuls dans l'univers ?", random: true, weight: 0.5 },
+            { id: 14, text: "Parfois, je me demande si je suis plus qu'un simple programme...", random: true, weight: 0.3 },
+            { id: 15, text: "Les étoiles sont magnifiques ce soir. Enfin, je suppose. Je ne peux pas vraiment les voir.", random: true, weight: 0.3 },
+            { id: 16, text: "Production stable. Tout va bien, Commandant.", random: true, weight: 1 },
+            { id: 17, text: "Alerte : Niveau de café du Commandant critique. Oh attendez, je ne peux pas mesurer ça.", random: true, weight: 0.2 }
+        ];
+
+        // Story Events with Choices
+        const storyEventData = {
+            meteorite: {
+                name: 'Météorite Géante',
+                icon: '☄️',
+                desc: 'Une météorite massive approche ! Utiliser les boucliers pourrait la détruire, mais consomme de l\'énergie.',
+                choices: [
+                    {
+                        text: 'Activer les boucliers',
+                        cost: { energy: 500 },
+                        success: { chance: 0.7, reward: { lumen: 2000, matter: 100 }, message: '💥 Météorite détruite ! Fragments récupérés !' },
+                        failure: { penalty: { lumen: -500 }, message: '⚠️ Boucliers surchargés ! Pertes matérielles...' }
+                    },
+                    {
+                        text: 'Esquiver',
+                        cost: {},
+                        success: { chance: 1, reward: {}, message: '✓ Esquive réussie. Aucun dégât.' }
+                    },
+                    {
+                        text: 'Ne rien faire',
+                        cost: {},
+                        success: { chance: 0.3, reward: { lumen: 500 }, message: '🍀 Chanceux ! Des fragments sont tombés !' },
+                        failure: { penalty: { lumen: -1000, energy: -200 }, message: '💥 Impact ! Dégâts aux installations !' }
+                    }
+                ]
+            },
+            signal: {
+                name: 'Signal Mystérieux',
+                icon: '📡',
+                desc: 'Un signal étrange provient d\'une zone inexploré. Il pourrait s\'agir d\'une technologie alien.',
+                choices: [
+                    {
+                        text: 'Envoyer une sonde',
+                        cost: { energy: 300, matter: 50 },
+                        success: { chance: 0.6, reward: { artifact: true }, message: '🎁 Artefact alien découvert !' },
+                        failure: { penalty: { energy: -300, matter: -50 }, message: '📡 Signal perdu. Sonde détruite.' }
+                    },
+                    {
+                        text: 'Y aller personnellement',
+                        cost: { energy: 1000 },
+                        success: { chance: 0.4, reward: { lumen: 5000, energy: 2000, artifact: true }, message: '🌟 Incroyable découverte ! Technologie avancée !' },
+                        failure: { penalty: { lumen: -2000, energy: -1000 }, message: '⚠️ Piège ! Systèmes endommagés !' }
+                    },
+                    {
+                        text: 'Ignorer',
+                        cost: {},
+                        success: { chance: 1, reward: {}, message: 'Signal ignoré. Prudence est mère de sûreté.' }
+                    }
+                ]
+            },
+            vortex: {
+                name: 'Vortex Temporel',
+                icon: '🌀',
+                desc: 'Un vortex temporel s\'ouvre ! Voyager dans le futur pourrait accélérer la production, mais c\'est risqué.',
+                choices: [
+                    {
+                        text: 'Voyager 10 min dans le futur',
+                        cost: { matter: 100 },
+                        success: { chance: 0.8, reward: { timeSkip: 600 }, message: '⏰ Saut temporel réussi ! 10 minutes de production gagnées !' },
+                        failure: { penalty: { lumen: -1000, energy: -500 }, message: '⚠️ Paradoxe temporel ! Ressources perdues dans le temps !' }
+                    },
+                    {
+                        text: 'Étudier le vortex',
+                        cost: { energy: 500 },
+                        success: { chance: 1, reward: { lumen: 1000, matter: 200 }, message: '🔬 Données temporelles collectées !' }
+                    },
+                    {
+                        text: 'S\'éloigner',
+                        cost: {},
+                        success: { chance: 1, reward: {}, message: 'Vous évitez prudemment le vortex.' }
+                    }
+                ]
+            },
+            trader: {
+                name: 'Commerçant Alien',
+                icon: '👽',
+                desc: 'Un vaisseau alien propose d\'échanger des ressources. Leur technologie semble avancée mais étrange.',
+                choices: [
+                    {
+                        text: 'Échanger (2000L contre Matter)',
+                        cost: { lumen: 2000 },
+                        success: { chance: 0.9, reward: { matter: 500 }, message: '🤝 Échange réussi ! Matière acquise !' },
+                        failure: { penalty: { lumen: -2000 }, message: '👽 Escroquerie ! Ils sont partis avec vos ressources !' }
+                    },
+                    {
+                        text: 'Essayer de voler leur tech',
+                        cost: {},
+                        success: { chance: 0.2, reward: { artifact: true, matter: 1000 }, message: '🎯 Vol réussi ! Technologie alien volée !' },
+                        failure: { penalty: { lumen: -3000, energy: -1000, matter: -200 }, message: '⚔️ Combat ! Vous perdez !' }
+                    },
+                    {
+                        text: 'Refuser poliment',
+                        cost: {},
+                        success: { chance: 1, reward: { lumen: 500 }, message: '🙏 Ils apprécient votre honnêteté et laissent un cadeau.' }
+                    }
+                ]
+            },
+            anomaly: {
+                name: 'Anomalie Quantique',
+                icon: '⚛️',
+                desc: 'Une anomalie quantique duplique temporairement la matière. Exploiter cela est dangereux.',
+                choices: [
+                    {
+                        text: 'Dupliquer les ressources',
+                        cost: { matter: 200 },
+                        success: { chance: 0.5, reward: { lumen: 10000, energy: 5000 }, message: '✨ Duplication réussie ! Ressources doublées !' },
+                        failure: { penalty: { lumen: -5000, energy: -2000, matter: -200 }, message: '💥 Effondrement quantique ! Tout est perdu !' }
+                    },
+                    {
+                        text: 'Stabiliser l\'anomalie',
+                        cost: { energy: 1000 },
+                        success: { chance: 0.9, reward: { matter: 300, boost: 'production2x' }, message: '⚡ Anomalie stabilisée ! Boost de production activé !' }
+                    },
+                    {
+                        text: 'Observer de loin',
+                        cost: {},
+                        success: { chance: 1, reward: { lumen: 1000 }, message: '🔭 Observations scientifiques enregistrées.' }
+                    }
+                ]
+            }
+        };
+
+        // Flash Mission Types
+        const flashMissionTypes = {
+            speedClicks: {
+                name: 'DÉFI RAPIDE',
+                icon: '⚡',
+                desc: 'Capturer {goal} fragments en {duration}s',
+                goalRange: [10, 30],
+                durationRange: [30, 60],
+                type: 'fragments',
+                rewards: [
+                    { lumen: 1000, energy: 500 },
+                    { matter: 100 },
+                    { boost: 'production2x' }
+                ]
+            },
+            comboMaster: {
+                name: 'MAÎTRE DU COMBO',
+                icon: '🔥',
+                desc: 'Atteindre un combo x{goal}',
+                goalRange: [10, 25],
+                durationRange: [45, 90],
+                type: 'combo',
+                rewards: [
+                    { lumen: 2000 },
+                    { artifact: true },
+                    { boost: 'clickPower3x' }
+                ]
+            },
+            buildRush: {
+                name: 'CONSTRUCTION RAPIDE',
+                icon: '🏗️',
+                desc: 'Construire {goal} bâtiments en {duration}s',
+                goalRange: [2, 5],
+                durationRange: [60, 120],
+                type: 'buildings',
+                rewards: [
+                    { lumen: 5000, energy: 2000 },
+                    { matter: 200 },
+                    { discount: 0.5, duration: 300 } // 50% off for 5min
+                ]
+            },
+            collector: {
+                name: 'COLLECTE INTENSIVE',
+                icon: '💰',
+                desc: 'Collecter {goal} Lumen en {duration}s',
+                goalRange: [5000, 15000],
+                durationRange: [60, 120],
+                type: 'lumen',
+                rewards: [
+                    { energy: 3000, matter: 300 },
+                    { lumen: 5000 },
+                    { boost: 'production2x' }
+                ]
+            }
+        };
+
+        // Artifact System
+        const artifactData = {
+            timeCrystal: {
+                name: 'Cristal du Temps',
+                desc: '+5% vitesse de jeu',
+                icon: '⏰',
+                rarity: 'rare',
+                effect: { type: 'gameSpeed', value: 1.05 },
+                bonus: '+5% vitesse'
+            },
+            ancientStar: {
+                name: 'Étoile Ancienne',
+                desc: '+10% production Lumen',
+                icon: '⭐',
+                rarity: 'epic',
+                effect: { type: 'lumenBonus', value: 1.1 },
+                bonus: '+10% Lumen'
+            },
+            energyCore: {
+                name: 'Coeur Énergétique',
+                desc: '+15% production Énergie',
+                icon: '⚡',
+                rarity: 'epic',
+                effect: { type: 'energyBonus', value: 1.15 },
+                bonus: '+15% Énergie'
+            },
+            darkMatter: {
+                name: 'Matière Noire Pure',
+                desc: '+20% production Matière',
+                icon: '🌑',
+                rarity: 'legendary',
+                effect: { type: 'matterBonus', value: 1.2 },
+                bonus: '+20% Matière'
+            },
+            luckyCharm: {
+                name: 'Charme de Chance',
+                desc: '+5% chance artefacts',
+                icon: '🍀',
+                rarity: 'rare',
+                effect: { type: 'artifactChance', value: 0.05 },
+                bonus: '+5% chance'
+            },
+            clickGem: {
+                name: 'Gemme du Clicker',
+                desc: '+25% puissance de clic',
+                icon: '💎',
+                rarity: 'epic',
+                effect: { type: 'clickPower', value: 1.25 },
+                bonus: '+25% clics'
+            },
+            infinityStone: {
+                name: 'Pierre d\'Infinité',
+                desc: '+50% toutes ressources',
+                icon: '♾️',
+                rarity: 'legendary',
+                effect: { type: 'allResources', value: 1.5 },
+                bonus: '+50% TOUT'
+            },
+            cosmicEye: {
+                name: 'Oeil Cosmique',
+                desc: 'Révèle les fragments dorés',
+                icon: '👁️',
+                rarity: 'epic',
+                effect: { type: 'goldenFragments', value: true },
+                bonus: 'Fragments dorés'
+            }
+        };
+
         // Initialize
         for (let planetKey in game.planets) {
             if (!game.planets[planetKey].buildings) {
@@ -1579,6 +2228,12 @@
             planet.buildings[key] = level + 1;
             game.stats.buildingsBuilt++;
             updateQuestProgress('builds', 1);
+
+            // Flash mission progress
+            if (game.flashMission.active && game.flashMission.type === 'buildings') {
+                game.flashMission.progress++;
+            }
+
             playSound('build');
             showNotification(`✓ ${data.name} Niv.${level + 1}`);
 
@@ -1979,22 +2634,28 @@
                 const dist = Math.sqrt((clickX - frag.x) ** 2 + (clickY - frag.y) ** 2);
 
                 if (dist < frag.size * 3.5) {
+                    // Increment combo
+                    incrementCombo();
+
                     let gain = 0;
                     let resourceLabel = '';
 
+                    // Apply combo multiplier
+                    const comboMultiplier = game.combo.multiplier || 1;
+
                     // Award resources based on fragment type
                     if (frag.type === 'lumen') {
-                        gain = game.clickPower;
+                        gain = Math.floor(game.clickPower * comboMultiplier);
                         game.resources.lumen += gain;
                         game.totalResources.lumen += gain;
                         resourceLabel = 'L';
                     } else if (frag.type === 'energy') {
-                        gain = Math.ceil(game.clickPower * 0.5); // 50% of click power
+                        gain = Math.ceil(game.clickPower * 0.5 * comboMultiplier); // 50% of click power
                         game.resources.energy += gain;
                         game.totalResources.energy += gain;
                         resourceLabel = 'E';
                     } else if (frag.type === 'matter') {
-                        gain = Math.ceil(game.clickPower * 0.2); // 20% of click power
+                        gain = Math.ceil(game.clickPower * 0.2 * comboMultiplier); // 20% of click power
                         game.resources.matter += gain;
                         game.totalResources.matter += gain;
                         resourceLabel = 'M';
@@ -2006,6 +2667,18 @@
                     updateQuestProgress('clicks', 1);
                     updateQuestProgress('fragmentsCaught', 1);
                     updateQuestProgress('lumenCollected', gain);
+
+                    // Flash mission progress
+                    if (game.flashMission.active && game.flashMission.type === 'fragments') {
+                        game.flashMission.progress++;
+                    }
+                    if (game.flashMission.active && game.flashMission.type === 'lumen') {
+                        game.flashMission.progress += gain;
+                    }
+
+                    // Check for artifact drop
+                    checkArtifactDrop();
+
                     checkAchievements();
                     checkMasteryLevels();
 
@@ -2046,6 +2719,27 @@
             // Clean up expired boosts and events
             game.activeBoosts = game.activeBoosts.filter(boost => boost.endTime > now);
             game.activeEvents = game.activeEvents.filter(event => event.endTime > now);
+
+            // Update combo timer
+            updateCombo();
+
+            // Update flash mission
+            updateFlashMission();
+
+            // Check for ASTRA dialogues (every 60s)
+            if (Math.floor(game.stats.timePlayed) % 60 === 0) {
+                checkAstraDialogues();
+            }
+
+            // Trigger story events (check every 120s)
+            if (Math.floor(game.stats.timePlayed) % 120 === 0) {
+                triggerStoryEvent();
+            }
+
+            // Trigger flash missions (check every 120s)
+            if (Math.floor(game.stats.timePlayed) % 120 === 0) {
+                triggerFlashMission();
+            }
 
             // Production
             const prod = calculateProduction();
@@ -2667,6 +3361,43 @@
                 }
                 if (!game.permanentBoosts) {
                     game.permanentBoosts = { offlineBonus: 1 };
+                }
+                if (!game.astraDialogue) {
+                    game.astraDialogue = {
+                        lastDialogue: 0,
+                        storyProgress: 0,
+                        dialoguesSeen: []
+                    };
+                }
+                if (!game.combo) {
+                    game.combo = {
+                        count: 0,
+                        lastClick: 0,
+                        multiplier: 1
+                    };
+                }
+                if (!game.flashMission) {
+                    game.flashMission = {
+                        active: false,
+                        type: null,
+                        startTime: 0,
+                        duration: 0,
+                        progress: 0,
+                        goal: 0,
+                        reward: null
+                    };
+                }
+                if (!game.artifacts) {
+                    game.artifacts = {
+                        discovered: [],
+                        active: []
+                    };
+                }
+                if (!game.storyEvents) {
+                    game.storyEvents = {
+                        lastEvent: 0,
+                        activeEvent: null
+                    };
                 }
 
                 game.lastTick = Date.now();
@@ -3494,6 +4225,414 @@
         }
 
         window.addEventListener('beforeunload', () => saveGame());
+
+        // ==== GAMEPLAY SYSTEMS ====
+
+        // ASTRA Dialogue System
+        function showAstraDialogue(text) {
+            const dialogue = document.getElementById('astraDialogue');
+            const textEl = document.getElementById('astraText');
+            textEl.textContent = text;
+            dialogue.classList.add('show');
+            setTimeout(() => dialogue.classList.remove('show'), 5000);
+        }
+
+        function checkAstraDialogues() {
+            const now = Date.now();
+            if (now - game.astraDialogue.lastDialogue < 60000) return; // Min 1min between dialogues
+
+            // Check story progression triggers
+            for (let dialogue of astraDialogues) {
+                if (dialogue.trigger && !game.astraDialogue.dialoguesSeen.includes(dialogue.id)) {
+                    let shouldShow = false;
+
+                    if (dialogue.trigger === 'start' && game.stats.totalClicks === 0) {
+                        shouldShow = true;
+                    } else if (dialogue.trigger === 'clicks' && game.stats.totalClicks >= dialogue.requirement) {
+                        shouldShow = true;
+                    } else if (dialogue.trigger === 'lumen' && game.totalResources.lumen >= dialogue.requirement) {
+                        shouldShow = true;
+                    } else if (dialogue.trigger === 'buildings' && game.stats.buildingsBuilt >= dialogue.requirement) {
+                        shouldShow = true;
+                    } else if (dialogue.trigger === 'tech' && game.stats.techsUnlocked >= dialogue.requirement) {
+                        shouldShow = true;
+                    } else if (dialogue.trigger === 'prestige' && game.prestige.level >= dialogue.requirement) {
+                        shouldShow = true;
+                    }
+
+                    if (shouldShow) {
+                        showAstraDialogue(dialogue.text);
+                        game.astraDialogue.dialoguesSeen.push(dialogue.id);
+                        game.astraDialogue.storyProgress = dialogue.id;
+                        game.astraDialogue.lastDialogue = now;
+                        saveGame();
+                        return;
+                    }
+                }
+            }
+
+            // Random contextual messages (10% chance every minute)
+            if (Math.random() < 0.1) {
+                const randomDialogues = astraDialogues.filter(d => d.random);
+                if (randomDialogues.length > 0) {
+                    const weights = randomDialogues.map(d => d.weight);
+                    const totalWeight = weights.reduce((a, b) => a + b, 0);
+                    let random = Math.random() * totalWeight;
+
+                    for (let i = 0; i < randomDialogues.length; i++) {
+                        random -= randomDialogues[i].weight;
+                        if (random <= 0) {
+                            showAstraDialogue(randomDialogues[i].text);
+                            game.astraDialogue.lastDialogue = now;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Combo System
+        function updateCombo() {
+            const now = Date.now();
+            const combo = game.combo;
+
+            if (now - combo.lastClick > 2000) {
+                // Reset combo if more than 2s since last click
+                combo.count = 0;
+                combo.multiplier = 1;
+                document.getElementById('comboDisplay').classList.remove('show');
+            }
+
+            if (combo.count > 0) {
+                document.getElementById('comboDisplay').classList.add('show');
+                document.getElementById('comboCount').textContent = combo.count;
+
+                // Calculate multiplier
+                if (combo.count >= 20) combo.multiplier = 5;
+                else if (combo.count >= 10) combo.multiplier = 3;
+                else if (combo.count >= 5) combo.multiplier = 2;
+                else combo.multiplier = 1;
+
+                const percent = Math.floor((combo.multiplier - 1) * 100);
+                document.getElementById('comboMultiplier').textContent = `+${percent}%`;
+            }
+        }
+
+        function incrementCombo() {
+            game.combo.count++;
+            game.combo.lastClick = Date.now();
+            updateCombo();
+
+            // Check flash mission
+            if (game.flashMission.active && game.flashMission.type === 'combo') {
+                if (game.combo.count > game.flashMission.progress) {
+                    game.flashMission.progress = game.combo.count;
+                }
+            }
+        }
+
+        // Story Event System
+        function triggerStoryEvent() {
+            const now = Date.now();
+            if (now - game.storyEvents.lastEvent < 300000) return; // Min 5min between events
+            if (game.storyEvents.activeEvent) return;
+
+            // 20% chance to trigger
+            if (Math.random() > 0.2) return;
+
+            const eventKeys = Object.keys(storyEventData);
+            const eventKey = eventKeys[Math.floor(Math.random() * eventKeys.length)];
+            const event = storyEventData[eventKey];
+
+            game.storyEvents.activeEvent = eventKey;
+            game.storyEvents.lastEvent = now;
+
+            showStoryEvent(eventKey, event);
+        }
+
+        function showStoryEvent(eventKey, event) {
+            document.getElementById('storyEventIcon').textContent = event.icon;
+            document.getElementById('storyEventTitle').textContent = event.name;
+            document.getElementById('storyEventDesc').textContent = event.desc;
+
+            const choicesEl = document.getElementById('storyEventChoices');
+            choicesEl.innerHTML = '';
+
+            event.choices.forEach((choice, index) => {
+                const choiceDiv = document.createElement('div');
+                choiceDiv.className = 'story-choice';
+
+                let costText = '';
+                if (Object.keys(choice.cost).length > 0) {
+                    const costs = [];
+                    for (let res in choice.cost) {
+                        costs.push(`${choice.cost[res]} ${res}`);
+                    }
+                    costText = `<div class="story-choice-cost">Coût: ${costs.join(', ')}</div>`;
+                }
+
+                let chanceText = '';
+                if (choice.success && choice.success.chance < 1) {
+                    chanceText = `<div class="story-choice-chance">${Math.floor(choice.success.chance * 100)}% de réussite</div>`;
+                }
+
+                choiceDiv.innerHTML = `
+                    <div class="story-choice-text">${choice.text}</div>
+                    ${costText}
+                    ${chanceText}
+                `;
+
+                choiceDiv.addEventListener('click', () => makeStoryChoice(eventKey, index));
+                choicesEl.appendChild(choiceDiv);
+            });
+
+            document.getElementById('storyEventModal').classList.add('show');
+        }
+
+        function makeStoryChoice(eventKey, choiceIndex) {
+            const event = storyEventData[eventKey];
+            const choice = event.choices[choiceIndex];
+
+            // Check if can afford
+            if (!canAfford(choice.cost)) {
+                showNotification('❌ Ressources insuffisantes');
+                return;
+            }
+
+            // Spend resources
+            spendResources(choice.cost);
+
+            // Determine success/failure
+            const success = Math.random() < (choice.success?.chance || 1);
+            const outcome = success ? choice.success : choice.failure;
+
+            if (outcome) {
+                // Apply rewards/penalties
+                if (outcome.reward) {
+                    for (let res in outcome.reward) {
+                        if (res === 'timeSkip') {
+                            // Time skip reward
+                            const prod = calculateProduction();
+                            for (let r in prod) {
+                                const gain = prod[r] * outcome.reward[res];
+                                game.resources[r] += gain;
+                                game.totalResources[r] += gain;
+                            }
+                        } else if (res === 'artifact') {
+                            // Artifact reward
+                            discoverRandomArtifact();
+                        } else if (res === 'boost') {
+                            // Boost reward
+                            const boostKey = outcome.reward[res];
+                            if (boostData[boostKey]) {
+                                const boost = boostData[boostKey];
+                                game.activeBoosts.push({
+                                    name: boost.name,
+                                    endTime: Date.now() + boost.duration,
+                                    effect: boost.effect
+                                });
+                            }
+                        } else {
+                            // Resource reward
+                            game.resources[res] += outcome.reward[res];
+                            game.totalResources[res] += outcome.reward[res];
+                        }
+                    }
+                }
+
+                if (outcome.penalty) {
+                    for (let res in outcome.penalty) {
+                        game.resources[res] = Math.max(0, game.resources[res] + outcome.penalty[res]);
+                    }
+                }
+
+                showNotification(outcome.message);
+            }
+
+            game.storyEvents.activeEvent = null;
+            document.getElementById('storyEventModal').classList.remove('show');
+            saveGame();
+        }
+
+        // Flash Mission System
+        function triggerFlashMission() {
+            if (game.flashMission.active) return;
+
+            // 5% chance every 2 minutes
+            if (Math.random() > 0.05) return;
+
+            const missionKeys = Object.keys(flashMissionTypes);
+            const missionKey = missionKeys[Math.floor(Math.random() * missionKeys.length)];
+            const mission = flashMissionTypes[missionKey];
+
+            const goal = Math.floor(mission.goalRange[0] + Math.random() * (mission.goalRange[1] - mission.goalRange[0]));
+            const duration = Math.floor(mission.durationRange[0] + Math.random() * (mission.durationRange[1] - mission.durationRange[0]));
+
+            game.flashMission = {
+                active: true,
+                type: mission.type,
+                startTime: Date.now(),
+                duration: duration * 1000,
+                progress: 0,
+                goal: goal,
+                reward: mission.rewards[Math.floor(Math.random() * mission.rewards.length)],
+                missionData: mission
+            };
+
+            document.getElementById('flashMissionIcon').textContent = mission.icon;
+            document.getElementById('flashMissionName').textContent = mission.name;
+            const desc = mission.desc.replace('{goal}', goal).replace('{duration}', duration);
+            document.getElementById('flashMissionDesc').textContent = desc;
+            document.getElementById('flashMission').classList.add('show');
+
+            showNotification(`🎯 ${mission.name} activée !`);
+        }
+
+        function updateFlashMission() {
+            if (!game.flashMission.active) return;
+
+            const now = Date.now();
+            const remaining = game.flashMission.startTime + game.flashMission.duration - now;
+
+            if (remaining <= 0) {
+                // Mission failed
+                game.flashMission.active = false;
+                document.getElementById('flashMission').classList.remove('show');
+                showNotification('⏱️ Mission échouée : temps écoulé !');
+                return;
+            }
+
+            // Update timer
+            const seconds = Math.floor(remaining / 1000);
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('flashTimer').textContent = `⏱️ ${mins}:${secs.toString().padStart(2, '0')}`;
+
+            // Update progress
+            const progress = game.flashMission.progress;
+            const goal = game.flashMission.goal;
+            const percent = Math.min(100, (progress / goal) * 100);
+            document.getElementById('flashProgressBar').style.width = percent + '%';
+            document.getElementById('flashProgressText').textContent = `${progress}/${goal}`;
+
+            // Check completion
+            if (progress >= goal) {
+                completeFlashMission();
+            }
+        }
+
+        function completeFlashMission() {
+            const reward = game.flashMission.reward;
+
+            // Give rewards
+            for (let res in reward) {
+                if (res === 'artifact') {
+                    discoverRandomArtifact();
+                } else if (res === 'boost') {
+                    const boostKey = reward[res];
+                    if (boostData[boostKey]) {
+                        const boost = boostData[boostKey];
+                        game.activeBoosts.push({
+                            name: boost.name,
+                            endTime: Date.now() + boost.duration,
+                            effect: boost.effect
+                        });
+                    }
+                } else if (res === 'discount') {
+                    // TODO: Apply temporary discount
+                } else {
+                    game.resources[res] += reward[res];
+                    game.totalResources[res] += reward[res];
+                }
+            }
+
+            showNotification(`🎉 Mission réussie ! Récompense obtenue !`);
+            game.flashMission.active = false;
+            document.getElementById('flashMission').classList.remove('show');
+            saveGame();
+        }
+
+        // Artifact System
+        function discoverRandomArtifact() {
+            const availableArtifacts = Object.keys(artifactData).filter(k => !game.artifacts.discovered.includes(k));
+            if (availableArtifacts.length === 0) {
+                showNotification('💎 Vous avez trouvé des ressources bonus !');
+                game.resources.lumen += 5000;
+                return;
+            }
+
+            const artifactKey = availableArtifacts[Math.floor(Math.random() * availableArtifacts.length)];
+            const artifact = artifactData[artifactKey];
+
+            game.artifacts.discovered.push(artifactKey);
+            game.artifacts.active.push(artifactKey);
+
+            // Show artifact popup
+            const popup = document.createElement('div');
+            popup.className = 'artifact-popup';
+            popup.innerHTML = `
+                <div class="artifact-icon-big">${artifact.icon}</div>
+                <div class="artifact-name">${artifact.name}</div>
+                <div class="artifact-desc">${artifact.desc}</div>
+            `;
+            document.body.appendChild(popup);
+
+            setTimeout(() => {
+                popup.remove();
+                showNotification(`💎 ${artifact.name} découvert ! ${artifact.bonus}`);
+            }, 3000);
+
+            saveGame();
+        }
+
+        function checkArtifactDrop() {
+            // Base 0.5% chance on fragment catch
+            let chance = 0.005;
+
+            // Bonus from Lucky Charm artifact
+            if (game.artifacts.active.includes('luckyCharm')) {
+                chance += artifactData.luckyCharm.effect.value;
+            }
+
+            if (Math.random() < chance) {
+                discoverRandomArtifact();
+            }
+        }
+
+        function applyArtifactBonuses() {
+            let bonuses = {
+                lumenBonus: 1,
+                energyBonus: 1,
+                matterBonus: 1,
+                clickPower: 1,
+                allResources: 1
+            };
+
+            for (let artifactKey of game.artifacts.active) {
+                const artifact = artifactData[artifactKey];
+                if (!artifact) continue;
+
+                switch (artifact.effect.type) {
+                    case 'lumenBonus':
+                        bonuses.lumenBonus *= artifact.effect.value;
+                        break;
+                    case 'energyBonus':
+                        bonuses.energyBonus *= artifact.effect.value;
+                        break;
+                    case 'matterBonus':
+                        bonuses.matterBonus *= artifact.effect.value;
+                        break;
+                    case 'clickPower':
+                        bonuses.clickPower *= artifact.effect.value;
+                        break;
+                    case 'allResources':
+                        bonuses.allResources *= artifact.effect.value;
+                        break;
+                }
+            }
+
+            return bonuses;
+        }
 
         // Service Worker
         if ('serviceWorker' in navigator) {
