@@ -1,0 +1,27 @@
+{
+  "name": "Falling Stars - Foundations of Light",
+  "short_name": "Falling Stars",
+  "description": "Gérez le flux stellaire, construisez votre empire cosmique et sauvez la Terre",
+  "start_url": "/ProjectA/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00d4ff",
+  "orientation": "portrait",
+  "scope": "/ProjectA/",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "lang": "fr-FR"
+}

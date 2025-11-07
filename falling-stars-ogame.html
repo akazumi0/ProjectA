@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Falling Stars">
+    <meta name="description" content="Gérez le flux stellaire, construisez votre empire cosmique et sauvez la Terre">
+    <meta name="theme-color" content="#00d4ff">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Icons for iOS -->
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+
     <title>Falling Stars – Foundations of Light</title>
     <style>
         * {
@@ -525,7 +536,7 @@
                 desc: 'Extrait du Lumen des fragments stellaires',
                 baseCost: { lumen: 50 },
                 costMult: 1.5,
-                production: level => ({ lumen: level * 2 }),
+                production: level => ({ lumen: level * 1 }), // Reduced from 2 to 1
                 max: 20
             },
             energyCollector: {
@@ -562,7 +573,7 @@
                 desc: 'Capture automatiquement les fragments manqués',
                 baseCost: { lumen: 1000, energy: 200, matter: 50 },
                 costMult: 1.7,
-                production: level => ({ lumen: level * 5 }),
+                production: level => ({ lumen: level * 2 }), // Reduced from 5 to 2
                 requires: { tech: 'planetaryShields' },
                 max: 10
             }
@@ -582,10 +593,10 @@
             advancedCapture: {
                 name: 'Capture Avancée',
                 icon: '👆',
-                desc: 'Augmente la puissance de capture manuelle',
-                baseCost: { lumen: 200, energy: 50 },
-                costMult: 1.8,
-                max: 15,
+                desc: 'Augmente la puissance de capture manuelle de +10 par niveau',
+                baseCost: { lumen: 100, energy: 20 },
+                costMult: 1.6,
+                max: 20,
                 requires: {}
             },
             quantumResonance: {
@@ -822,10 +833,10 @@
 
         // Calculate click power
         function calculateClickPower() {
-            let power = 1;
+            let power = 10; // Base click power increased
 
             if (game.technologies.advancedCapture) {
-                power += game.technologies.advancedCapture * 2;
+                power += game.technologies.advancedCapture * 10; // +10 per level instead of +2
             }
 
             return power;
@@ -866,7 +877,7 @@
             fallingFragments.push({
                 x: Math.random() * (canvas.width - 60) + 30,
                 y: -30,
-                size: 12 + Math.random() * 8,
+                size: 16 + Math.random() * 10, // Slightly larger and more visible (16-26px)
                 speed: 1.5 + Math.random() * 1,
                 rotation: Math.random() * Math.PI * 2,
                 rotSpeed: (Math.random() - 0.5) * 0.1,
@@ -897,7 +908,8 @@
                 const frag = fallingFragments[i];
                 const dist = Math.sqrt((clickX - frag.x) ** 2 + (clickY - frag.y) ** 2);
 
-                if (dist < frag.size) {
+                // Hitbox is 3.5x larger than visual size for easier clicking
+                if (dist < frag.size * 3.5) {
                     const gain = game.clickPower;
                     game.resources.lumen += gain;
                     game.totalResources.lumen += gain;
@@ -1379,6 +1391,19 @@
         }
 
         window.addEventListener('beforeunload', () => saveGame());
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/ProjectA/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker enregistré:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Échec enregistrement Service Worker:', error);
+                    });
+            });
+        }
     </script>
 </body>
 </html>
