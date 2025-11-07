@@ -764,7 +764,10 @@
     <div id="leftIconBar" style="display: none;">
         <div class="icon-button" onclick="openModal('daily')" id="dailyIcon">🎁</div>
         <div class="icon-button" onclick="openModal('lootbox')" id="lootboxIcon">📦</div>
+        <div class="icon-button" onclick="openModal('quests')" id="questsIcon">📜</div>
         <div class="icon-button" onclick="openModal('achievements')" id="achievementsIcon">🏆</div>
+        <div class="icon-button" onclick="openModal('events')" id="eventsIcon">🌟</div>
+        <div class="icon-button" onclick="openModal('stats')" id="statsIcon">📊</div>
         <div class="icon-button" onclick="openModal('prestige')" id="prestigeIcon">🌠</div>
         <div class="icon-button" onclick="openModal('shop')" id="shopIcon">🏪</div>
     </div>
@@ -803,6 +806,39 @@
             <button class="modal-close" onclick="closeModal('achievements')">✕</button>
             <div class="modal-header">🏆 SUCCÈS</div>
             <div class="modal-body" id="achievementsBody" style="max-height: 60vh; overflow-y: auto;">
+                <!-- Will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Quests Modal -->
+    <div id="questsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="closeModal('quests')">✕</button>
+            <div class="modal-header">📜 QUÊTES QUOTIDIENNES</div>
+            <div class="modal-body" id="questsBody" style="max-height: 60vh; overflow-y: auto;">
+                <!-- Will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Events Modal -->
+    <div id="eventsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="closeModal('events')">✕</button>
+            <div class="modal-header">🌟 ÉVÉNEMENTS & BOOSTS</div>
+            <div class="modal-body" id="eventsBody" style="max-height: 60vh; overflow-y: auto;">
+                <!-- Will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="statsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="closeModal('stats')">✕</button>
+            <div class="modal-header">📊 STATISTIQUES</div>
+            <div class="modal-body" id="statsBody" style="max-height: 60vh; overflow-y: auto;">
                 <!-- Will be populated by JS -->
             </div>
         </div>
@@ -949,7 +985,24 @@
                 totalClicks: 0,
                 buildingsBuilt: 0,
                 fragmentsCaught: 0,
-                timePlayed: 0
+                timePlayed: 0,
+                techsUnlocked: 0
+            },
+            quests: {
+                daily: {},
+                lastReset: 0
+            },
+            masteries: {
+                clickMastery: 0,
+                buildMastery: 0,
+                techMastery: 0
+            },
+            randomEvents: {
+                lastEvent: 0,
+                currentEvent: null
+            },
+            permanentBoosts: {
+                offlineBonus: 1
             }
         };
 
@@ -1284,6 +1337,147 @@
             }
         };
 
+        // Temporary Events Definitions
+        const eventData = {
+            starRain: {
+                name: 'Pluie d\'Étoiles',
+                desc: 'x2 Lumen pendant 1h',
+                icon: '🌟',
+                cost: { matter: 10 },
+                duration: 60 * 60 * 1000, // 1h
+                effect: { resource: 'lumen', multiplier: 2 }
+            },
+            solarStorm: {
+                name: 'Tempête Solaire',
+                desc: 'x2 Énergie pendant 1h',
+                icon: '☀️',
+                cost: { matter: 20 },
+                duration: 60 * 60 * 1000,
+                effect: { resource: 'energy', multiplier: 2 }
+            },
+            cosmicEclipse: {
+                name: 'Éclipse Cosmique',
+                desc: 'x3 Matière pendant 30min',
+                icon: '🌑',
+                cost: { matter: 50 },
+                duration: 30 * 60 * 1000,
+                effect: { resource: 'matter', multiplier: 3 }
+            },
+            superSpawn: {
+                name: 'Super Spawn',
+                desc: '+100% taux apparition pendant 5min',
+                icon: '⚡',
+                cost: { matter: 5 },
+                duration: 5 * 60 * 1000,
+                effect: { type: 'spawnRate', multiplier: 2 }
+            }
+        };
+
+        // Boosts Shop Definitions
+        const boostData = {
+            production2x: {
+                name: 'Production x2',
+                desc: 'Double la production pendant 30min',
+                icon: '⚡',
+                cost: { matter: 50 },
+                duration: 30 * 60 * 1000,
+                effect: { type: 'production', multiplier: 2 }
+            },
+            clickPower3x: {
+                name: 'Click Power x3',
+                desc: 'Triple la puissance de clic pendant 10min',
+                icon: '👆',
+                cost: { matter: 20 },
+                duration: 10 * 60 * 1000,
+                effect: { type: 'clickPower', multiplier: 3 }
+            },
+            autoClicker: {
+                name: 'Auto-Clicker',
+                desc: 'Simule 1 clic/seconde pendant 1h',
+                icon: '🤖',
+                cost: { matter: 100 },
+                duration: 60 * 60 * 1000,
+                effect: { type: 'autoClick', value: 1 }
+            },
+            offlineBonus: {
+                name: 'Bonus Hors Ligne',
+                desc: '+50% gains hors ligne (permanent)',
+                icon: '💤',
+                cost: { matter: 500 },
+                duration: -1, // Permanent
+                effect: { type: 'offlineBonus', multiplier: 1.5 }
+            }
+        };
+
+        // Mastery System Definitions
+        const masteryData = {
+            clickMastery: {
+                name: 'Maître du Clic',
+                desc: 'Augmente le click power',
+                icon: '👆',
+                maxLevel: 10,
+                requirement: (level) => level * 500, // Clics requis
+                effect: (level) => level * 0.05, // +5% par niveau
+                stat: 'totalClicks'
+            },
+            buildMastery: {
+                name: 'Architecte',
+                desc: 'Réduit le coût des bâtiments',
+                icon: '🏗️',
+                maxLevel: 10,
+                requirement: (level) => level * 10,
+                effect: (level) => level * 0.03, // -3% par niveau
+                stat: 'buildingsBuilt'
+            },
+            techMastery: {
+                name: 'Scientifique',
+                desc: 'Réduit le coût des technologies',
+                icon: '🔬',
+                maxLevel: 5,
+                requirement: (level) => level * 2,
+                effect: (level) => level * 0.05, // -5% par niveau
+                stat: 'techsUnlocked'
+            }
+        };
+
+        // Quest Definitions
+        const questData = {
+            daily: {
+                click100: {
+                    name: 'Clicker Actif',
+                    desc: 'Cliquer 100 fois',
+                    requirement: 100,
+                    reward: { lumen: 200 },
+                    stat: 'clicks',
+                    icon: '👆'
+                },
+                build3: {
+                    name: 'Constructeur',
+                    desc: 'Construire 3 bâtiments',
+                    requirement: 3,
+                    reward: { lumen: 500, energy: 100 },
+                    stat: 'builds',
+                    icon: '🏗️'
+                },
+                collect5k: {
+                    name: 'Collectionneur',
+                    desc: 'Collecter 5K Lumen',
+                    requirement: 5000,
+                    reward: { energy: 1000 },
+                    stat: 'lumenCollected',
+                    icon: '⭐'
+                },
+                fragments50: {
+                    name: 'Chasseur d\'Étoiles',
+                    desc: 'Attraper 50 fragments',
+                    requirement: 50,
+                    reward: { lumen: 300, energy: 50 },
+                    stat: 'fragmentsCaught',
+                    icon: '💫'
+                }
+            }
+        };
+
         // Initialize
         for (let planetKey in game.planets) {
             if (!game.planets[planetKey].buildings) {
@@ -1305,10 +1499,22 @@
         }
 
         // Cost functions
-        function getCost(data, level) {
+        function getCost(data, level, type = null) {
             const cost = {};
             for (let res in data.baseCost) {
-                cost[res] = Math.floor(data.baseCost[res] * Math.pow(data.costMult, level));
+                let amount = data.baseCost[res] * Math.pow(data.costMult, level);
+
+                // Apply mastery discounts
+                if (type === 'building' && game.masteries.buildMastery > 0) {
+                    const discount = masteryData.buildMastery.effect(game.masteries.buildMastery);
+                    amount *= (1 - discount);
+                }
+                if (type === 'tech' && game.masteries.techMastery > 0) {
+                    const discount = masteryData.techMastery.effect(game.masteries.techMastery);
+                    amount *= (1 - discount);
+                }
+
+                cost[res] = Math.floor(amount);
             }
             return cost;
         }
@@ -1366,12 +1572,13 @@
             if (level >= data.max) return;
             if (!checkRequires(data)) return;
 
-            const cost = getCost(data, level);
+            const cost = getCost(data, level, 'building');
             if (!canAfford(cost)) return;
 
             spendResources(cost);
             planet.buildings[key] = level + 1;
             game.stats.buildingsBuilt++;
+            updateQuestProgress('builds', 1);
             playSound('build');
             showNotification(`✓ ${data.name} Niv.${level + 1}`);
 
@@ -1379,6 +1586,7 @@
             triggerSuccessAnimation(`building-${key}`);
 
             checkAchievements();
+            checkMasteryLevels();
             updateAll();
             saveGame();
         }
@@ -1389,11 +1597,17 @@
             if (level >= data.max) return;
             if (!checkRequires(data)) return;
 
-            const cost = getCost(data, level);
+            const cost = getCost(data, level, 'tech');
             if (!canAfford(cost)) return;
 
             spendResources(cost);
             game.technologies[key] = level + 1;
+
+            // Track tech unlocks (first level only)
+            if (level === 0) {
+                game.stats.techsUnlocked++;
+            }
+
             playSound('build');
             showNotification(`✓ ${data.name} Niv.${level + 1}`);
 
@@ -1401,6 +1615,7 @@
             triggerSuccessAnimation(`tech-${key}`);
 
             checkAchievements();
+            checkMasteryLevels();
             updateAll();
             saveGame();
         }
@@ -1558,6 +1773,27 @@
             return current;
         }
 
+        // Mastery auto-leveling
+        function checkMasteryLevels() {
+            for (let masteryKey in masteryData) {
+                const mastery = masteryData[masteryKey];
+                const currentLevel = game.masteries[masteryKey] || 0;
+
+                // Check if can level up
+                if (currentLevel < mastery.maxLevel) {
+                    const progress = game.stats[mastery.stat] || 0;
+                    const required = mastery.requirement(currentLevel + 1);
+
+                    if (progress >= required) {
+                        game.masteries[masteryKey] = currentLevel + 1;
+                        const bonusPercent = Math.floor(mastery.effect(currentLevel + 1) * 100);
+                        showNotification(`🎓 ${mastery.name} Niveau ${currentLevel + 1}! Bonus: ${bonusPercent}%`);
+                        saveGame();
+                    }
+                }
+            }
+        }
+
         // Calculate production
         function calculateProduction() {
             const prod = { lumen: 0, energy: 0, matter: 0 };
@@ -1595,6 +1831,22 @@
                 prod.matter *= prestigeBonus;
             }
 
+            // Apply active boosts
+            for (let boost of game.activeBoosts) {
+                if (boost.effect.type === 'production') {
+                    prod.lumen *= boost.effect.multiplier;
+                    prod.energy *= boost.effect.multiplier;
+                    prod.matter *= boost.effect.multiplier;
+                }
+            }
+
+            // Apply active events (resource-specific)
+            for (let event of game.activeEvents) {
+                if (event.effect.resource) {
+                    prod[event.effect.resource] *= event.effect.multiplier;
+                }
+            }
+
             return prod;
         }
 
@@ -1603,7 +1855,21 @@
             if (game.defense.clickPower) {
                 power += defenseData.clickPower.effect(game.defense.clickPower);
             }
-            return power;
+
+            // Apply click mastery bonus
+            if (game.masteries.clickMastery > 0) {
+                const masteryBonus = 1 + masteryData.clickMastery.effect(game.masteries.clickMastery);
+                power *= masteryBonus;
+            }
+
+            // Apply active click power boosts
+            for (let boost of game.activeBoosts) {
+                if (boost.effect.type === 'clickPower') {
+                    power *= boost.effect.multiplier;
+                }
+            }
+
+            return Math.floor(power);
         }
 
         function calculateSpawnRate() {
@@ -1611,6 +1877,14 @@
             if (game.defense.fragmentRate) {
                 rate += defenseData.fragmentRate.effect(game.defense.fragmentRate);
             }
+
+            // Apply spawn rate events
+            for (let event of game.activeEvents) {
+                if (event.effect.type === 'spawnRate') {
+                    rate *= event.effect.multiplier;
+                }
+            }
+
             return rate;
         }
 
@@ -1729,7 +2003,11 @@
                     // Track stats
                     game.stats.totalClicks++;
                     game.stats.fragmentsCaught++;
+                    updateQuestProgress('clicks', 1);
+                    updateQuestProgress('fragmentsCaught', 1);
+                    updateQuestProgress('lumenCollected', gain);
                     checkAchievements();
+                    checkMasteryLevels();
 
                     createParticles(frag.x, frag.y, frag.color);
                     fallingFragments.splice(i, 1);
@@ -1761,6 +2039,13 @@
             const now = Date.now();
             const delta = (now - game.lastTick) / 1000;
             game.lastTick = now;
+
+            // Update playtime
+            game.stats.timePlayed += delta;
+
+            // Clean up expired boosts and events
+            game.activeBoosts = game.activeBoosts.filter(boost => boost.endTime > now);
+            game.activeEvents = game.activeEvents.filter(event => event.endTime > now);
 
             // Production
             const prod = calculateProduction();
@@ -2171,7 +2456,7 @@
             for (let key in buildingData) {
                 const data = buildingData[key];
                 const level = planet.buildings[key] || 0;
-                const cost = getCost(data, level);
+                const cost = getCost(data, level, 'building');
                 const affordable = canAfford(cost);
                 const maxed = level >= data.max;
                 const locked = !checkRequires(data);
@@ -2231,7 +2516,7 @@
             for (let key in techData) {
                 const data = techData[key];
                 const level = game.technologies[key] || 0;
-                const cost = getCost(data, level);
+                const cost = getCost(data, level, 'tech');
                 const affordable = canAfford(cost);
                 const maxed = level >= data.max;
                 const locked = !checkRequires(data);
@@ -2360,8 +2645,28 @@
                         totalClicks: 0,
                         buildingsBuilt: 0,
                         fragmentsCaught: 0,
-                        timePlayed: 0
+                        timePlayed: 0,
+                        techsUnlocked: 0
                     };
+                }
+                if (!game.stats.techsUnlocked) {
+                    game.stats.techsUnlocked = 0;
+                }
+                if (!game.quests) {
+                    game.quests = { daily: {}, lastReset: 0 };
+                }
+                if (!game.masteries) {
+                    game.masteries = {
+                        clickMastery: 0,
+                        buildMastery: 0,
+                        techMastery: 0
+                    };
+                }
+                if (!game.randomEvents) {
+                    game.randomEvents = { lastEvent: 0, currentEvent: null };
+                }
+                if (!game.permanentBoosts) {
+                    game.permanentBoosts = { offlineBonus: 1 };
                 }
 
                 game.lastTick = Date.now();
@@ -2444,6 +2749,9 @@
                 if (type === 'prestige') updatePrestige();
                 if (type === 'achievements') updateAchievementsModal();
                 if (type === 'shop') updateShopModal();
+                if (type === 'quests') updateQuestsModal();
+                if (type === 'events') updateEventsModal();
+                if (type === 'stats') updateStatsModal();
             }
         }
 
@@ -2651,6 +2959,311 @@
             body.innerHTML = html;
         }
 
+        // ==== QUESTS SYSTEM ====
+        function updateQuestsModal() {
+            const body = document.getElementById('questsBody');
+            if (!body) return;
+
+            resetDailyQuestsIfNeeded();
+
+            let html = '';
+            html += `<div style="text-align: center; margin-bottom: 15px; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 5px;">`;
+            html += `<div style="font-size: 14px; color: #ffd700; font-weight: bold;">Missions Quotidiennes</div>`;
+            html += `<div style="font-size: 10px; color: #aaa;">Réinitialisées chaque jour</div>`;
+            html += `</div>`;
+
+            for (let questKey in questData.daily) {
+                const quest = questData.daily[questKey];
+                const progress = getQuestProgress(questKey);
+                const completed = progress >= quest.requirement;
+                const claimed = game.quests.daily[questKey]?.claimed || false;
+
+                const bgColor = claimed ? 'rgba(0,255,136,0.1)' : (completed ? 'rgba(255,215,0,0.1)' : 'rgba(0,0,0,0.3)');
+
+                html += `<div style="margin: 10px 0; padding: 12px; background: ${bgColor}; border: 1px solid rgba(0,212,255,0.2); border-radius: 5px;">`;
+                html += `<div style="display: flex; justify-content: space-between; align-items: center;">`;
+                html += `<div style="flex: 1;">`;
+                html += `<div style="font-size: 13px; font-weight: bold; color: ${claimed ? '#00ff88' : '#fff'};">${quest.icon} ${quest.name} ${claimed ? '✓' : ''}</div>`;
+                html += `<div style="font-size: 10px; color: #aaa; margin-top: 3px;">${quest.desc}</div>`;
+                html += `<div style="font-size: 11px; color: ${completed ? '#00ff88' : '#ffd93d'}; margin-top: 5px;">`;
+                html += `Progression: ${formatNumber(progress)} / ${formatNumber(quest.requirement)}`;
+                html += `</div>`;
+
+                let rewards = [];
+                for (let res in quest.reward) {
+                    rewards.push(`${formatNumber(quest.reward[res])} ${res}`);
+                }
+                html += `<div style="font-size: 9px; color: #00ff88; margin-top: 3px;">🎁 ${rewards.join(', ')}</div>`;
+                html += `</div>`;
+
+                if (completed && !claimed) {
+                    html += `<button class="sidebar-btn green" style="width: auto; padding: 8px 16px;" onclick="claimQuest('${questKey}')">CLAIM</button>`;
+                }
+                html += `</div></div>`;
+            }
+
+            body.innerHTML = html;
+        }
+
+        function getQuestProgress(questKey) {
+            const quest = questData.daily[questKey];
+            let progress = 0;
+
+            if (!game.quests.daily[questKey]) {
+                game.quests.daily[questKey] = { progress: 0, claimed: false };
+            }
+
+            return game.quests.daily[questKey].progress || 0;
+        }
+
+        function updateQuestProgress(stat, amount = 1) {
+            for (let questKey in questData.daily) {
+                const quest = questData.daily[questKey];
+                if (quest.stat === stat) {
+                    if (!game.quests.daily[questKey]) {
+                        game.quests.daily[questKey] = { progress: 0, claimed: false };
+                    }
+                    game.quests.daily[questKey].progress += amount;
+                }
+            }
+        }
+
+        function claimQuest(questKey) {
+            const quest = questData.daily[questKey];
+            const progress = getQuestProgress(questKey);
+
+            if (progress >= quest.requirement && !game.quests.daily[questKey].claimed) {
+                // Give rewards
+                for (let res in quest.reward) {
+                    game.resources[res] += quest.reward[res];
+                }
+
+                game.quests.daily[questKey].claimed = true;
+
+                let rewards = [];
+                for (let res in quest.reward) {
+                    rewards.push(`+${formatNumber(quest.reward[res])} ${res}`);
+                }
+                showNotification(`📜 ${quest.name} complétée! ${rewards.join(', ')}`);
+
+                updateQuestsModal();
+                saveGame();
+            }
+        }
+
+        function resetDailyQuestsIfNeeded() {
+            const now = Date.now();
+            const dayMs = 24 * 60 * 60 * 1000;
+
+            if (!game.quests.lastReset || now - game.quests.lastReset > dayMs) {
+                game.quests.daily = {};
+                game.quests.lastReset = now;
+                showNotification('📜 Nouvelles quêtes quotidiennes disponibles!');
+            }
+        }
+
+        // ==== EVENTS & BOOSTS SYSTEM ====
+        function updateEventsModal() {
+            const body = document.getElementById('eventsBody');
+            if (!body) return;
+
+            let html = '';
+
+            // Active Events/Boosts Section
+            html += `<div style="margin-bottom: 20px;">`;
+            html += `<div style="font-size: 14px; color: #00d4ff; font-weight: bold; margin-bottom: 10px;">⚡ ACTIFS</div>`;
+
+            const activeCount = game.activeEvents.length + game.activeBoosts.length;
+            if (activeCount === 0) {
+                html += `<div style="text-align: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 5px; color: #888;">Aucun boost actif</div>`;
+            } else {
+                [...game.activeEvents, ...game.activeBoosts].forEach(boost => {
+                    const remaining = boost.endTime - Date.now();
+                    const minutes = Math.floor(remaining / 60000);
+                    const seconds = Math.floor((remaining % 60000) / 1000);
+
+                    html += `<div style="padding: 8px; margin: 5px 0; background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); border-radius: 5px;">`;
+                    html += `<div style="font-size: 12px; font-weight: bold; color: #00ff88;">${boost.name || 'Boost Actif'}</div>`;
+                    html += `<div style="font-size: 10px; color: #ffd93d;">⏱️ ${minutes}:${seconds.toString().padStart(2, '0')}</div>`;
+                    html += `</div>`;
+                });
+            }
+            html += `</div>`;
+
+            // Events Section
+            html += `<div style="margin-bottom: 20px;">`;
+            html += `<div style="font-size: 14px; color: #00d4ff; font-weight: bold; margin-bottom: 10px;">🌟 ÉVÉNEMENTS TEMPORAIRES</div>`;
+
+            for (let eventKey in eventData) {
+                const event = eventData[eventKey];
+                const affordable = canAfford(event.cost);
+
+                html += renderEventOrBoost(eventKey, event, affordable, 'event');
+            }
+            html += `</div>`;
+
+            // Boosts Section
+            html += `<div>`;
+            html += `<div style="font-size: 14px; color: #00d4ff; font-weight: bold; margin-bottom: 10px;">⚡ BOOSTS</div>`;
+
+            for (let boostKey in boostData) {
+                const boost = boostData[boostKey];
+                const affordable = canAfford(boost.cost);
+                const isPermanent = boost.duration === -1;
+                const alreadyBought = isPermanent && game.permanentBoosts[boostKey];
+
+                html += renderEventOrBoost(boostKey, boost, affordable && !alreadyBought, 'boost', alreadyBought);
+            }
+            html += `</div>`;
+
+            body.innerHTML = html;
+        }
+
+        function renderEventOrBoost(key, data, affordable, type, alreadyBought = false) {
+            let html = '';
+            const bgColor = affordable ? 'rgba(0,212,255,0.1)' : 'rgba(0,0,0,0.3)';
+
+            html += `<div style="margin: 10px 0; padding: 12px; background: ${bgColor}; border: 1px solid rgba(0,212,255,0.2); border-radius: 5px;">`;
+            html += `<div style="font-size: 24px; text-align: center; margin-bottom: 5px;">${data.icon}</div>`;
+            html += `<div style="font-size: 13px; font-weight: bold; color: #fff; text-align: center;">${data.name}</div>`;
+            html += `<div style="font-size: 10px; color: #aaa; text-align: center; margin: 5px 0;">${data.desc}</div>`;
+
+            let costText = [];
+            for (let res in data.cost) {
+                costText.push(`${formatNumber(data.cost[res])} ${res}`);
+            }
+            html += `<div style="font-size: 11px; color: #00d4ff; text-align: center; margin: 8px 0;">Coût: ${costText.join(', ')}</div>`;
+
+            if (alreadyBought) {
+                html += `<button class="sidebar-btn" disabled style="background: #00ff88;">ACHETÉ ✓</button>`;
+            } else {
+                const action = type === 'event' ? `activateEvent('${key}')` : `buyBoost('${key}')`;
+                html += `<button class="sidebar-btn ${affordable ? '' : ''}" ${affordable ? '' : 'disabled'} onclick="${action}">ACTIVER</button>`;
+            }
+            html += `</div>`;
+
+            return html;
+        }
+
+        function activateEvent(eventKey) {
+            const event = eventData[eventKey];
+            if (!canAfford(event.cost)) {
+                showNotification('❌ Ressources insuffisantes');
+                return;
+            }
+
+            spendResources(event.cost);
+
+            const eventInstance = {
+                name: event.name,
+                endTime: Date.now() + event.duration,
+                effect: event.effect
+            };
+
+            game.activeEvents.push(eventInstance);
+            showNotification(`${event.icon} ${event.name} activé!`);
+            updateEventsModal();
+            saveGame();
+        }
+
+        function buyBoost(boostKey) {
+            const boost = boostData[boostKey];
+            if (!canAfford(boost.cost)) {
+                showNotification('❌ Ressources insuffisantes');
+                return;
+            }
+
+            spendResources(boost.cost);
+
+            if (boost.duration === -1) {
+                // Permanent boost
+                game.permanentBoosts[boostKey] = true;
+                if (boost.effect.type === 'offlineBonus') {
+                    game.permanentBoosts.offlineBonus = boost.effect.multiplier;
+                }
+                showNotification(`${boost.icon} ${boost.name} acheté (permanent)!`);
+            } else {
+                const boostInstance = {
+                    name: boost.name,
+                    endTime: Date.now() + boost.duration,
+                    effect: boost.effect
+                };
+                game.activeBoosts.push(boostInstance);
+                showNotification(`${boost.icon} ${boost.name} activé!`);
+            }
+
+            updateEventsModal();
+            saveGame();
+        }
+
+        // ==== STATS MODAL ====
+        function updateStatsModal() {
+            const body = document.getElementById('statsBody');
+            if (!body) return;
+
+            const playtimeHours = Math.floor(game.stats.timePlayed / 3600);
+            const playtimeMinutes = Math.floor((game.stats.timePlayed % 3600) / 60);
+
+            let achievementCount = 0;
+            for (let k in game.achievements) {
+                if (game.achievements[k]) achievementCount++;
+            }
+
+            let html = '';
+
+            html += `<div style="padding: 15px; background: rgba(0,212,255,0.05); border-radius: 8px; margin-bottom: 15px;">`;
+            html += `<div style="font-size: 16px; color: #00d4ff; font-weight: bold; text-align: center; margin-bottom: 15px;">PROGRESSION GLOBALE</div>`;
+
+            const stats = [
+                { icon: '⏱️', label: 'Temps joué', value: `${playtimeHours}h ${playtimeMinutes}min` },
+                { icon: '👆', label: 'Total clics', value: formatNumber(game.stats.totalClicks) },
+                { icon: '⭐', label: 'Lumen collecté', value: formatNumber(game.totalResources.lumen) },
+                { icon: '⚡', label: 'Énergie collectée', value: formatNumber(game.totalResources.energy) },
+                { icon: '🌑', label: 'Matière collectée', value: formatNumber(game.totalResources.matter) },
+                { icon: '🏗️', label: 'Bâtiments construits', value: formatNumber(game.stats.buildingsBuilt) },
+                { icon: '💫', label: 'Fragments attrapés', value: formatNumber(game.stats.fragmentsCaught) },
+                { icon: '🔬', label: 'Technologies', value: `${game.stats.techsUnlocked}/4` },
+                { icon: '🌠', label: 'Niveau Prestige', value: game.prestige.level },
+                { icon: '🏆', label: 'Succès débloqués', value: `${achievementCount}/${Object.keys(achievementData).length}` }
+            ];
+
+            stats.forEach(stat => {
+                html += `<div style="display: flex; justify-content: space-between; padding: 8px; margin: 5px 0; background: rgba(0,0,0,0.3); border-radius: 5px;">`;
+                html += `<div style="font-size: 12px; color: #aaa;">${stat.icon} ${stat.label}</div>`;
+                html += `<div style="font-size: 12px; color: #fff; font-weight: bold;">${stat.value}</div>`;
+                html += `</div>`;
+            });
+
+            html += `</div>`;
+
+            // Masteries Section
+            html += `<div style="padding: 15px; background: rgba(255,215,0,0.05); border-radius: 8px;">`;
+            html += `<div style="font-size: 16px; color: #ffd700; font-weight: bold; text-align: center; margin-bottom: 15px;">🎓 MAÎTRISES</div>`;
+
+            for (let masteryKey in masteryData) {
+                const mastery = masteryData[masteryKey];
+                const level = game.masteries[masteryKey] || 0;
+                const progress = game.stats[mastery.stat] || 0;
+                const required = mastery.requirement(level + 1);
+                const bonus = Math.floor(mastery.effect(level) * 100);
+
+                html += `<div style="margin: 10px 0; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,215,0,0.3); border-radius: 5px;">`;
+                html += `<div style="font-size: 13px; font-weight: bold; color: #ffd700;">${mastery.icon} ${mastery.name}</div>`;
+                html += `<div style="font-size: 10px; color: #aaa; margin: 3px 0;">${mastery.desc}</div>`;
+                html += `<div style="font-size: 11px; color: #00ff88; margin: 5px 0;">Niveau ${level} - Bonus: ${level > 0 ? '+' : ''}${bonus}%</div>`;
+                if (level < mastery.maxLevel) {
+                    html += `<div style="font-size: 10px; color: #ffd93d;">Prochain: ${formatNumber(progress)}/${formatNumber(required)}</div>`;
+                } else {
+                    html += `<div style="font-size: 10px; color: #00ff88;">✓ NIVEAU MAX</div>`;
+                }
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            body.innerHTML = html;
+        }
+
         function closeModal(type) {
             const modalId = type + 'Modal';
             const modal = document.getElementById(modalId);
@@ -2662,7 +3275,7 @@
         // Setup modal overlay click handlers
         function setupModalHandlers() {
             try {
-                const modalTypes = ['daily', 'lootbox', 'achievements', 'prestige', 'shop'];
+                const modalTypes = ['daily', 'lootbox', 'quests', 'achievements', 'events', 'stats', 'prestige', 'shop'];
                 modalTypes.forEach(type => {
                     const modal = document.getElementById(type + 'Modal');
                     if (modal) {
