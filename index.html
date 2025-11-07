@@ -772,8 +772,8 @@
 
     <!-- Modals -->
     <!-- Daily Rewards Modal -->
-    <div id="dailyModal" class="modal-overlay" onclick="closeModal('daily', event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
+    <div id="dailyModal" class="modal-overlay">
+        <div class="modal-content">
             <button class="modal-close" onclick="closeModal('daily')">✕</button>
             <div class="modal-header">🎁 RÉCOMPENSES JOURNALIÈRES</div>
             <div class="modal-body">
@@ -786,8 +786,8 @@
     </div>
 
     <!-- Lootbox Modal -->
-    <div id="lootboxModal" class="modal-overlay" onclick="closeModal('lootbox', event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
+    <div id="lootboxModal" class="modal-overlay">
+        <div class="modal-content">
             <button class="modal-close" onclick="closeModal('lootbox')">✕</button>
             <div class="modal-header">📦 COFFRE GRATUIT</div>
             <div class="modal-body">
@@ -799,8 +799,8 @@
     </div>
 
     <!-- Prestige Modal -->
-    <div id="prestigeModal" class="modal-overlay" onclick="closeModal('prestige', event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
+    <div id="prestigeModal" class="modal-overlay">
+        <div class="modal-content">
             <button class="modal-close" onclick="closeModal('prestige')">✕</button>
             <div class="modal-header">🌠 PRESTIGE</div>
             <div class="modal-body">
@@ -825,8 +825,8 @@
     </div>
 
     <!-- Shop Modal -->
-    <div id="shopModal" class="modal-overlay" onclick="closeModal('shop', event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
+    <div id="shopModal" class="modal-overlay">
+        <div class="modal-content">
             <button class="modal-close" onclick="closeModal('shop')">✕</button>
             <div class="modal-header">🏪 BOUTIQUE</div>
             <div class="modal-body">
@@ -2005,6 +2005,7 @@
             document.getElementById('leftIconBar').style.display = 'block';
             document.getElementById('bottomUI').style.display = 'block';
 
+            setupModalHandlers();
             loadGame();
             updateAll();
             initSidebarSystems();
@@ -2030,16 +2031,28 @@
             }
         }
 
-        function closeModal(type, event) {
-            // If event is provided and it's not the overlay itself, don't close
-            if (event && !event.target.classList.contains('modal-overlay')) {
-                return;
-            }
+        function closeModal(type) {
             const modalId = type + 'Modal';
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove('active');
             }
+        }
+
+        // Setup modal overlay click handlers
+        function setupModalHandlers() {
+            const modalTypes = ['daily', 'lootbox', 'prestige', 'shop'];
+            modalTypes.forEach(type => {
+                const modal = document.getElementById(type + 'Modal');
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        // Close only if clicking on the overlay itself, not its children
+                        if (e.target === modal) {
+                            closeModal(type);
+                        }
+                    });
+                }
+            });
         }
 
         // Sidebar Systems
