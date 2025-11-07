@@ -669,6 +669,59 @@
         </div>
     </div>
 
+    <!-- Left Sidebar -->
+    <div id="leftSidebar" style="display: none;">
+        <!-- Daily Rewards -->
+        <div class="sidebar-section">
+            <div class="sidebar-title">🎁 RÉCOMPENSES JOURNALIÈRES</div>
+            <div class="sidebar-content">
+                <div id="dailyDays"></div>
+                <button class="sidebar-btn green" id="claimDailyBtn" onclick="claimDaily()" style="display:none">COLLECTER</button>
+            </div>
+        </div>
+
+        <!-- Free Lootbox -->
+        <div class="sidebar-section">
+            <div class="sidebar-title">📦 COFFRE GRATUIT</div>
+            <div class="sidebar-content">
+                <div id="freeLootboxTimer" class="timer-text">--:--:--</div>
+                <button class="sidebar-btn" id="openFreeLootboxBtn" onclick="openFreeLootbox()" disabled>OUVRIR</button>
+            </div>
+        </div>
+
+        <!-- Events -->
+        <div class="sidebar-section">
+            <div class="sidebar-title">🌟 ÉVÉNEMENTS</div>
+            <div class="sidebar-content" id="eventsContent">
+                <div style="text-align:center; font-size: 8px; color: #888;">Aucun événement actif</div>
+            </div>
+        </div>
+
+        <!-- Active Boosts -->
+        <div class="sidebar-section">
+            <div class="sidebar-title">⚡ BOOSTS ACTIFS</div>
+            <div class="sidebar-content" id="activeBoostsContent">
+                <div style="text-align:center; font-size: 8px; color: #888;">Aucun boost</div>
+            </div>
+        </div>
+
+        <!-- Prestige -->
+        <div class="sidebar-section">
+            <div class="sidebar-title">🌠 PRESTIGE</div>
+            <div class="sidebar-content">
+                <div style="font-size: 8px; margin-bottom: 4px;">Niveau: <span id="prestigeLevel">0</span></div>
+                <div style="font-size: 8px; margin-bottom: 4px;">Bonus: +<span id="prestigeBonus">0</span>%</div>
+                <div style="font-size: 8px; margin-bottom: 4px;" id="prestigeProgress">--</div>
+                <button class="sidebar-btn gold" id="prestigeBtn" onclick="doPrestige()" disabled>PRESTIGE</button>
+            </div>
+        </div>
+
+        <!-- Shop Button -->
+        <div class="sidebar-section">
+            <button class="sidebar-btn gold" onclick="openShop()">🏪 BOUTIQUE</button>
+        </div>
+    </div>
+
     <!-- Bottom UI -->
     <div id="bottomUI" style="display: none;">
         <div id="tabs">
@@ -753,7 +806,28 @@
             defense: {},
             clickPower: 10,
             fragmentSpawnRate: 1,
-            lastTick: Date.now()
+            lastTick: Date.now(),
+            // New systems
+            dailyRewards: {
+                lastClaim: 0,
+                streak: 0
+            },
+            freeLootbox: {
+                lastOpen: 0
+            },
+            prestige: {
+                level: 0,
+                totalLumenEarned: 0
+            },
+            activeBoosts: [],
+            activeEvents: [],
+            achievements: {},
+            stats: {
+                totalClicks: 0,
+                buildingsBuilt: 0,
+                fragmentsCaught: 0,
+                timePlayed: 0
+            }
         };
 
         // Defense/Attack Items (clicking)
@@ -1040,6 +1114,14 @@
                         }
                     }
                 }
+            }
+
+            // Apply prestige bonus
+            if (game.prestige.level > 0) {
+                const prestigeBonus = 1 + (game.prestige.level * 0.1);
+                prod.lumen *= prestigeBonus;
+                prod.energy *= prestigeBonus;
+                prod.matter *= prestigeBonus;
             }
 
             return prod;
@@ -1803,10 +1885,12 @@
 
             document.getElementById('welcome').style.display = 'none';
             document.getElementById('header').style.display = 'block';
+            document.getElementById('leftSidebar').style.display = 'block';
             document.getElementById('bottomUI').style.display = 'block';
 
             loadGame();
             updateAll();
+            initSidebarSystems();
             gameLoop();
 
             // Update UI every 100ms for smooth counters (NOT full render)
@@ -1814,6 +1898,144 @@
 
             // Auto-save every 10s
             setInterval(() => saveGame(), 10000);
+        }
+
+        // Sidebar Systems - TODO: Full implementation
+        function initSidebarSystems() {
+            updateDailyRewards();
+            updateFreeLootbox();
+            updatePrestige();
+            // Update every second
+            setInterval(() => {
+                updateFreeLootbox();
+                updateActiveBoosts();
+            }, 1000);
+        }
+
+        function updateDailyRewards() {
+            const dailyDaysEl = document.getElementById('dailyDays');
+            const now = Date.now();
+            const dayMs = 24 * 60 * 60 * 1000;
+            const timeSinceLastClaim = now - game.dailyRewards.lastClaim;
+
+            // Reset streak if more than 48h
+            if (timeSinceLastClaim > dayMs * 2) {
+                game.dailyRewards.streak = 0;
+            }
+
+            let html = '';
+            for (let i = 0; i < 7; i++) {
+                let cls = 'daily-day';
+                if (i < game.dailyRewards.streak) cls += ' claimed';
+                if (i === game.dailyRewards.streak && timeSinceLastClaim > dayMs) cls += ' available';
+                html += `<span class="${cls}">${i + 1}</span>`;
+            }
+            dailyDaysEl.innerHTML = html;
+
+            const canClaim = game.dailyRewards.streak < 7 && timeSinceLastClaim > dayMs;
+            document.getElementById('claimDailyBtn').style.display = canClaim ? 'block' : 'none';
+        }
+
+        function claimDaily() {
+            const rewards = [100, 250, 500, 1000, 2000, 5000, 10000];
+            const day = game.dailyRewards.streak;
+            if (day < 7) {
+                game.resources.lumen += rewards[day];
+                game.dailyRewards.streak++;
+                game.dailyRewards.lastClaim = Date.now();
+                showNotification(`✓ Jour ${day + 1}: +${rewards[day]}L`);
+                updateDailyRewards();
+                saveGame();
+            }
+        }
+
+        function updateFreeLootbox() {
+            const now = Date.now();
+            const cooldown = 2 * 60 * 60 * 1000; // 2h
+            const timeSinceLast = now - game.freeLootbox.lastOpen;
+            const remaining = cooldown - timeSinceLast;
+
+            const btn = document.getElementById('openFreeLootboxBtn');
+            const timer = document.getElementById('freeLootboxTimer');
+
+            if (remaining <= 0) {
+                btn.disabled = false;
+                timer.textContent = 'Disponible !';
+            } else {
+                btn.disabled = true;
+                const h = Math.floor(remaining / (60 * 60 * 1000));
+                const m = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                const s = Math.floor((remaining % (60 * 1000)) / 1000);
+                timer.textContent = `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function openFreeLootbox() {
+            const lumen = Math.floor(50 + Math.random() * 150);
+            const energy = Math.random() < 0.2 ? Math.floor(10 + Math.random() * 40) : 0;
+
+            game.resources.lumen += lumen;
+            if (energy > 0) game.resources.energy += energy;
+            game.freeLootbox.lastOpen = Date.now();
+
+            let msg = `📦 +${lumen}L`;
+            if (energy > 0) msg += ` +${energy}E`;
+            showNotification(msg);
+
+            updateFreeLootbox();
+            saveGame();
+        }
+
+        function updatePrestige() {
+            const level = game.prestige.level;
+            const bonus = level * 10;
+            const required = 1000000 * Math.pow(2, level);
+            const current = game.totalResources.lumen;
+
+            document.getElementById('prestigeLevel').textContent = level;
+            document.getElementById('prestigeBonus').textContent = bonus;
+            document.getElementById('prestigeProgress').textContent = `${formatNumber(current)}/${formatNumber(required)}`;
+
+            const btn = document.getElementById('prestigeBtn');
+            btn.disabled = current < required;
+        }
+
+        function doPrestige() {
+            if (confirm('Prestige va reset tout le jeu mais donner +10% production permanente. Continuer?')) {
+                game.prestige.level++;
+                game.prestige.totalLumenEarned = game.totalResources.lumen;
+
+                // Reset everything except prestige and technologies
+                game.resources = { lumen: 0, energy: 0, matter: 0 };
+                game.totalResources = { lumen: 0, energy: 0, matter: 0 };
+                game.defense = {};
+                for (let defKey in defenseData) game.defense[defKey] = 0;
+
+                for (let planetKey in game.planets) {
+                    if (planetKey !== 'earth') game.planets[planetKey].unlocked = false;
+                    game.planets[planetKey].buildings = {};
+                    for (let buildKey in buildingData) {
+                        game.planets[planetKey].buildings[buildKey] = 0;
+                    }
+                }
+
+                showNotification(`🌠 PRESTIGE Niveau ${game.prestige.level}! +10% production`);
+                updateAll();
+                updatePrestige();
+                saveGame();
+            }
+        }
+
+        function updateActiveBoosts() {
+            // TODO: Implement boost display
+            const container = document.getElementById('activeBoostsContent');
+            if (game.activeBoosts.length === 0) {
+                container.innerHTML = '<div style="text-align:center; font-size: 8px; color: #888;">Aucun boost</div>';
+            }
+        }
+
+        function openShop() {
+            alert('Boutique à implémenter - Lootboxes payantes, Boosts, Skins, etc.');
         }
 
         window.addEventListener('beforeunload', () => saveGame());
