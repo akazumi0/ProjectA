@@ -1916,7 +1916,7 @@
         }
 
         let spawnTimer = 0;
-        const baseSpawnInterval = 1500;
+        const baseSpawnInterval = 750; // 750ms = 2x more fragments than 1500ms
 
         function spawnFragment() {
             const glowLevel = game.defense.fragmentGlow || 0;
