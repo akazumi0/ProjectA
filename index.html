@@ -836,15 +836,11 @@
 
     <!-- Shop Modal -->
     <div id="shopModal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 500px;">
             <button class="modal-close" onclick="closeModal('shop')">✕</button>
             <div class="modal-header">🏪 BOUTIQUE</div>
-            <div class="modal-body">
-                <div style="text-align: center; padding: 30px 0; color: #888;">
-                    <div style="font-size: 48px; margin-bottom: 10px;">🚧</div>
-                    <div>Boutique en construction</div>
-                    <div style="font-size: 10px; margin-top: 10px;">Boosts et lootboxes arrivent bientôt!</div>
-                </div>
+            <div class="modal-body" id="shopBody" style="max-height: 60vh; overflow-y: auto;">
+                <!-- Will be populated by JS -->
             </div>
         </div>
     </div>
@@ -1248,6 +1244,43 @@
                 requirement: 10,
                 reward: { lumen: 500000, energy: 100000, matter: 20000 },
                 icon: '👑'
+            }
+        };
+
+        // Lootbox Definitions
+        const lootboxData = {
+            bronze: {
+                name: 'Coffre Bronze',
+                cost: { lumen: 500 },
+                icon: '📦',
+                rewards: {
+                    lumen: { min: 200, max: 1000 },
+                    energy: { min: 50, max: 200 },
+                    boostChance: 0.05
+                }
+            },
+            silver: {
+                name: 'Coffre Argent',
+                cost: { lumen: 2000, energy: 500 },
+                icon: '🏆',
+                rewards: {
+                    lumen: { min: 1000, max: 5000 },
+                    energy: { min: 500, max: 2000 },
+                    matter: { min: 10, max: 50 },
+                    boostChance: 0.10
+                }
+            },
+            gold: {
+                name: 'Coffre Or',
+                cost: { lumen: 10000, energy: 5000, matter: 500 },
+                icon: '💎',
+                rewards: {
+                    lumen: { min: 10000, max: 50000 },
+                    energy: { min: 5000, max: 20000 },
+                    matter: { min: 500, max: 2000 },
+                    boostChance: 0.25,
+                    multiplierChance: 0.10 // 10% chance for 1h x2 multiplier
+                }
             }
         };
 
@@ -2380,6 +2413,7 @@
                 if (type === 'lootbox') updateFreeLootbox();
                 if (type === 'prestige') updatePrestige();
                 if (type === 'achievements') updateAchievementsModal();
+                if (type === 'shop') updateShopModal();
             }
         }
 
@@ -2454,6 +2488,133 @@
                     html += `</div></div></div>`;
                 }
 
+                html += `</div>`;
+            }
+
+            body.innerHTML = html;
+        }
+
+        function buyLootbox(tier) {
+            const lootbox = lootboxData[tier];
+            if (!lootbox) return;
+
+            // Check if can afford
+            if (!canAfford(lootbox.cost)) {
+                showNotification('❌ Ressources insuffisantes');
+                return;
+            }
+
+            // Spend resources
+            spendResources(lootbox.cost);
+
+            // Calculate rewards
+            const rewards = {};
+            for (let res in lootbox.rewards) {
+                if (res === 'boostChance' || res === 'multiplierChance') continue;
+                const min = lootbox.rewards[res].min;
+                const max = lootbox.rewards[res].max;
+                rewards[res] = Math.floor(min + Math.random() * (max - min + 1));
+            }
+
+            // Apply rewards
+            for (let res in rewards) {
+                game.resources[res] += rewards[res];
+            }
+
+            // Check for boost
+            let hasBoost = false;
+            if (Math.random() < lootbox.rewards.boostChance) {
+                hasBoost = true;
+                // Add temporary x2 production boost for 30min
+                const boostEnd = Date.now() + (30 * 60 * 1000);
+                game.activeBoosts.push({
+                    type: 'production',
+                    multiplier: 2,
+                    endTime: boostEnd
+                });
+            }
+
+            // Check for multiplier (Gold only)
+            let hasMultiplier = false;
+            if (lootbox.rewards.multiplierChance && Math.random() < lootbox.rewards.multiplierChance) {
+                hasMultiplier = true;
+                const multEnd = Date.now() + (60 * 60 * 1000); // 1h
+                game.activeBoosts.push({
+                    type: 'production',
+                    multiplier: 2,
+                    endTime: multEnd
+                });
+            }
+
+            // Show notification
+            let msg = `${lootbox.icon} ${lootbox.name}:\\n`;
+            for (let res in rewards) {
+                msg += `+${formatNumber(rewards[res])} ${res} `;
+            }
+            if (hasBoost) msg += '\\n⚡ Boost x2 (30min)';
+            if (hasMultiplier) msg += '\\n✨ Multiplicateur x2 (1h)';
+            showNotification(msg);
+
+            updateShopModal();
+            saveGame();
+        }
+
+        function updateShopModal() {
+            const body = document.getElementById('shopBody');
+            if (!body) return;
+
+            let html = '';
+
+            html += `<div style="text-align: center; margin-bottom: 20px;">`;
+            html += `<div style="font-size: 16px; color: #00d4ff; font-weight: bold; margin-bottom: 10px;">COFFRES</div>`;
+            html += `<div style="font-size: 10px; color: #aaa;">Achetez des coffres pour obtenir des ressources et des boosts!</div>`;
+            html += `</div>`;
+
+            // Render lootboxes
+            for (let tier in lootboxData) {
+                const box = lootboxData[tier];
+                const affordable = canAfford(box.cost);
+
+                let costText = [];
+                for (let res in box.cost) {
+                    costText.push(`${formatNumber(box.cost[res])} ${res}`);
+                }
+
+                let rewardsText = [];
+                for (let res in box.rewards) {
+                    if (res === 'boostChance' || res === 'multiplierChance') continue;
+                    rewardsText.push(`${formatNumber(box.rewards[res].min)}-${formatNumber(box.rewards[res].max)} ${res}`);
+                }
+
+                const bgColor = affordable ? 'rgba(0,212,255,0.1)' : 'rgba(0,0,0,0.3)';
+                const borderColor = affordable ? 'rgba(0,212,255,0.5)' : 'rgba(100,100,100,0.3)';
+
+                html += `<div style="margin: 15px 0; padding: 15px; background: ${bgColor}; border: 2px solid ${borderColor}; border-radius: 8px;">`;
+                html += `<div style="text-align: center; margin-bottom: 10px;">`;
+                html += `<div style="font-size: 32px; margin-bottom: 5px;">${box.icon}</div>`;
+                html += `<div style="font-size: 14px; font-weight: bold; color: #fff;">${box.name}</div>`;
+                html += `</div>`;
+
+                html += `<div style="font-size: 11px; color: #aaa; margin: 10px 0; text-align: center;">`;
+                html += `Récompenses: ${rewardsText.join(', ')}`;
+                html += `</div>`;
+
+                if (box.rewards.boostChance > 0) {
+                    html += `<div style="font-size: 10px; color: #ffd93d; text-align: center; margin: 5px 0;">`;
+                    html += `⚡ ${Math.floor(box.rewards.boostChance * 100)}% chance de boost x2 (30min)`;
+                    html += `</div>`;
+                }
+
+                if (box.rewards.multiplierChance > 0) {
+                    html += `<div style="font-size: 10px; color: #ff00ff; text-align: center; margin: 5px 0;">`;
+                    html += `✨ ${Math.floor(box.rewards.multiplierChance * 100)}% chance multiplicateur x2 (1h)`;
+                    html += `</div>`;
+                }
+
+                html += `<div style="text-align: center; margin-top: 10px;">`;
+                html += `<div style="font-size: 11px; color: #00d4ff; margin-bottom: 5px;">Coût: ${costText.join(', ')}</div>`;
+                html += `<button class="sidebar-btn ${affordable ? '' : ''}" ${affordable ? '' : 'disabled'} onclick="buyLootbox('${tier}')">ACHETER</button>`;
+                html += `</div>`;
                 html += `</div>`;
             }
 
