@@ -169,12 +169,10 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            pointer-events: none;
         }
 
         .modal-overlay.active {
             display: flex;
-            pointer-events: auto;
         }
 
         .modal-content {
@@ -1995,27 +1993,52 @@
 
         // Start game
         function startGame() {
-            const usernameInput = document.getElementById('usernameInput').value.trim();
-            if (usernameInput) {
-                game.username = usernameInput;
+            try {
+                console.log('=== STARTING GAME ===');
+                const usernameInput = document.getElementById('usernameInput').value.trim();
+                if (usernameInput) {
+                    game.username = usernameInput;
+                }
+
+                console.log('1. Hiding welcome screen...');
+                document.getElementById('welcome').style.display = 'none';
+
+                console.log('2. Showing header...');
+                document.getElementById('header').style.display = 'block';
+
+                console.log('3. Showing icon bar...');
+                document.getElementById('leftIconBar').style.display = 'block';
+
+                console.log('4. Showing bottom UI...');
+                document.getElementById('bottomUI').style.display = 'block';
+
+                console.log('5. Setting up modal handlers...');
+                setupModalHandlers();
+
+                console.log('6. Loading game...');
+                loadGame();
+
+                console.log('7. Updating all...');
+                updateAll();
+
+                console.log('8. Initializing sidebar systems...');
+                initSidebarSystems();
+
+                console.log('9. Starting game loop...');
+                gameLoop();
+
+                console.log('10. Setting up intervals...');
+                // Update UI every 100ms for smooth counters (NOT full render)
+                setInterval(() => updateUIOnly(), 100);
+
+                // Auto-save every 10s
+                setInterval(() => saveGame(), 10000);
+
+                console.log('=== GAME STARTED SUCCESSFULLY ===');
+            } catch (error) {
+                console.error('ERROR IN startGame():', error);
+                alert('Erreur de démarrage: ' + error.message);
             }
-
-            document.getElementById('welcome').style.display = 'none';
-            document.getElementById('header').style.display = 'block';
-            document.getElementById('leftIconBar').style.display = 'block';
-            document.getElementById('bottomUI').style.display = 'block';
-
-            setupModalHandlers();
-            loadGame();
-            updateAll();
-            initSidebarSystems();
-            gameLoop();
-
-            // Update UI every 100ms for smooth counters (NOT full render)
-            setInterval(() => updateUIOnly(), 100);
-
-            // Auto-save every 10s
-            setInterval(() => saveGame(), 10000);
         }
 
         // Modal Management
@@ -2041,18 +2064,26 @@
 
         // Setup modal overlay click handlers
         function setupModalHandlers() {
-            const modalTypes = ['daily', 'lootbox', 'prestige', 'shop'];
-            modalTypes.forEach(type => {
-                const modal = document.getElementById(type + 'Modal');
-                if (modal) {
-                    modal.addEventListener('click', (e) => {
-                        // Close only if clicking on the overlay itself, not its children
-                        if (e.target === modal) {
-                            closeModal(type);
-                        }
-                    });
-                }
-            });
+            try {
+                const modalTypes = ['daily', 'lootbox', 'prestige', 'shop'];
+                modalTypes.forEach(type => {
+                    const modal = document.getElementById(type + 'Modal');
+                    if (modal) {
+                        modal.addEventListener('click', (e) => {
+                            // Close only if clicking on the overlay itself, not its children
+                            if (e.target === modal) {
+                                closeModal(type);
+                            }
+                        });
+                        console.log('   - ' + type + ' modal handler attached');
+                    } else {
+                        console.warn('   - ' + type + ' modal not found!');
+                    }
+                });
+            } catch (error) {
+                console.error('ERROR in setupModalHandlers():', error);
+                throw error;
+            }
         }
 
         // Sidebar Systems
