@@ -1297,6 +1297,20 @@
             renderTechnologies();
         }
 
+        function updateUIOnly() {
+            document.getElementById('lumenVal').textContent = formatNumber(game.resources.lumen);
+            document.getElementById('energyVal').textContent = formatNumber(game.resources.energy);
+            document.getElementById('matterVal').textContent = formatNumber(game.resources.matter);
+
+            const prod = calculateProduction();
+            document.getElementById('lumenRate').textContent = '+' + formatNumber(prod.lumen) + '/s';
+            document.getElementById('energyRate').textContent = '+' + formatNumber(prod.energy) + '/s';
+            document.getElementById('matterRate').textContent = '+' + formatNumber(prod.matter) + '/s';
+
+            game.clickPower = calculateClickPower();
+            game.fragmentSpawnRate = calculateSpawnRate();
+        }
+
         // Render functions
         function renderDefense() {
             const container = document.getElementById('defense');
@@ -1552,8 +1566,8 @@
             updateAll();
             gameLoop();
 
-            // Update UI every 100ms for smooth counters
-            setInterval(() => updateUI(), 100);
+            // Update UI every 100ms for smooth counters (NOT full render)
+            setInterval(() => updateUIOnly(), 100);
 
             // Auto-save every 10s
             setInterval(() => saveGame(), 10000);
