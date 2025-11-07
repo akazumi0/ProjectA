@@ -764,6 +764,7 @@
     <div id="leftIconBar" style="display: none;">
         <div class="icon-button" onclick="openModal('daily')" id="dailyIcon">🎁</div>
         <div class="icon-button" onclick="openModal('lootbox')" id="lootboxIcon">📦</div>
+        <div class="icon-button" onclick="openModal('achievements')" id="achievementsIcon">🏆</div>
         <div class="icon-button" onclick="openModal('prestige')" id="prestigeIcon">🌠</div>
         <div class="icon-button" onclick="openModal('shop')" id="shopIcon">🏪</div>
     </div>
@@ -792,6 +793,17 @@
                 <div id="freeLootboxTimer" class="timer-text">--:--:--</div>
                 <div class="reward-text">Disponible toutes les 2 heures</div>
                 <button class="sidebar-btn" id="openFreeLootboxBtn" onclick="openFreeLootbox()" disabled>OUVRIR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievements Modal -->
+    <div id="achievementsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="closeModal('achievements')">✕</button>
+            <div class="modal-header">🏆 SUCCÈS</div>
+            <div class="modal-body" id="achievementsBody" style="max-height: 60vh; overflow-y: auto;">
+                <!-- Will be populated by JS -->
             </div>
         </div>
     </div>
@@ -1056,6 +1068,189 @@
             }
         };
 
+        // Achievement Definitions
+        const achievementData = {
+            // Click Achievements
+            firstClick: {
+                name: 'Premier Clic',
+                desc: 'Cliquer sur un fragment',
+                category: 'clicks',
+                requirement: 1,
+                reward: { lumen: 10 },
+                icon: '👆'
+            },
+            click100: {
+                name: 'Clicker Novice',
+                desc: 'Cliquer 100 fois',
+                category: 'clicks',
+                requirement: 100,
+                reward: { lumen: 100 },
+                icon: '👍'
+            },
+            click1000: {
+                name: 'Clicker Expérimenté',
+                desc: 'Cliquer 1000 fois',
+                category: 'clicks',
+                requirement: 1000,
+                reward: { lumen: 1000, energy: 100 },
+                icon: '💪'
+            },
+            click10000: {
+                name: 'Maître du Clic',
+                desc: 'Cliquer 10000 fois',
+                category: 'clicks',
+                requirement: 10000,
+                reward: { lumen: 10000, energy: 1000 },
+                icon: '⚡'
+            },
+            // Collection Achievements
+            lumen1k: {
+                name: 'Premier Millier',
+                desc: 'Collecter 1K Lumen total',
+                category: 'collection',
+                requirement: 1000,
+                resource: 'lumen',
+                reward: { energy: 50 },
+                icon: '⭐'
+            },
+            lumen100k: {
+                name: 'Collectionneur',
+                desc: 'Collecter 100K Lumen total',
+                category: 'collection',
+                requirement: 100000,
+                resource: 'lumen',
+                reward: { energy: 1000, matter: 50 },
+                icon: '💎'
+            },
+            lumen1m: {
+                name: 'Magnat Stellaire',
+                desc: 'Collecter 1M Lumen total',
+                category: 'collection',
+                requirement: 1000000,
+                resource: 'lumen',
+                reward: { energy: 5000, matter: 500 },
+                icon: '👑'
+            },
+            energy10k: {
+                name: 'Chargé d\'Énergie',
+                desc: 'Collecter 10K Énergie total',
+                category: 'collection',
+                requirement: 10000,
+                resource: 'energy',
+                reward: { lumen: 5000, matter: 100 },
+                icon: '🔋'
+            },
+            matter1k: {
+                name: 'Physicien',
+                desc: 'Collecter 1K Matière total',
+                category: 'collection',
+                requirement: 1000,
+                resource: 'matter',
+                reward: { lumen: 10000, energy: 2000 },
+                icon: '🌑'
+            },
+            // Building Achievements
+            firstBuilding: {
+                name: 'Premier Bâtiment',
+                desc: 'Construire un bâtiment',
+                category: 'buildings',
+                requirement: 1,
+                reward: { lumen: 50 },
+                icon: '🏗️'
+            },
+            buildings10: {
+                name: 'Architecte',
+                desc: 'Construire 10 bâtiments',
+                category: 'buildings',
+                requirement: 10,
+                reward: { lumen: 500, energy: 100 },
+                icon: '🏛️'
+            },
+            buildings50: {
+                name: 'Urbaniste',
+                desc: 'Construire 50 bâtiments',
+                category: 'buildings',
+                requirement: 50,
+                reward: { lumen: 5000, energy: 1000, matter: 100 },
+                icon: '🌆'
+            },
+            buildings100: {
+                name: 'Constructeur Galactique',
+                desc: 'Construire 100 bâtiments',
+                category: 'buildings',
+                requirement: 100,
+                reward: { lumen: 20000, energy: 5000, matter: 500 },
+                icon: '🌃'
+            },
+            // Technology Achievements
+            firstTech: {
+                name: 'Premier Pas',
+                desc: 'Débloquer une technologie',
+                category: 'tech',
+                requirement: 1,
+                reward: { lumen: 100, energy: 50 },
+                icon: '🔬'
+            },
+            allTechs: {
+                name: 'Génie Scientifique',
+                desc: 'Débloquer toutes les technologies',
+                category: 'tech',
+                requirement: 4,
+                reward: { lumen: 50000, energy: 10000, matter: 1000 },
+                icon: '🧠'
+            },
+            // Planet Achievements
+            colonizeMars: {
+                name: 'Colon Mars',
+                desc: 'Coloniser Mars',
+                category: 'planets',
+                requirement: 'mars',
+                reward: { lumen: 10000, energy: 2000 },
+                icon: '🔴'
+            },
+            colonizeTitan: {
+                name: 'Explorateur de Titan',
+                desc: 'Coloniser Titan',
+                category: 'planets',
+                requirement: 'titan',
+                reward: { lumen: 50000, energy: 10000, matter: 2000 },
+                icon: '🪐'
+            },
+            allPlanets: {
+                name: 'Maître des Mondes',
+                desc: 'Coloniser toutes les planètes',
+                category: 'planets',
+                requirement: 3,
+                reward: { lumen: 100000, energy: 20000, matter: 5000 },
+                icon: '🌌'
+            },
+            // Prestige Achievements
+            firstPrestige: {
+                name: 'Renaissance',
+                desc: 'Faire un premier Prestige',
+                category: 'prestige',
+                requirement: 1,
+                reward: { lumen: 10000 },
+                icon: '🌠'
+            },
+            prestige5: {
+                name: 'Vétéran',
+                desc: 'Atteindre Prestige niveau 5',
+                category: 'prestige',
+                requirement: 5,
+                reward: { lumen: 100000, energy: 20000, matter: 5000 },
+                icon: '⭐'
+            },
+            prestige10: {
+                name: 'Légende',
+                desc: 'Atteindre Prestige niveau 10',
+                category: 'prestige',
+                requirement: 10,
+                reward: { lumen: 500000, energy: 100000, matter: 20000 },
+                icon: '👑'
+            }
+        };
+
         // Initialize
         for (let planetKey in game.planets) {
             if (!game.planets[planetKey].buildings) {
@@ -1143,12 +1338,14 @@
 
             spendResources(cost);
             planet.buildings[key] = level + 1;
+            game.stats.buildingsBuilt++;
             playSound('build');
             showNotification(`✓ ${data.name} Niv.${level + 1}`);
 
             // Trigger success animation
             triggerSuccessAnimation(`building-${key}`);
 
+            checkAchievements();
             updateAll();
             saveGame();
         }
@@ -1170,6 +1367,7 @@
             // Trigger success animation
             triggerSuccessAnimation(`tech-${key}`);
 
+            checkAchievements();
             updateAll();
             saveGame();
         }
@@ -1198,8 +1396,133 @@
 
             playSound('build');
             showNotification(`🌍 ${planet.name} débloquée !`);
+            checkAchievements();
             updateAll();
             saveGame();
+        }
+
+        // Achievement System
+        function checkAchievements() {
+            for (let achKey in achievementData) {
+                // Skip if already claimed
+                if (game.achievements[achKey]) continue;
+
+                const ach = achievementData[achKey];
+                let unlocked = false;
+
+                switch (ach.category) {
+                    case 'clicks':
+                        unlocked = game.stats.totalClicks >= ach.requirement;
+                        break;
+                    case 'collection':
+                        unlocked = game.totalResources[ach.resource] >= ach.requirement;
+                        break;
+                    case 'buildings':
+                        unlocked = game.stats.buildingsBuilt >= ach.requirement;
+                        break;
+                    case 'tech':
+                        if (ach.requirement === 4) {
+                            // All techs
+                            let techCount = 0;
+                            for (let t in game.technologies) {
+                                if (game.technologies[t] > 0) techCount++;
+                            }
+                            unlocked = techCount >= 4;
+                        } else {
+                            let techCount = 0;
+                            for (let t in game.technologies) {
+                                if (game.technologies[t] > 0) techCount++;
+                            }
+                            unlocked = techCount >= ach.requirement;
+                        }
+                        break;
+                    case 'planets':
+                        if (typeof ach.requirement === 'string') {
+                            // Specific planet
+                            unlocked = game.planets[ach.requirement]?.unlocked || false;
+                        } else {
+                            // Count planets
+                            let planetCount = 0;
+                            for (let p in game.planets) {
+                                if (game.planets[p].unlocked) planetCount++;
+                            }
+                            unlocked = planetCount >= ach.requirement;
+                        }
+                        break;
+                    case 'prestige':
+                        unlocked = game.prestige.level >= ach.requirement;
+                        break;
+                }
+
+                if (unlocked) {
+                    unlockAchievement(achKey);
+                }
+            }
+        }
+
+        function unlockAchievement(achKey) {
+            const ach = achievementData[achKey];
+            game.achievements[achKey] = {
+                unlocked: true,
+                timestamp: Date.now()
+            };
+
+            // Give rewards
+            if (ach.reward) {
+                for (let res in ach.reward) {
+                    game.resources[res] += ach.reward[res];
+                }
+            }
+
+            // Show notification
+            let rewardText = '';
+            if (ach.reward) {
+                const rewards = [];
+                for (let res in ach.reward) {
+                    rewards.push(`+${formatNumber(ach.reward[res])} ${res}`);
+                }
+                rewardText = ' - ' + rewards.join(', ');
+            }
+
+            showNotification(`🏆 ${ach.icon} ${ach.name}${rewardText}`);
+            updateIconNotifications();
+            saveGame();
+        }
+
+        function getAchievementProgress(achKey) {
+            const ach = achievementData[achKey];
+            let current = 0;
+
+            switch (ach.category) {
+                case 'clicks':
+                    current = game.stats.totalClicks;
+                    break;
+                case 'collection':
+                    current = game.totalResources[ach.resource] || 0;
+                    break;
+                case 'buildings':
+                    current = game.stats.buildingsBuilt;
+                    break;
+                case 'tech':
+                    for (let t in game.technologies) {
+                        if (game.technologies[t] > 0) current++;
+                    }
+                    break;
+                case 'planets':
+                    if (typeof ach.requirement === 'string') {
+                        current = game.planets[ach.requirement]?.unlocked ? 1 : 0;
+                    } else {
+                        for (let p in game.planets) {
+                            if (game.planets[p].unlocked) current++;
+                        }
+                    }
+                    break;
+                case 'prestige':
+                    current = game.prestige.level;
+                    break;
+            }
+
+            return current;
         }
 
         // Calculate production
@@ -1369,6 +1692,11 @@
                         game.totalResources.matter += gain;
                         resourceLabel = 'M';
                     }
+
+                    // Track stats
+                    game.stats.totalClicks++;
+                    game.stats.fragmentsCaught++;
+                    checkAchievements();
 
                     createParticles(frag.x, frag.y, frag.color);
                     fallingFragments.splice(i, 1);
@@ -2051,7 +2379,85 @@
                 if (type === 'daily') updateDailyRewards();
                 if (type === 'lootbox') updateFreeLootbox();
                 if (type === 'prestige') updatePrestige();
+                if (type === 'achievements') updateAchievementsModal();
             }
+        }
+
+        function updateAchievementsModal() {
+            const body = document.getElementById('achievementsBody');
+            let html = '';
+
+            // Count achievements
+            let unlockedCount = 0;
+            let totalCount = Object.keys(achievementData).length;
+            for (let k in game.achievements) {
+                if (game.achievements[k]) unlockedCount++;
+            }
+
+            html += `<div style="text-align: center; margin-bottom: 15px; padding: 10px; background: rgba(0,212,255,0.1); border-radius: 5px;">`;
+            html += `<div style="font-size: 18px; color: #00d4ff; font-weight: bold;">${unlockedCount} / ${totalCount}</div>`;
+            html += `<div style="font-size: 11px; color: #aaa;">Succès débloqués</div>`;
+            html += `</div>`;
+
+            // Group by category
+            const categories = {
+                clicks: { name: '👆 Clics', achievements: [] },
+                collection: { name: '💰 Collection', achievements: [] },
+                buildings: { name: '🏗️ Bâtiments', achievements: [] },
+                tech: { name: '🔬 Technologies', achievements: [] },
+                planets: { name: '🌍 Planètes', achievements: [] },
+                prestige: { name: '🌠 Prestige', achievements: [] }
+            };
+
+            for (let achKey in achievementData) {
+                const ach = achievementData[achKey];
+                const cat = ach.category;
+                if (categories[cat]) {
+                    categories[cat].achievements.push({ key: achKey, data: ach });
+                }
+            }
+
+            // Render by category
+            for (let catKey in categories) {
+                const cat = categories[catKey];
+                if (cat.achievements.length === 0) continue;
+
+                html += `<div style="margin: 15px 0;">`;
+                html += `<div style="font-size: 13px; color: #00d4ff; font-weight: bold; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid rgba(0,212,255,0.3);">${cat.name}</div>`;
+
+                for (let i = 0; i < cat.achievements.length; i++) {
+                    const achKey = cat.achievements[i].key;
+                    const ach = cat.achievements[i].data;
+                    const unlocked = game.achievements[achKey];
+                    const progress = getAchievementProgress(achKey);
+                    const requirement = typeof ach.requirement === 'string' ? 1 : ach.requirement;
+
+                    const opacity = unlocked ? '1' : '0.5';
+                    const bgColor = unlocked ? 'rgba(0,255,136,0.1)' : 'rgba(0,0,0,0.3)';
+
+                    html += `<div style="padding: 8px; margin: 5px 0; background: ${bgColor}; border: 1px solid rgba(0,212,255,0.2); border-radius: 5px; opacity: ${opacity};">`;
+                    html += `<div style="display: flex; align-items: center; gap: 10px;">`;
+                    html += `<div style="font-size: 24px;">${ach.icon}</div>`;
+                    html += `<div style="flex: 1;">`;
+                    html += `<div style="font-size: 12px; font-weight: bold; color: ${unlocked ? '#00ff88' : '#fff'};">${ach.name} ${unlocked ? '✓' : ''}</div>`;
+                    html += `<div style="font-size: 10px; color: #aaa;">${ach.desc}</div>`;
+                    if (!unlocked) {
+                        html += `<div style="font-size: 10px; color: #ffd93d; margin-top: 3px;">Progression: ${formatNumber(progress)} / ${formatNumber(requirement)}</div>`;
+                    }
+                    if (ach.reward) {
+                        const rewards = [];
+                        for (let res in ach.reward) {
+                            rewards.push(`${formatNumber(ach.reward[res])} ${res}`);
+                        }
+                        html += `<div style="font-size: 9px; color: #00ff88; margin-top: 3px;">🎁 ${rewards.join(', ')}</div>`;
+                    }
+                    html += `</div></div></div>`;
+                }
+
+                html += `</div>`;
+            }
+
+            body.innerHTML = html;
         }
 
         function closeModal(type) {
@@ -2065,7 +2471,7 @@
         // Setup modal overlay click handlers
         function setupModalHandlers() {
             try {
-                const modalTypes = ['daily', 'lootbox', 'prestige', 'shop'];
+                const modalTypes = ['daily', 'lootbox', 'achievements', 'prestige', 'shop'];
                 modalTypes.forEach(type => {
                     const modal = document.getElementById(type + 'Modal');
                     if (modal) {
@@ -2211,6 +2617,7 @@
                 }
 
                 showNotification(`🌠 PRESTIGE Niveau ${game.prestige.level}! +10% production`);
+                checkAchievements();
                 updateAll();
                 updatePrestige();
                 saveGame();
@@ -2254,6 +2661,31 @@
                 prestigeIcon.classList.add('has-notification');
             } else {
                 prestigeIcon.classList.remove('has-notification');
+            }
+
+            // Achievements available?
+            let achievementsAvailable = false;
+            for (let achKey in achievementData) {
+                if (!game.achievements[achKey]) {
+                    const ach = achievementData[achKey];
+                    const progress = getAchievementProgress(achKey);
+                    const requirement = typeof ach.requirement === 'string' ? 1 : ach.requirement;
+
+                    // Check if close to unlocking (within 80%)
+                    if (progress >= requirement * 0.8) {
+                        achievementsAvailable = true;
+                        break;
+                    }
+                }
+            }
+
+            const achievementsIcon = document.getElementById('achievementsIcon');
+            if (achievementsIcon) {
+                if (achievementsAvailable) {
+                    achievementsIcon.classList.add('has-notification');
+                } else {
+                    achievementsIcon.classList.remove('has-notification');
+                }
             }
         }
 
