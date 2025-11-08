@@ -1445,69 +1445,327 @@
             lumenMine: {
                 name: 'Mine de Lumen',
                 desc: 'Extrait du Lumen',
-                baseCost: { lumen: 50 },
-                costMult: 1.5,
-                production: level => ({ lumen: level * 1 }),
-                max: 20
+                icon: '⛏️',
+                baseCost: { lumen: 15 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 0.1 }),
+                max: 100
             },
             energyCollector: {
                 name: 'Collecteur d\'Énergie',
-                desc: 'Génère de l\'Énergie',
+                desc: 'Capte l\'énergie stellaire',
+                icon: '🔌',
                 baseCost: { lumen: 100 },
-                costMult: 1.5,
-                production: level => ({ energy: level * 3 }),
-                max: 20
+                costMult: 1.15,
+                production: level => ({ lumen: level * 1 }),
+                max: 100
             },
-            matterExtractor: {
-                name: 'Extracteur de Matière',
-                desc: 'Récolte la Matière Noire',
-                baseCost: { lumen: 500, energy: 100 },
-                costMult: 1.6,
-                production: level => ({ matter: level * 0.5 }),
+            solarArray: {
+                name: 'Réseau Solaire',
+                desc: 'Panneaux solaires avancés',
+                icon: '☀️',
+                baseCost: { lumen: 1100 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 8 }),
+                max: 100
+            },
+            fusionReactor: {
+                name: 'Réacteur à Fusion',
+                desc: 'Énergie nucléaire stellaire',
+                icon: '⚛️',
+                baseCost: { lumen: 12000 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 47 }),
+                max: 100
+            },
+            antimatterPlant: {
+                name: 'Centrale Antimatière',
+                desc: 'Génère de l\'antimatière',
+                icon: '💥',
+                baseCost: { lumen: 130000 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 260 }),
                 requires: { tech: 'quantumResonance' },
-                max: 15
+                max: 100
             },
-            solarPlant: {
-                name: 'Centrale Solaire',
-                desc: 'Production d\'Énergie avancée',
-                baseCost: { lumen: 300 },
-                costMult: 1.6,
-                production: level => ({ energy: level * 5 }),
-                requires: { building: 'energyCollector', level: 3 },
-                max: 15
+            stellarForge: {
+                name: 'Forge Stellaire',
+                desc: 'Forge alimentée par une étoile',
+                icon: '🔥',
+                baseCost: { lumen: 1400000 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 1400 }),
+                requires: { tech: 'quantumResonance' },
+                max: 100
+            },
+            blackHoleGenerator: {
+                name: 'Générateur à Trou Noir',
+                desc: 'Exploite l\'énergie des trous noirs',
+                icon: '🕳️',
+                baseCost: { lumen: 20000000 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 7800 }),
+                requires: { tech: 'singularityControl' },
+                max: 100
+            },
+            quantumComputer: {
+                name: 'Ordinateur Quantique',
+                desc: 'Calcule des possibilités infinies',
+                icon: '💻',
+                baseCost: { lumen: 330000000 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 44000 }),
+                requires: { tech: 'quantumComputing' },
+                max: 100
+            },
+            dimensionalRift: {
+                name: 'Fissure Dimensionnelle',
+                desc: 'Extrait l\'énergie d\'autres dimensions',
+                icon: '🌌',
+                baseCost: { lumen: 5100000000 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 260000 }),
+                requires: { tech: 'dimensionalPhysics' },
+                max: 100
+            },
+            timeCrystal: {
+                name: 'Cristal Temporel',
+                desc: 'Manipule le flux du temps',
+                icon: '⏰',
+                baseCost: { lumen: 75000000000 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 1600000 }),
+                requires: { tech: 'temporalManipulation' },
+                max: 100
+            },
+            cosmicPortal: {
+                name: 'Portail Cosmique',
+                desc: 'Connecte à l\'univers entier',
+                icon: '🌀',
+                baseCost: { lumen: 1000000000000 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 10000000 }),
+                requires: { tech: 'cosmicTravel' },
+                max: 100
+            },
+            universalEngine: {
+                name: 'Moteur Universel',
+                desc: 'Alimente des galaxies entières',
+                icon: '🎆',
+                baseCost: { lumen: 14000000000000 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 65000000 }),
+                requires: { tech: 'universalPower' },
+                max: 100
+            },
+            realityWeaver: {
+                name: 'Tisseur de Réalité',
+                desc: 'Modifie la réalité elle-même',
+                icon: '✨',
+                baseCost: { lumen: 170000000000000 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 430000000 }),
+                requires: { tech: 'realityControl' },
+                max: 100
+            },
+            infinityMatrix: {
+                name: 'Matrice Infinie',
+                desc: 'Production sans limite',
+                icon: '♾️',
+                baseCost: { lumen: 2100000000000000 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 2900000000 }),
+                requires: { tech: 'infinityTech' },
+                max: 100
+            },
+            transcendentCore: {
+                name: 'Coeur Transcendant',
+                desc: 'Au-delà de la compréhension',
+                icon: '🌟',
+                baseCost: { lumen: 26000000000000000 },
+                costMult: 1.15,
+                production: level => ({ lumen: level * 21000000000 }),
+                requires: { tech: 'transcendence' },
+                max: 100
             }
         };
 
         // Technologies
         const techData = {
-            miningEfficiency: {
-                name: 'Efficacité Minière',
-                desc: '+10% production mines/niveau',
-                baseCost: { lumen: 300, energy: 100 },
-                costMult: 2,
+            clickPowerBoost: {
+                name: 'Amplificateur de Clics',
+                desc: 'Double la puissance de clic',
+                icon: '👆',
+                baseCost: { lumen: 100 },
+                costMult: 10,
                 max: 10
+            },
+            automationI: {
+                name: 'Automation I',
+                desc: 'Les mines produisent 2x plus',
+                icon: '🤖',
+                baseCost: { lumen: 1000 },
+                costMult: 1,
+                max: 1
+            },
+            automationII: {
+                name: 'Automation II',
+                desc: 'Les collecteurs produisent 2x plus',
+                icon: '🤖',
+                baseCost: { lumen: 5000 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'automationI' }
+            },
+            automationIII: {
+                name: 'Automation III',
+                desc: 'Les réseaux solaires produisent 2x plus',
+                icon: '🤖',
+                baseCost: { lumen: 50000 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'automationII' }
             },
             quantumResonance: {
                 name: 'Résonance Quantique',
-                desc: 'Débloque Extracteur de Matière',
-                baseCost: { lumen: 1000, energy: 300 },
+                desc: 'Débloque technologies quantiques',
+                icon: '⚛️',
+                baseCost: { lumen: 75000 },
                 costMult: 1,
                 max: 1
             },
             stellarPropulsion: {
                 name: 'Propulsion Stellaire',
                 desc: 'Permet colonisation planètes',
-                baseCost: { lumen: 2000, energy: 500, matter: 100 },
+                icon: '🚀',
+                baseCost: { lumen: 100000 },
                 costMult: 1,
                 max: 1,
                 requires: { tech: 'quantumResonance' }
             },
+            singularityControl: {
+                name: 'Contrôle de Singularité',
+                desc: 'Maîtrise des trous noirs',
+                icon: '🕳️',
+                baseCost: { lumen: 10000000 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'quantumResonance' }
+            },
+            quantumComputing: {
+                name: 'Calcul Quantique',
+                desc: 'Débloque ordinateurs quantiques',
+                icon: '💻',
+                baseCost: { lumen: 150000000 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'singularityControl' }
+            },
+            dimensionalPhysics: {
+                name: 'Physique Dimensionnelle',
+                desc: 'Accès aux autres dimensions',
+                icon: '🌌',
+                baseCost: { lumen: 2500000000 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'quantumComputing' }
+            },
+            temporalManipulation: {
+                name: 'Manipulation Temporelle',
+                desc: 'Contrôle du temps',
+                icon: '⏰',
+                baseCost: { lumen: 35000000000 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'dimensionalPhysics' }
+            },
+            cosmicTravel: {
+                name: 'Voyage Cosmique',
+                desc: 'Voyage à travers l\'univers',
+                icon: '🌀',
+                baseCost: { lumen: 500000000000 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'temporalManipulation' }
+            },
+            universalPower: {
+                name: 'Puissance Universelle',
+                desc: 'Énergie à l\'échelle galactique',
+                icon: '🎆',
+                baseCost: { lumen: 7000000000000 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'cosmicTravel' }
+            },
+            realityControl: {
+                name: 'Contrôle de la Réalité',
+                desc: 'Modification de la réalité',
+                icon: '✨',
+                baseCost: { lumen: 85000000000000 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'universalPower' }
+            },
+            infinityTech: {
+                name: 'Technologie Infinie',
+                desc: 'Au-delà des limites',
+                icon: '♾️',
+                baseCost: { lumen: 1000000000000000 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'realityControl' }
+            },
+            transcendence: {
+                name: 'Transcendance',
+                desc: 'Ascension ultime',
+                icon: '🌟',
+                baseCost: { lumen: 13000000000000000 },
+                costMult: 1,
+                max: 1,
+                requires: { tech: 'infinityTech' }
+            },
+            synergy: {
+                name: 'Synergie Globale',
+                desc: '+1% production globale/niveau',
+                icon: '🔗',
+                baseCost: { lumen: 10000 },
+                costMult: 5,
+                max: 20
+            },
+            quantumSynergy: {
+                name: 'Synergie Quantique',
+                desc: '+2% production globale/niveau',
+                icon: '⚡',
+                baseCost: { lumen: 1000000 },
+                costMult: 10,
+                max: 15,
+                requires: { tech: 'quantumResonance' }
+            },
+            cosmicSynergy: {
+                name: 'Synergie Cosmique',
+                desc: '+5% production globale/niveau',
+                icon: '💫',
+                baseCost: { lumen: 100000000000 },
+                costMult: 15,
+                max: 10,
+                requires: { tech: 'cosmicTravel' }
+            },
             astraAI: {
-                name: 'IA Astra',
-                desc: '+5% efficacité globale/niveau',
-                baseCost: { lumen: 5000, energy: 2000, matter: 500 },
-                costMult: 2.5,
-                max: 5
+                name: 'IA ASTRA',
+                desc: '+10% efficacité ASTRA/niveau',
+                icon: '🤖',
+                baseCost: { lumen: 500000 },
+                costMult: 3,
+                max: 10,
+                requires: { tech: 'quantumResonance' }
+            },
+            luckyFragments: {
+                name: 'Fragments Chanceux',
+                desc: '+50% valeur des fragments',
+                icon: '🍀',
+                baseCost: { lumen: 777777 },
+                costMult: 1,
+                max: 1
             }
         };
 
@@ -2476,12 +2734,31 @@
                         for (let res in buildProd) {
                             let amount = buildProd[res] * planet.bonus[res];
 
-                            if (buildKey === 'lumenMine' && game.technologies.miningEfficiency) {
-                                amount *= (1 + game.technologies.miningEfficiency * 0.1);
+                            // Building-specific automation upgrades
+                            if (buildKey === 'lumenMine' && game.technologies.automationI) {
+                                amount *= 2;
+                            }
+                            if (buildKey === 'energyCollector' && game.technologies.automationII) {
+                                amount *= 2;
+                            }
+                            if (buildKey === 'solarArray' && game.technologies.automationIII) {
+                                amount *= 2;
                             }
 
+                            // Global synergy technologies
+                            if (game.technologies.synergy) {
+                                amount *= (1 + game.technologies.synergy * 0.01);
+                            }
+                            if (game.technologies.quantumSynergy) {
+                                amount *= (1 + game.technologies.quantumSynergy * 0.02);
+                            }
+                            if (game.technologies.cosmicSynergy) {
+                                amount *= (1 + game.technologies.cosmicSynergy * 0.05);
+                            }
+
+                            // ASTRA AI boost
                             if (game.technologies.astraAI) {
-                                amount *= (1 + game.technologies.astraAI * 0.05);
+                                amount *= (1 + game.technologies.astraAI * 0.1);
                             }
 
                             prod[res] += amount;
@@ -2527,6 +2804,16 @@
             let power = 10;
             if (game.defense.clickPower) {
                 power += defenseData.clickPower.effect(game.defense.clickPower);
+            }
+
+            // Click Power Boost technology
+            if (game.technologies.clickPowerBoost) {
+                power *= Math.pow(2, game.technologies.clickPowerBoost);
+            }
+
+            // Lucky Fragments technology
+            if (game.technologies.luckyFragments) {
+                power *= 1.5;
             }
 
             // Apply click mastery bonus
