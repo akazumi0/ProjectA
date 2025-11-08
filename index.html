@@ -1174,6 +1174,11 @@
                 <div class="resource-value" id="matterVal">0</div>
                 <div class="resource-rate" id="matterRate">+0/s</div>
             </div>
+            <div class="resource">
+                <div>💥 Antimatière</div>
+                <div class="resource-value" id="antimatterVal">0</div>
+                <div class="resource-rate" id="antimatterRate">Rare</div>
+            </div>
         </div>
         <div id="planetSelector">
             <span class="profile-icon" onclick="openProfile()" title="Profil">👤</span>
@@ -1387,12 +1392,14 @@
             resources: {
                 lumen: 0,
                 energy: 0,
-                matter: 0
+                matter: 0,
+                antimatter: 0
             },
             totalResources: {
                 lumen: 0,
                 energy: 0,
-                matter: 0
+                matter: 0,
+                antimatter: 0
             },
             technologies: {},
             defense: {},
@@ -2053,6 +2060,59 @@
                     boostChance: 0.25,
                     multiplierChance: 0.10 // 10% chance for 1h x2 multiplier
                 }
+            }
+        };
+
+        // Premium Shop (Real Money Purchases)
+        const premiumShopData = {
+            antimatterSmall: {
+                name: 'Pack Antimatière Petit',
+                desc: '10 Antimatière',
+                icon: '💥',
+                amount: 10,
+                price: 0.99,
+                currency: 'USD',
+                productId: 'com.fallingstars.antimatter.small'
+            },
+            antimatterMedium: {
+                name: 'Pack Antimatière Moyen',
+                desc: '50 Antimatière',
+                icon: '💥💥',
+                amount: 50,
+                price: 3.99,
+                currency: 'USD',
+                productId: 'com.fallingstars.antimatter.medium',
+                bonus: '+ 5 bonus!'
+            },
+            antimatterLarge: {
+                name: 'Pack Antimatière Large',
+                desc: '150 Antimatière',
+                icon: '💥💥💥',
+                amount: 150,
+                price: 9.99,
+                currency: 'USD',
+                productId: 'com.fallingstars.antimatter.large',
+                bonus: '+ 20 bonus!'
+            },
+            antimatterMega: {
+                name: 'Pack Antimatière Méga',
+                desc: '500 Antimatière',
+                icon: '💥✨',
+                amount: 500,
+                price: 24.99,
+                currency: 'USD',
+                productId: 'com.fallingstars.antimatter.mega',
+                bonus: '+ 100 bonus!'
+            },
+            starterPack: {
+                name: 'Pack Démarrage',
+                desc: '100 Antimatière + Bonus x2 Production (24h)',
+                icon: '🎁',
+                amount: 100,
+                price: 4.99,
+                currency: 'USD',
+                productId: 'com.fallingstars.starter.pack',
+                extras: { boost: 'production2x24h' }
             }
         };
 
@@ -3077,6 +3137,27 @@
                     // Check for artifact drop
                     checkArtifactDrop();
 
+                    // Check for antimatter drop (0.1% chance)
+                    if (Math.random() < 0.001) {
+                        const antimatterGain = 1;
+                        game.resources.antimatter += antimatterGain;
+                        game.totalResources.antimatter += antimatterGain;
+                        showNotification('💥 ANTIMATIÈRE DÉCOUVERTE ! +1 Antimatière');
+
+                        // Create special visual effect
+                        const aft = document.createElement('div');
+                        aft.className = 'floating-text';
+                        aft.textContent = '💥 +1 ANTIMATIÈRE';
+                        aft.style.color = '#ff00ff';
+                        aft.style.fontSize = '18px';
+                        aft.style.fontWeight = 'bold';
+                        aft.style.textShadow = '0 0 10px #ff00ff';
+                        aft.style.left = clientX + 'px';
+                        aft.style.top = clientY + 'px';
+                        document.body.appendChild(aft);
+                        setTimeout(() => aft.remove(), 2000);
+                    }
+
                     checkAchievements();
                     checkMasteryLevels();
 
@@ -3457,6 +3538,7 @@
             document.getElementById('lumenVal').textContent = formatNumber(game.resources.lumen);
             document.getElementById('energyVal').textContent = formatNumber(game.resources.energy);
             document.getElementById('matterVal').textContent = formatNumber(game.resources.matter);
+            document.getElementById('antimatterVal').textContent = formatNumber(game.resources.antimatter);
 
             const prod = calculateProduction();
             document.getElementById('lumenRate').textContent = '+' + formatNumber(prod.lumen) + '/s';
@@ -3491,6 +3573,7 @@
             document.getElementById('lumenVal').textContent = formatNumber(game.resources.lumen);
             document.getElementById('energyVal').textContent = formatNumber(game.resources.energy);
             document.getElementById('matterVal').textContent = formatNumber(game.resources.matter);
+            document.getElementById('antimatterVal').textContent = formatNumber(game.resources.antimatter);
 
             const prod = calculateProduction();
             document.getElementById('lumenRate').textContent = '+' + formatNumber(prod.lumen) + '/s';
@@ -4053,15 +4136,200 @@
             saveGame();
         }
 
+        // Premium Purchase System
+        function purchasePremiumItem(itemKey) {
+            const item = premiumShopData[itemKey];
+            if (!item) return;
+
+            // DEMO MODE: Simulate purchase for testing
+            // In production, this would trigger real payment processing
+            const confirmPurchase = confirm(
+                `💎 ACHAT PREMIUM\\n\\n` +
+                `${item.name}\\n` +
+                `${item.desc}\\n\\n` +
+                `Prix: $${item.price.toFixed(2)} ${item.currency}\\n\\n` +
+                `⚠️ MODE DÉMO: Cet achat est simulé.\\n` +
+                `Pour activer les vrais paiements:\\n` +
+                `- iOS: Intégrer StoreKit via Capacitor\\n` +
+                `- Web: Intégrer Stripe Payment API\\n\\n` +
+                `Voulez-vous simuler cet achat ?`
+            );
+
+            if (!confirmPurchase) return;
+
+            // Process the purchase (demo)
+            processPremiumPurchase(itemKey);
+        }
+
+        function processPremiumPurchase(itemKey) {
+            const item = premiumShopData[itemKey];
+
+            // Add antimatter
+            game.resources.antimatter += item.amount;
+            game.totalResources.antimatter += item.amount;
+
+            // Add bonus if exists
+            if (item.bonus) {
+                const bonusAmount = parseInt(item.bonus.match(/\\d+/)[0]);
+                game.resources.antimatter += bonusAmount;
+                game.totalResources.antimatter += bonusAmount;
+            }
+
+            // Add extras (like boosts)
+            if (item.extras && item.extras.boost === 'production2x24h') {
+                const boostEnd = Date.now() + (24 * 60 * 60 * 1000); // 24h
+                game.activeBoosts.push({
+                    type: 'production',
+                    multiplier: 2,
+                    endTime: boostEnd
+                });
+            }
+
+            // Show success notification
+            showNotification(`💎 Achat réussi ! +${item.amount} Antimatière${item.bonus ? ' ' + item.bonus : ''}`);
+
+            // Log purchase for analytics (in production)
+            console.log('Premium purchase:', {
+                productId: item.productId,
+                amount: item.amount,
+                price: item.price,
+                timestamp: Date.now()
+            });
+
+            updateShopModal();
+            saveGame();
+        }
+
+        /*
+         * INTEGRATION GUIDE FOR REAL PAYMENTS
+         *
+         * === OPTION 1: iOS Native (StoreKit via Capacitor) ===
+         *
+         * 1. Install Capacitor and In-App Purchase plugin:
+         *    npm install @capacitor/core @capacitor/ios
+         *    npm install @capacitor-community/in-app-purchases
+         *
+         * 2. Configure products in App Store Connect with productIds from premiumShopData
+         *
+         * 3. Replace purchasePremiumItem() with:
+         *
+         *    import { InAppPurchases } from '@capacitor-community/in-app-purchases';
+         *
+         *    async function purchasePremiumItem(itemKey) {
+         *        const item = premiumShopData[itemKey];
+         *        try {
+         *            const result = await InAppPurchases.purchaseProduct({
+         *                productId: item.productId
+         *            });
+         *            if (result.receipt) {
+         *                processPremiumPurchase(itemKey);
+         *            }
+         *        } catch (error) {
+         *            showNotification('❌ Erreur d\\'achat: ' + error.message);
+         *        }
+         *    }
+         *
+         * === OPTION 2: Web Payment (Stripe) ===
+         *
+         * 1. Install Stripe:
+         *    <script src="https://js.stripe.com/v3/"></script>
+         *
+         * 2. Create Stripe account and get API keys
+         *
+         * 3. Replace purchasePremiumItem() with:
+         *
+         *    const stripe = Stripe('pk_live_YOUR_PUBLISHABLE_KEY');
+         *
+         *    async function purchasePremiumItem(itemKey) {
+         *        const item = premiumShopData[itemKey];
+         *        try {
+         *            const response = await fetch('/create-checkout-session', {
+         *                method: 'POST',
+         *                headers: { 'Content-Type': 'application/json' },
+         *                body: JSON.stringify({ productId: item.productId })
+         *            });
+         *            const session = await response.json();
+         *            await stripe.redirectToCheckout({ sessionId: session.id });
+         *        } catch (error) {
+         *            showNotification('❌ Erreur de paiement: ' + error.message);
+         *        }
+         *    }
+         *
+         * 4. Backend server (Node.js) to create checkout session:
+         *
+         *    const stripe = require('stripe')('sk_live_YOUR_SECRET_KEY');
+         *
+         *    app.post('/create-checkout-session', async (req, res) => {
+         *        const { productId } = req.body;
+         *        const item = premiumShopData[productId];
+         *
+         *        const session = await stripe.checkout.sessions.create({
+         *            payment_method_types: ['card'],
+         *            line_items: [{
+         *                price_data: {
+         *                    currency: 'usd',
+         *                    product_data: { name: item.name },
+         *                    unit_amount: item.price * 100
+         *                },
+         *                quantity: 1
+         *            }],
+         *            mode: 'payment',
+         *            success_url: 'https://yoursite.com/success?session_id={CHECKOUT_SESSION_ID}',
+         *            cancel_url: 'https://yoursite.com/cancel'
+         *        });
+         *
+         *        res.json({ id: session.id });
+         *    });
+         */
+
         function updateShopModal() {
             const body = document.getElementById('shopBody');
             if (!body) return;
 
             let html = '';
 
+            // Premium Shop Section
+            html += `<div style="text-align: center; margin-bottom: 25px; padding: 15px; background: linear-gradient(135deg, rgba(255,0,255,0.2), rgba(138,43,226,0.2)); border: 2px solid rgba(255,0,255,0.5); border-radius: 10px;">`;
+            html += `<div style="font-size: 18px; color: #ff00ff; font-weight: bold; margin-bottom: 8px;">💎 BOUTIQUE PREMIUM</div>`;
+            html += `<div style="font-size: 10px; color: #ddd; margin-bottom: 15px;">L'antimatière est extrêmement rare (0.1% drop). Accélérez votre progression!</div>`;
+
+            // Render premium items
+            for (let itemKey in premiumShopData) {
+                const item = premiumShopData[itemKey];
+
+                html += `<div style="margin: 12px 0; padding: 12px; background: rgba(0,0,0,0.4); border: 2px solid rgba(255,0,255,0.3); border-radius: 8px;">`;
+                html += `<div style="text-align: center; margin-bottom: 8px;">`;
+                html += `<div style="font-size: 28px; margin-bottom: 5px;">${item.icon}</div>`;
+                html += `<div style="font-size: 13px; font-weight: bold; color: #ff00ff;">${item.name}</div>`;
+                if (item.bonus) {
+                    html += `<div style="font-size: 10px; color: #00ff88; margin-top: 2px;">${item.bonus}</div>`;
+                }
+                html += `</div>`;
+
+                html += `<div style="font-size: 11px; color: #ddd; margin: 8px 0; text-align: center;">`;
+                html += item.desc;
+                if (item.extras) {
+                    html += `<br><span style="color: #ffd700;">+ Boost Production x2 (24h)</span>`;
+                }
+                html += `</div>`;
+
+                html += `<div style="text-align: center; margin-top: 10px;">`;
+                html += `<div style="font-size: 16px; color: #00ff88; font-weight: bold; margin-bottom: 8px;">$${item.price.toFixed(2)} ${item.currency}</div>`;
+                html += `<button class="sidebar-btn" style="background: linear-gradient(135deg, #ff00ff, #8b00ff);" onclick="purchasePremiumItem('${itemKey}')">ACHETER</button>`;
+                html += `</div>`;
+                html += `</div>`;
+            }
+
+            html += `<div style="font-size: 9px; color: #888; margin-top: 12px; padding: 8px; border-top: 1px solid rgba(255,255,255,0.1);">`;
+            html += `💳 Paiements sécurisés via App Store / Stripe<br>`;
+            html += `📱 Mode démo: Les achats ne sont pas encore activés`;
+            html += `</div>`;
+            html += `</div>`;
+
+            // Regular shop section
             html += `<div style="text-align: center; margin-bottom: 20px;">`;
-            html += `<div style="font-size: 16px; color: #00d4ff; font-weight: bold; margin-bottom: 10px;">COFFRES</div>`;
-            html += `<div style="font-size: 10px; color: #aaa;">Achetez des coffres pour obtenir des ressources et des boosts!</div>`;
+            html += `<div style="font-size: 16px; color: #00d4ff; font-weight: bold; margin-bottom: 10px;">COFFRES (Ressources du jeu)</div>`;
+            html += `<div style="font-size: 10px; color: #aaa;">Achetez des coffres avec vos ressources!</div>`;
             html += `</div>`;
 
             // Render lootboxes
