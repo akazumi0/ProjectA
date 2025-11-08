@@ -3505,6 +3505,17 @@
                 // Auto-save every 10s
                 setInterval(() => saveGame(), 10000);
 
+                console.log('11. Showing ASTRA welcome message...');
+                // Show ASTRA welcome message after 2s
+                setTimeout(() => {
+                    if (!game.astraDialogue.dialoguesSeen.includes(0)) {
+                        showAstraDialogue("Systèmes initialisés. Bonjour Commandant. Je suis ASTRA, votre Intelligence Artificielle de Navigation Stellaire.");
+                        game.astraDialogue.dialoguesSeen.push(0);
+                        game.astraDialogue.lastDialogue = Date.now();
+                        saveGame();
+                    }
+                }, 2000);
+
                 console.log('=== GAME STARTED SUCCESSFULLY ===');
             } catch (error) {
                 console.error('ERROR IN startGame():', error);
@@ -4325,6 +4336,20 @@
                     achievementsIcon.classList.remove('has-notification');
                 }
             }
+
+            // Artifacts available? (show if less than 50% discovered and player has clicks)
+            const totalArtifacts = Object.keys(artifactData).length;
+            const discoveredArtifacts = game.artifacts.discovered.length;
+            const artifactsAvailable = discoveredArtifacts > 0 && discoveredArtifacts < totalArtifacts;
+
+            const artifactsIcon = document.getElementById('artifactsIcon');
+            if (artifactsIcon) {
+                if (artifactsAvailable) {
+                    artifactsIcon.classList.add('has-notification');
+                } else {
+                    artifactsIcon.classList.remove('has-notification');
+                }
+            }
         }
 
         window.addEventListener('beforeunload', () => saveGame());
@@ -4342,7 +4367,7 @@
 
         function checkAstraDialogues() {
             const now = Date.now();
-            if (now - game.astraDialogue.lastDialogue < 60000) return; // Min 1min between dialogues
+            if (now - game.astraDialogue.lastDialogue < 45000) return; // Min 45s between dialogues (reduced from 60s)
 
             // Check story progression triggers
             for (let dialogue of astraDialogues) {
@@ -4437,11 +4462,11 @@
         // Story Event System
         function triggerStoryEvent() {
             const now = Date.now();
-            if (now - game.storyEvents.lastEvent < 300000) return; // Min 5min between events
+            if (now - game.storyEvents.lastEvent < 180000) return; // Min 3min between events (reduced from 5min)
             if (game.storyEvents.activeEvent) return;
 
-            // 20% chance to trigger
-            if (Math.random() > 0.2) return;
+            // 30% chance to trigger (increased from 20%)
+            if (Math.random() > 0.3) return;
 
             const eventKeys = Object.keys(storyEventData);
             const eventKey = eventKeys[Math.floor(Math.random() * eventKeys.length)];
@@ -4561,8 +4586,8 @@
         function triggerFlashMission() {
             if (game.flashMission.active) return;
 
-            // 5% chance every 2 minutes
-            if (Math.random() > 0.05) return;
+            // 10% chance every 2 minutes (increased from 5%)
+            if (Math.random() > 0.1) return;
 
             const missionKeys = Object.keys(flashMissionTypes);
             const missionKey = missionKeys[Math.floor(Math.random() * missionKeys.length)];
@@ -4689,8 +4714,8 @@
         }
 
         function checkArtifactDrop() {
-            // Base 0.5% chance on fragment catch
-            let chance = 0.005;
+            // Base 1% chance on fragment catch (increased from 0.5% for better discovery rate)
+            let chance = 0.01;
 
             // Bonus from Lucky Charm artifact
             if (game.artifacts.active.includes('luckyCharm')) {
