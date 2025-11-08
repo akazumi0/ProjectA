@@ -1120,6 +1120,7 @@
         <div class="icon-button" onclick="openModal('lootbox')" id="lootboxIcon">📦</div>
         <div class="icon-button" onclick="openModal('quests')" id="questsIcon">📜</div>
         <div class="icon-button" onclick="openModal('achievements')" id="achievementsIcon">🏆</div>
+        <div class="icon-button" onclick="openModal('artifacts')" id="artifactsIcon">💎</div>
         <div class="icon-button" onclick="openModal('events')" id="eventsIcon">🌟</div>
         <div class="icon-button" onclick="openModal('stats')" id="statsIcon">📊</div>
         <div class="icon-button" onclick="openModal('prestige')" id="prestigeIcon">🌠</div>
@@ -1193,6 +1194,17 @@
             <button class="modal-close" onclick="closeModal('stats')">✕</button>
             <div class="modal-header">📊 STATISTIQUES</div>
             <div class="modal-body" id="statsBody" style="max-height: 60vh; overflow-y: auto;">
+                <!-- Will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Artifacts Modal -->
+    <div id="artifactsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="modal-close" onclick="closeModal('artifacts')">✕</button>
+            <div class="modal-header">💎 ARTEFACTS</div>
+            <div class="modal-body" id="artifactsBody" style="max-height: 60vh; overflow-y: auto;">
                 <!-- Will be populated by JS -->
             </div>
         </div>
@@ -2486,6 +2498,12 @@
                 prod.matter *= prestigeBonus;
             }
 
+            // Apply artifact bonuses
+            const artifactBonuses = applyArtifactBonuses();
+            prod.lumen *= artifactBonuses.lumenBonus * artifactBonuses.allResources;
+            prod.energy *= artifactBonuses.energyBonus * artifactBonuses.allResources;
+            prod.matter *= artifactBonuses.matterBonus * artifactBonuses.allResources;
+
             // Apply active boosts
             for (let boost of game.activeBoosts) {
                 if (boost.effect.type === 'production') {
@@ -2516,6 +2534,10 @@
                 const masteryBonus = 1 + masteryData.clickMastery.effect(game.masteries.clickMastery);
                 power *= masteryBonus;
             }
+
+            // Apply artifact bonuses
+            const artifactBonuses = applyArtifactBonuses();
+            power *= artifactBonuses.clickPower;
 
             // Apply active click power boosts
             for (let boost of game.activeBoosts) {
@@ -2575,14 +2597,22 @@
 
         function spawnFragment() {
             const glowLevel = game.defense.fragmentGlow || 0;
+            const hasCosmicEye = game.artifacts && game.artifacts.active.includes('cosmicEye');
 
             // Determine fragment type based on probabilities
             let type = 'lumen';
             let color = '#00d4ff';
             let shape = 'circle';
+            let isGolden = false;
             const rand = Math.random();
 
-            if (rand < 0.7) {
+            // 5% chance for golden fragment if Cosmic Eye is active
+            if (hasCosmicEye && rand < 0.05) {
+                type = 'golden';
+                color = '#ffd700'; // Gold
+                shape = 'circle';
+                isGolden = true;
+            } else if (rand < 0.7) {
                 type = 'lumen';
                 color = '#00d4ff'; // Cyan
                 shape = 'circle'; // Cercles pour lumen
@@ -2599,15 +2629,16 @@
             fallingFragments.push({
                 x: Math.random() * (canvas.width - 60) + 30,
                 y: -30,
-                size: 16 + Math.random() * 10,
-                speed: 1.5 + Math.random() * 1,
+                size: isGolden ? 24 : (16 + Math.random() * 10),
+                speed: isGolden ? 1 : (1.5 + Math.random() * 1),
                 rotation: Math.random() * Math.PI * 2,
                 rotSpeed: (Math.random() - 0.5) * 0.1,
                 glow: Math.random(),
-                glowIntensity: 0.3 + (glowLevel * 0.15),
+                glowIntensity: isGolden ? 0.9 : (0.3 + (glowLevel * 0.15)),
                 type: type,
                 color: color,
-                shape: shape
+                shape: shape,
+                isGolden: isGolden
             });
         }
 
@@ -2643,8 +2674,21 @@
                     // Apply combo multiplier
                     const comboMultiplier = game.combo.multiplier || 1;
 
+                    // Golden fragment bonus
+                    const goldenMultiplier = frag.isGolden ? 10 : 1;
+
                     // Award resources based on fragment type
-                    if (frag.type === 'lumen') {
+                    if (frag.type === 'golden') {
+                        // Golden gives all 3 resources!
+                        gain = Math.floor(game.clickPower * comboMultiplier * goldenMultiplier);
+                        game.resources.lumen += gain;
+                        game.resources.energy += Math.floor(gain * 0.5);
+                        game.resources.matter += Math.floor(gain * 0.2);
+                        game.totalResources.lumen += gain;
+                        game.totalResources.energy += Math.floor(gain * 0.5);
+                        game.totalResources.matter += Math.floor(gain * 0.2);
+                        resourceLabel = '✨';
+                    } else if (frag.type === 'lumen') {
                         gain = Math.floor(game.clickPower * comboMultiplier);
                         game.resources.lumen += gain;
                         game.totalResources.lumen += gain;
@@ -3479,6 +3523,7 @@
                 if (type === 'lootbox') updateFreeLootbox();
                 if (type === 'prestige') updatePrestige();
                 if (type === 'achievements') updateAchievementsModal();
+                if (type === 'artifacts') updateArtifactsModal();
                 if (type === 'shop') updateShopModal();
                 if (type === 'quests') updateQuestsModal();
                 if (type === 'events') updateEventsModal();
@@ -3995,6 +4040,64 @@
             body.innerHTML = html;
         }
 
+        function updateArtifactsModal() {
+            const body = document.getElementById('artifactsBody');
+            if (!body) return;
+
+            const discovered = game.artifacts.discovered.length;
+            const total = Object.keys(artifactData).length;
+
+            let html = '';
+
+            // Header
+            html += `<div style="text-align: center; margin-bottom: 15px; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 5px;">`;
+            html += `<div style="font-size: 18px; color: #ffd700; font-weight: bold;">${discovered} / ${total}</div>`;
+            html += `<div style="font-size: 11px; color: #aaa;">Artefacts découverts</div>`;
+            html += `</div>`;
+
+            // Active bonuses summary
+            if (game.artifacts.active.length > 0) {
+                html += `<div style="padding: 12px; background: rgba(0,255,136,0.1); border: 2px solid rgba(0,255,136,0.3); border-radius: 8px; margin-bottom: 15px;">`;
+                html += `<div style="font-size: 13px; color: #00ff88; font-weight: bold; margin-bottom: 8px;">✨ BONUS ACTIFS</div>`;
+                const bonuses = applyArtifactBonuses();
+                if (bonuses.lumenBonus > 1) html += `<div style="font-size: 11px; color: #00d4ff; margin: 3px 0;">⭐ Lumen: +${Math.floor((bonuses.lumenBonus - 1) * 100)}%</div>`;
+                if (bonuses.energyBonus > 1) html += `<div style="font-size: 11px; color: #ffd93d; margin: 3px 0;">⚡ Énergie: +${Math.floor((bonuses.energyBonus - 1) * 100)}%</div>`;
+                if (bonuses.matterBonus > 1) html += `<div style="font-size: 11px; color: #b19cd9; margin: 3px 0;">🌑 Matière: +${Math.floor((bonuses.matterBonus - 1) * 100)}%</div>`;
+                if (bonuses.clickPower > 1) html += `<div style="font-size: 11px; color: #ff6b6b; margin: 3px 0;">💎 Puissance clic: +${Math.floor((bonuses.clickPower - 1) * 100)}%</div>`;
+                if (bonuses.allResources > 1) html += `<div style="font-size: 11px; color: #ffd700; margin: 3px 0;">♾️ Toutes ressources: +${Math.floor((bonuses.allResources - 1) * 100)}%</div>`;
+                html += `</div>`;
+            }
+
+            // Artifacts list
+            for (let artifactKey in artifactData) {
+                const artifact = artifactData[artifactKey];
+                const discovered = game.artifacts.discovered.includes(artifactKey);
+                const active = game.artifacts.active.includes(artifactKey);
+
+                let rarityColor = '#aaa';
+                if (artifact.rarity === 'epic') rarityColor = '#b19cd9';
+                if (artifact.rarity === 'legendary') rarityColor = '#ffd700';
+
+                const opacity = discovered ? '1' : '0.4';
+                const bgColor = discovered ? (active ? 'rgba(0,255,136,0.1)' : 'rgba(0,0,0,0.3)') : 'rgba(0,0,0,0.2)';
+                const borderColor = discovered ? (active ? 'rgba(0,255,136,0.5)' : 'rgba(255,215,0,0.3)') : 'rgba(100,100,100,0.3)';
+
+                html += `<div style="padding: 10px; margin: 8px 0; background: ${bgColor}; border: 2px solid ${borderColor}; border-radius: 8px; opacity: ${opacity};">`;
+                html += `<div style="display: flex; align-items: center; gap: 12px;">`;
+                html += `<div style="font-size: 36px; ${discovered ? '' : 'filter: grayscale(1);'}">${discovered ? artifact.icon : '❓'}</div>`;
+                html += `<div style="flex: 1;">`;
+                html += `<div style="font-size: 13px; font-weight: bold; color: ${discovered ? '#fff' : '#666'};">${discovered ? artifact.name : '???'}</div>`;
+                html += `<div style="font-size: 10px; color: ${rarityColor}; text-transform: uppercase; margin: 2px 0;">${discovered ? artifact.rarity : '???'}</div>`;
+                html += `<div style="font-size: 11px; color: ${discovered ? '#aaa' : '#555'}; margin: 3px 0;">${discovered ? artifact.desc : 'Artefact non découvert'}</div>`;
+                if (discovered && active) {
+                    html += `<div style="font-size: 11px; color: #00ff88; font-weight: bold; margin-top: 5px;">✓ ${artifact.bonus}</div>`;
+                }
+                html += `</div></div></div>`;
+            }
+
+            body.innerHTML = html;
+        }
+
         function closeModal(type) {
             const modalId = type + 'Modal';
             const modal = document.getElementById(modalId);
@@ -4006,7 +4109,7 @@
         // Setup modal overlay click handlers
         function setupModalHandlers() {
             try {
-                const modalTypes = ['daily', 'lootbox', 'quests', 'achievements', 'events', 'stats', 'prestige', 'shop'];
+                const modalTypes = ['daily', 'lootbox', 'quests', 'achievements', 'artifacts', 'events', 'stats', 'prestige', 'shop'];
                 modalTypes.forEach(type => {
                     const modal = document.getElementById(type + 'Modal');
                     if (modal) {
