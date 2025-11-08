@@ -47,7 +47,7 @@
             left: 0;
             right: 0;
             background: linear-gradient(to bottom, rgba(0,0,0,0.95), rgba(0,0,0,0.7));
-            padding: 8px 12px;
+            padding: 5px 12px 4px;
             z-index: 100;
             border-bottom: 1px solid rgba(0,212,255,0.3);
         }
@@ -55,7 +55,7 @@
         .resources {
             display: flex;
             justify-content: space-around;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         .resource {
@@ -108,9 +108,9 @@
         #leftIconBar {
             position: fixed;
             left: 0;
-            top: 120px;
+            top: 60px;
             width: 45px;
-            max-height: calc(100vh - 350px);
+            max-height: calc(100vh - 280px);
             background: linear-gradient(to right, rgba(0,0,0,0.9), rgba(0,0,0,0.7));
             border-right: 1px solid rgba(0,212,255,0.3);
             z-index: 99;
@@ -339,7 +339,7 @@
 
         .tab {
             flex: 1;
-            padding: 8px 5px;
+            padding: 6px 5px;
             text-align: center;
             font-size: 10px;
             background: rgba(0,20,40,0.5);
@@ -361,11 +361,11 @@
 
         .tab-content {
             display: none;
-            height: 32vh;
-            min-height: 32vh;
-            max-height: 32vh;
+            height: 22vh;
+            min-height: 22vh;
+            max-height: 22vh;
             overflow-y: auto;
-            padding: 8px;
+            padding: 6px;
         }
 
         .tab-content.active {
@@ -693,14 +693,14 @@
         /* ASTRA Dialogue Bubble */
         #astraDialogue {
             position: fixed;
-            bottom: 360px;
+            bottom: 26vh;
             left: 50%;
             transform: translateX(-50%);
             background: linear-gradient(135deg, rgba(0,100,200,0.95), rgba(0,50,150,0.95));
             border: 2px solid rgba(0,212,255,0.8);
             border-radius: 15px;
-            padding: 12px 18px;
-            max-width: 80%;
+            padding: 10px 15px;
+            max-width: 75%;
             z-index: 150;
             display: none;
             box-shadow: 0 4px 20px rgba(0,212,255,0.4);
@@ -2914,7 +2914,7 @@
             }
 
             fallingFragments.push({
-                x: Math.random() * (canvas.width - 60) + 30,
+                x: Math.random() * (canvas.width - 120) + 60, // Avoid left menu (45px) with margin
                 y: -30,
                 size: isGolden ? 24 : (16 + Math.random() * 10),
                 speed: isGolden ? 1 : (1.5 + Math.random() * 1),
@@ -3018,7 +3018,7 @@
 
                     const ft = document.createElement('div');
                     ft.className = 'floating-text';
-                    ft.textContent = `+${formatNumber(gain)}${resourceLabel}`;
+                    ft.textContent = `+${formatNumber(gain)}`;
                     ft.style.color = frag.color;
                     ft.style.left = clientX + 'px';
                     ft.style.top = clientY + 'px';
@@ -3097,7 +3097,7 @@
             }
 
             // Update fragments
-            const menuHeight = 220;
+            const menuHeight = 180; // Reduced from 220 to give more playable space
             for (let i = fallingFragments.length - 1; i >= 0; i--) {
                 const frag = fallingFragments[i];
                 frag.y += frag.speed;
@@ -3105,6 +3105,13 @@
                 frag.glow = (frag.glow + delta * 2) % (Math.PI * 2);
 
                 if (frag.y > canvas.height - menuHeight) {
+                    // Fragment missed - reset combo!
+                    if (game.combo.count > 0) {
+                        game.combo.count = 0;
+                        game.combo.multiplier = 1;
+                        game.combo.lastClick = 0;
+                        document.getElementById('comboDisplay').classList.remove('show');
+                    }
                     fallingFragments.splice(i, 1);
                 }
             }
