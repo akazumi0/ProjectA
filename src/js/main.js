@@ -22,7 +22,7 @@ import { achievementData } from './data/achievements.js';
 import { astraDialogues } from './data/dialogues.js';
 
 // System imports
-import { initAudio, playSound, resumeAudio } from './systems/audio.js';
+import { initAudio, playSound, resumeAudio, playBackgroundMusic, toggleMusic, toggleSound } from './systems/audio.js';
 import { loadGame, saveGame, processOfflineEarnings, setupAutoSave } from './systems/storage.js';
 import {
     buyDefense,
@@ -279,49 +279,6 @@ function initEventListeners() {
             handleCanvasClick(touch);
         });
     }
-
-    // Make functions globally accessible for inline onclick handlers
-    window.startGame = startGame;
-    window.switchTab = switchTab;
-    window.openModal = (id) => toggleModal(id + 'Modal', true);
-    window.closeModal = (id) => toggleModal(id + 'Modal', false);
-    window.switchPlanet = (key) => {
-        if (switchPlanetLogic(key)) {
-            updateAllUI();
-            renderAllTabs();
-        }
-    };
-    window.openProfile = () => {
-        updateProfileModal();
-        toggleModal('profileModal', true);
-    };
-    window.closeProfile = () => toggleModal('profileModal', false);
-    window.claimDaily = () => {
-        const result = claimDailyReward();
-        if (result) {
-            showNotification(`✓ Jour ${result.day} réclamé !`);
-            updateDailyRewardsDisplay();
-            updateResources();
-        }
-    };
-    window.openFreeLootbox = () => {
-        const rewards = openFreeLootbox();
-        if (rewards) {
-            showNotification(`📦 Coffre ouvert ! +${formatNumber(rewards.lumen)} Lumen`);
-            updateResources();
-            updateLootboxTimer();
-        }
-    };
-    window.doPrestige = () => {
-        if (confirm('Confirmer le Prestige ? Cela réinitialisera votre progression (sauf technologies).')) {
-            const result = performPrestige();
-            if (result.success) {
-                showNotification(`🌠 Prestige Niveau ${result.newLevel} ! +${result.bonus}% production`);
-                updateAllUI();
-                renderAllTabs();
-            }
-        }
-    };
 }
 
 /**
@@ -458,6 +415,57 @@ function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
 
     return card;
 }
+
+/**
+ * Core functions exposed globally for inline onclick handlers
+ */
+window.startGame = startGame;
+window.switchTab = switchTab;
+window.openModal = (id) => toggleModal(id + 'Modal', true);
+window.closeModal = (id) => toggleModal(id + 'Modal', false);
+
+window.switchPlanet = (key) => {
+    if (switchPlanetLogic(key)) {
+        updateAllUI();
+        renderAllTabs();
+    }
+};
+
+window.openProfile = () => {
+    updateProfileModal();
+    toggleModal('profileModal', true);
+};
+
+window.closeProfile = () => toggleModal('profileModal', false);
+
+window.claimDaily = () => {
+    const result = claimDailyReward();
+    if (result) {
+        showNotification(`✓ Jour ${result.day} réclamé !`);
+        updateDailyRewardsDisplay();
+        updateResources();
+    }
+};
+
+window.openFreeLootbox = () => {
+    const rewards = openFreeLootbox();
+    if (rewards) {
+        showNotification(`📦 Coffre ouvert ! +${formatNumber(rewards.lumen)} Lumen`);
+        updateResources();
+        updateLootboxTimer();
+    }
+};
+
+window.doPrestige = () => {
+    if (confirm('Confirmer le Prestige ? Cela réinitialisera votre progression (sauf technologies).')) {
+        const result = performPrestige();
+        if (result.success) {
+            showNotification(`🌠 Prestige Niveau ${result.newLevel} ! +${result.bonus}% production`);
+            updateAllUI();
+            renderAllTabs();
+        }
+    }
+};
 
 /**
  * Buy functions exposed globally

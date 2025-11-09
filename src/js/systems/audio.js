@@ -1,98 +1,141 @@
 /**
- * Audio System Module
- * Web Audio API sound generation for iOS compatibility
+ * Audio System
+ * Handles all game sounds and background music
+ * Uses real audio files (WAV/MP3) with Web Audio API fallback
  * @module systems/audio
  */
 
-import { AUDIO } from '../core/constants.js';
+/**
+ * Audio file paths
+ */
+const AUDIO_PATHS = {
+    // Sound effects (WAV files)
+    click: './Assets/mixkit-sci-fi-click-900.wav',
+    capture: './Assets/mixkit-sci-fi-interface-robot-click-901.wav',
+    build: './Assets/mixkit-sci-fi-confirmation-914.wav',
+    notification: './Assets/mixkit-sci-fi-positive-notification-266.wav',
+    error: './Assets/mixkit-sci-fi-error-alert-898.wav',
+    reject: './Assets/mixkit-sci-fi-reject-notification-896.wav',
 
-let audioContext = null;
+    // Background music (MP3)
+    music: './Assets/space-ambient-351305.mp3'
+};
+
 let soundEnabled = true;
+let musicEnabled = true;
+let musicVolume = 0.3;
+let sfxVolume = 0.5;
+let audioContext = null;
+const audioCache = new Map();
+let currentMusic = null;
 
-/**
- * Initialize audio context
- * Must be called after user interaction on iOS
- */
 export function initAudio() {
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+            audioContext = new AudioContextClass();
+        }
+        preloadSound('click');
+        preloadSound('capture');
+        preloadSound('build');
+        preloadSound('notification');
+        preloadSound('error');
+        preloadSound('reject');
+        preloadMusic();
+    } catch (error) {
+        console.warn('Audio init failed:', error);
     }
 }
 
-/**
- * Play a sound effect
- * @param {string} type - Sound type ('catch', 'build', 'success', 'error')
- */
-export function playSound(type) {
-    if (!soundEnabled || !audioContext) return;
-
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    const now = audioContext.currentTime;
-
-    switch (type) {
-        case 'catch':
-            osc.frequency.value = AUDIO.CATCH_FREQUENCY;
-            gain.gain.setValueAtTime(AUDIO.VOLUME, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + AUDIO.CATCH_DURATION);
-            osc.start(now);
-            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
-            osc.stop(now + AUDIO.CATCH_DURATION);
-            break;
-
-        case 'build':
-            osc.frequency.value = AUDIO.BUILD_FREQUENCY;
-            gain.gain.setValueAtTime(0.15, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + AUDIO.BUILD_DURATION);
-            osc.start(now);
-            osc.frequency.exponentialRampToValueAtTime(800, now + AUDIO.BUILD_DURATION);
-            osc.stop(now + AUDIO.BUILD_DURATION);
-            break;
-
-        case 'success':
-            osc.frequency.value = 523;
-            gain.gain.setValueAtTime(0.2, now);
-            osc.start(now);
-            osc.frequency.exponentialRampToValueAtTime(784, now + 0.1);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-            osc.stop(now + 0.3);
-            break;
-
-        case 'error':
-            osc.frequency.value = 200;
-            gain.gain.setValueAtTime(0.15, now);
-            osc.start(now);
-            osc.frequency.exponentialRampToValueAtTime(100, now + 0.2);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-            osc.stop(now + 0.2);
-            break;
+function preloadSound(key) {
+    if (!AUDIO_PATHS[key]) return;
+    try {
+        const audio = new Audio();
+        audio.src = AUDIO_PATHS[key];
+        audio.preload = 'auto';
+        audio.volume = sfxVolume;
+        audioCache.set(key, audio);
+    } catch (error) {
+        console.warn(`Preload failed: ${key}`);
     }
 }
 
-/**
- * Toggle sound on/off
- * @param {boolean} enabled - Enable or disable sound
- */
-export function setSoundEnabled(enabled) {
-    soundEnabled = enabled;
+function preloadMusic() {
+    try {
+        const audio = new Audio();
+        audio.src = AUDIO_PATHS.music;
+        audio.preload = 'auto';
+        audio.loop = true;
+        audio.volume = musicVolume;
+        audioCache.set('music', audio);
+    } catch (error) {
+        console.warn('Music preload failed');
+    }
 }
 
-/**
- * Get current sound enabled state
- * @returns {boolean} True if sound is enabled
- */
-export function isSoundEnabled() {
-    return soundEnabled;
-}
-
-/**
- * Resume audio context (required for iOS)
- * Call this on user interaction
- */
 export function resumeAudio() {
     if (audioContext && audioContext.state === 'suspended') {
         audioContext.resume();
+        if (musicEnabled && !currentMusic) {
+            playBackgroundMusic();
+        }
+    }
+}
+
+export function playSound(type) {
+    if (!soundEnabled) return;
+    try {
+        resumeAudio();
+        const audio = audioCache.get(type);
+        if (audio) {
+            const sound = audio.cloneNode();
+            sound.volume = sfxVolume;
+            sound.play().catch(() => {});
+        }
+    } catch (error) {}
+}
+
+export function playBackgroundMusic() {
+    if (!musicEnabled) return;
+    try {
+        resumeAudio();
+        currentMusic = audioCache.get('music');
+        if (currentMusic) {
+            currentMusic.volume = musicVolume;
+            currentMusic.play().catch(() => {});
+        }
+    } catch (error) {}
+}
+
+export function stopBackgroundMusic() {
+    if (currentMusic) {
+        currentMusic.pause();
+        currentMusic.currentTime = 0;
+    }
+}
+
+export function toggleSound() {
+    soundEnabled = !soundEnabled;
+    return soundEnabled;
+}
+
+export function toggleMusic() {
+    musicEnabled = !musicEnabled;
+    if (musicEnabled) {
+        playBackgroundMusic();
+    } else {
+        stopBackgroundMusic();
+    }
+    return musicEnabled;
+}
+
+export function setSFXVolume(volume) {
+    sfxVolume = Math.max(0, Math.min(1, volume));
+}
+
+export function setMusicVolume(volume) {
+    musicVolume = Math.max(0, Math.min(1, volume));
+    if (currentMusic) {
+        currentMusic.volume = musicVolume;
     }
 }

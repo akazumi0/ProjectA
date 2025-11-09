@@ -1,0 +1,48 @@
+# Ignorer les gros fichiers binaires mais garder les fichiers markdown
+
+# Images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.svg
+*.webp
+*.ico
+
+# Audio
+*.mp3
+*.wav
+*.ogg
+*.m4a
+*.flac
+*.aac
+
+# Vidéos (au cas où)
+*.mp4
+*.avi
+*.mov
+*.wmv
+
+# Archives
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# Fichiers temporaires
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# MAIS garder les fichiers de documentation
+!*.md
+!README.md
+!RESOURCES.md
+!CREDITS*.md
+
+# Garder aussi les petits fichiers de configuration si nécessaire
+!*.json
+!*.txt
