@@ -3294,7 +3294,6 @@
                 let strokeColor = frag.color;
                 if (frag.type === 'lumen') strokeColor = '#0099cc';
                 else if (frag.type === 'energy') strokeColor = '#cc9900';
-                else if (frag.type === 'matter') strokeColor = '#8866bb';
 
                 ctx.strokeStyle = strokeColor;
                 ctx.lineWidth = 2;
@@ -3307,7 +3306,7 @@
                     // Energy: Spinning coin
                     drawCoin(0, 0, frag.size, frag.color, strokeColor, frag.rotation);
                 } else if (frag.shape === 'hexagon') {
-                    // Matter: Dark gem with aura
+                    // Gem shape
                     drawGem(0, 0, frag.size, frag.color, strokeColor);
                 }
 
@@ -3499,7 +3498,7 @@
             const parts = [];
             if (cost.lumen) parts.push(`${formatNumber(cost.lumen)}L`);
             if (cost.energy) parts.push(`${formatNumber(cost.energy)}E`);
-            if (cost.matter) parts.push(`${formatNumber(cost.matter)}M`);
+            if (cost.antimatter) parts.push(`${formatNumber(cost.antimatter)}💥`);
             return parts.join(' ');
         }
 
@@ -3728,7 +3727,7 @@
 
         function openProfile() {
             document.getElementById('modalUsername').textContent = game.username;
-            document.getElementById('modalScore').textContent = formatNumber(game.totalResources.lumen + game.totalResources.energy + game.totalResources.matter);
+            document.getElementById('modalScore').textContent = formatNumber(game.totalResources.lumen + game.totalResources.energy + game.totalResources.antimatter);
             document.getElementById('modalLumen').textContent = formatNumber(game.totalResources.lumen);
 
             let planetsUnlocked = 0;
@@ -4855,8 +4854,8 @@
                 game.prestige.totalLumenEarned = game.totalResources.lumen;
 
                 // Reset everything except prestige and technologies
-                game.resources = { lumen: 0, energy: 0, matter: 0 };
-                game.totalResources = { lumen: 0, energy: 0, matter: 0 };
+                game.resources = { lumen: 0, energy: 0, antimatter: 0 };
+                game.totalResources = { lumen: 0, energy: 0, antimatter: 0 };
                 game.defense = {};
                 for (let defKey in defenseData) game.defense[defKey] = 0;
 
