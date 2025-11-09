@@ -108,7 +108,7 @@
         #leftIconBar {
             position: fixed;
             left: 0;
-            top: 60px;
+            top: 90px;
             width: 45px;
             max-height: calc(100vh - 280px);
             background: linear-gradient(to right, rgba(0,0,0,0.9), rgba(0,0,0,0.7));
@@ -361,9 +361,9 @@
 
         .tab-content {
             display: none;
-            height: 22vh;
-            min-height: 22vh;
-            max-height: 22vh;
+            height: 28vh;
+            min-height: 28vh;
+            max-height: 28vh;
             overflow-y: auto;
             padding: 6px;
         }
@@ -775,20 +775,82 @@
             50% { transform: scale(1.05); }
         }
 
+        /* Right Quest Panel */
+        #rightQuestPanel {
+            position: fixed;
+            right: 0;
+            top: 60px;
+            width: 200px;
+            max-height: calc(100vh - 340px);
+            background: linear-gradient(to left, rgba(0,0,0,0.85), rgba(0,0,0,0.7));
+            border-left: 1px solid rgba(0,212,255,0.3);
+            z-index: 98;
+            padding: 8px;
+            overflow-y: auto;
+        }
+
+        .quest-card {
+            background: rgba(0,30,60,0.6);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 8px;
+            font-size: 10px;
+        }
+
+        .quest-card.flash {
+            background: linear-gradient(135deg, rgba(255,0,100,0.4), rgba(200,0,80,0.4));
+            border-color: rgba(255,100,150,0.6);
+        }
+
+        .quest-card-title {
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 4px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .quest-card.flash .quest-card-title {
+            color: #ffb3d1;
+        }
+
+        .quest-card-desc {
+            color: #aaa;
+            margin-bottom: 6px;
+            font-size: 9px;
+        }
+
+        .quest-progress-bar {
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            height: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .quest-progress-fill {
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .quest-progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 9px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 3px black;
+        }
+
         /* Flash Mission Banner */
         #flashMission {
-            position: fixed;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, rgba(255,0,100,0.95), rgba(200,0,80,0.95));
-            border: 3px solid rgba(255,100,150,0.9);
-            border-radius: 15px;
-            padding: 12px 24px;
-            z-index: 151;
             display: none;
-            box-shadow: 0 4px 25px rgba(255,0,100,0.6);
-            animation: flashBounce 0.6s ease-out;
         }
 
         #flashMission.show {
@@ -1040,6 +1102,11 @@
         <div class="flash-timer" id="flashTimer">⏱️ 00:00</div>
     </div>
 
+    <!-- Right Quest Panel -->
+    <div id="rightQuestPanel">
+        <!-- Content will be dynamically populated -->
+    </div>
+
     <!-- Story Event Modal -->
     <div id="storyEventModal">
         <div class="story-event-content">
@@ -1103,9 +1170,9 @@
                 <div class="resource-rate" id="energyRate">+0/s</div>
             </div>
             <div class="resource">
-                <div>🌑 Matière</div>
-                <div class="resource-value" id="matterVal">0</div>
-                <div class="resource-rate" id="matterRate">+0/s</div>
+                <div>💥 Antimatière</div>
+                <div class="resource-value" id="antimatterVal">0</div>
+                <div class="resource-rate" id="antimatterRate">Rare</div>
             </div>
         </div>
         <div id="planetSelector">
@@ -1301,31 +1368,31 @@
                 earth: {
                     name: 'Terre',
                     unlocked: true,
-                    bonus: { lumen: 1, energy: 1, matter: 1 },
+                    bonus: { lumen: 1, energy: 1 },
                     buildings: {}
                 },
                 mars: {
                     name: 'Mars',
                     unlocked: false,
-                    bonus: { lumen: 1.2, energy: 1, matter: 1 },
-                    unlockCost: { matter: 1000 }
+                    bonus: { lumen: 1.2, energy: 1 },
+                    unlockCost: { energy: 5000 }
                 },
                 titan: {
                     name: 'Titan',
                     unlocked: false,
-                    bonus: { lumen: 1, energy: 1.2, matter: 1.3 },
-                    unlockCost: { matter: 5000, energy: 10000 }
+                    bonus: { lumen: 1, energy: 1.5 },
+                    unlockCost: { lumen: 50000, energy: 20000 }
                 }
             },
             resources: {
                 lumen: 0,
                 energy: 0,
-                matter: 0
+                antimatter: 0
             },
             totalResources: {
                 lumen: 0,
                 energy: 0,
-                matter: 0
+                antimatter: 0
             },
             technologies: {},
             defense: {},
@@ -1432,7 +1499,7 @@
             autoCapture: {
                 name: 'Capture Automatique',
                 desc: 'Simule des clics automatiques',
-                baseCost: { lumen: 1000, energy: 300, matter: 100 },
+                baseCost: { lumen: 1000, energy: 500 },
                 costMult: 2.2,
                 effect: level => level * 0.5,
                 display: level => `${(level * 0.5).toFixed(1)} clics/s`,
@@ -1820,7 +1887,7 @@
                 category: 'collection',
                 requirement: 100000,
                 resource: 'lumen',
-                reward: { energy: 1000, matter: 50 },
+                reward: { energy: 1500 },
                 icon: '💎'
             },
             lumen1m: {
@@ -1829,7 +1896,7 @@
                 category: 'collection',
                 requirement: 1000000,
                 resource: 'lumen',
-                reward: { energy: 5000, matter: 500 },
+                reward: { energy: 10000, antimatter: 1 },
                 icon: '👑'
             },
             energy10k: {
@@ -1838,17 +1905,17 @@
                 category: 'collection',
                 requirement: 10000,
                 resource: 'energy',
-                reward: { lumen: 5000, matter: 100 },
+                reward: { lumen: 7500 },
                 icon: '🔋'
             },
-            matter1k: {
-                name: 'Physicien',
-                desc: 'Collecter 1K Matière total',
+            antimatter10: {
+                name: 'Découvreur d\'Antimatière',
+                desc: 'Collecter 10 Antimatière total',
                 category: 'collection',
-                requirement: 1000,
-                resource: 'matter',
-                reward: { lumen: 10000, energy: 2000 },
-                icon: '🌑'
+                requirement: 10,
+                resource: 'antimatter',
+                reward: { lumen: 50000, energy: 10000 },
+                icon: '💥'
             },
             // Building Achievements
             firstBuilding: {
@@ -1872,7 +1939,7 @@
                 desc: 'Construire 50 bâtiments',
                 category: 'buildings',
                 requirement: 50,
-                reward: { lumen: 5000, energy: 1000, matter: 100 },
+                reward: { lumen: 5000, energy: 1500 },
                 icon: '🌆'
             },
             buildings100: {
@@ -1880,7 +1947,7 @@
                 desc: 'Construire 100 bâtiments',
                 category: 'buildings',
                 requirement: 100,
-                reward: { lumen: 20000, energy: 5000, matter: 500 },
+                reward: { lumen: 20000, energy: 7500, antimatter: 1 },
                 icon: '🌃'
             },
             // Technology Achievements
@@ -1897,7 +1964,7 @@
                 desc: 'Débloquer toutes les technologies',
                 category: 'tech',
                 requirement: 4,
-                reward: { lumen: 50000, energy: 10000, matter: 1000 },
+                reward: { lumen: 50000, energy: 15000, antimatter: 2 },
                 icon: '🧠'
             },
             // Planet Achievements
@@ -1914,7 +1981,7 @@
                 desc: 'Coloniser Titan',
                 category: 'planets',
                 requirement: 'titan',
-                reward: { lumen: 50000, energy: 10000, matter: 2000 },
+                reward: { lumen: 50000, energy: 15000, antimatter: 2 },
                 icon: '🪐'
             },
             allPlanets: {
@@ -1922,7 +1989,7 @@
                 desc: 'Coloniser toutes les planètes',
                 category: 'planets',
                 requirement: 3,
-                reward: { lumen: 100000, energy: 20000, matter: 5000 },
+                reward: { lumen: 100000, energy: 30000, antimatter: 3 },
                 icon: '🌌'
             },
             // Prestige Achievements
@@ -1939,7 +2006,7 @@
                 desc: 'Atteindre Prestige niveau 5',
                 category: 'prestige',
                 requirement: 5,
-                reward: { lumen: 100000, energy: 20000, matter: 5000 },
+                reward: { lumen: 100000, energy: 30000, antimatter: 3 },
                 icon: '⭐'
             },
             prestige10: {
@@ -1947,7 +2014,7 @@
                 desc: 'Atteindre Prestige niveau 10',
                 category: 'prestige',
                 requirement: 10,
-                reward: { lumen: 500000, energy: 100000, matter: 20000 },
+                reward: { lumen: 500000, energy: 150000, antimatter: 10 },
                 icon: '👑'
             }
         };
@@ -1971,21 +2038,73 @@
                 rewards: {
                     lumen: { min: 1000, max: 5000 },
                     energy: { min: 500, max: 2000 },
-                    matter: { min: 10, max: 50 },
                     boostChance: 0.10
                 }
             },
             gold: {
                 name: 'Coffre Or',
-                cost: { lumen: 10000, energy: 5000, matter: 500 },
+                cost: { lumen: 10000, energy: 5000 },
                 icon: '💎',
                 rewards: {
                     lumen: { min: 10000, max: 50000 },
                     energy: { min: 5000, max: 20000 },
-                    matter: { min: 500, max: 2000 },
+                    antimatter: { min: 1, max: 3 },
                     boostChance: 0.25,
                     multiplierChance: 0.10 // 10% chance for 1h x2 multiplier
                 }
+            }
+        };
+
+        // Premium Shop (Real Money Purchases)
+        const premiumShopData = {
+            antimatterSmall: {
+                name: 'Pack Antimatière Petit',
+                desc: '10 Antimatière',
+                icon: '💥',
+                amount: 10,
+                price: 0.99,
+                currency: 'USD',
+                productId: 'com.fallingstars.antimatter.small'
+            },
+            antimatterMedium: {
+                name: 'Pack Antimatière Moyen',
+                desc: '50 Antimatière',
+                icon: '💥💥',
+                amount: 50,
+                price: 3.99,
+                currency: 'USD',
+                productId: 'com.fallingstars.antimatter.medium',
+                bonus: '+ 5 bonus!'
+            },
+            antimatterLarge: {
+                name: 'Pack Antimatière Large',
+                desc: '150 Antimatière',
+                icon: '💥💥💥',
+                amount: 150,
+                price: 9.99,
+                currency: 'USD',
+                productId: 'com.fallingstars.antimatter.large',
+                bonus: '+ 20 bonus!'
+            },
+            antimatterMega: {
+                name: 'Pack Antimatière Méga',
+                desc: '500 Antimatière',
+                icon: '💥✨',
+                amount: 500,
+                price: 24.99,
+                currency: 'USD',
+                productId: 'com.fallingstars.antimatter.mega',
+                bonus: '+ 100 bonus!'
+            },
+            starterPack: {
+                name: 'Pack Démarrage',
+                desc: '100 Antimatière + Bonus x2 Production (24h)',
+                icon: '🎁',
+                amount: 100,
+                price: 4.99,
+                currency: 'USD',
+                productId: 'com.fallingstars.starter.pack',
+                extras: { boost: 'production2x24h' }
             }
         };
 
@@ -1995,7 +2114,7 @@
                 name: 'Pluie d\'Étoiles',
                 desc: 'x2 Lumen pendant 1h',
                 icon: '🌟',
-                cost: { matter: 10 },
+                cost: { energy: 1000 },
                 duration: 60 * 60 * 1000, // 1h
                 effect: { resource: 'lumen', multiplier: 2 }
             },
@@ -2003,23 +2122,15 @@
                 name: 'Tempête Solaire',
                 desc: 'x2 Énergie pendant 1h',
                 icon: '☀️',
-                cost: { matter: 20 },
+                cost: { lumen: 5000 },
                 duration: 60 * 60 * 1000,
                 effect: { resource: 'energy', multiplier: 2 }
-            },
-            cosmicEclipse: {
-                name: 'Éclipse Cosmique',
-                desc: 'x3 Matière pendant 30min',
-                icon: '🌑',
-                cost: { matter: 50 },
-                duration: 30 * 60 * 1000,
-                effect: { resource: 'matter', multiplier: 3 }
             },
             superSpawn: {
                 name: 'Super Spawn',
                 desc: '+100% taux apparition pendant 5min',
                 icon: '⚡',
-                cost: { matter: 5 },
+                cost: { energy: 500 },
                 duration: 5 * 60 * 1000,
                 effect: { type: 'spawnRate', multiplier: 2 }
             }
@@ -2031,7 +2142,7 @@
                 name: 'Production x2',
                 desc: 'Double la production pendant 30min',
                 icon: '⚡',
-                cost: { matter: 50 },
+                cost: { energy: 2000 },
                 duration: 30 * 60 * 1000,
                 effect: { type: 'production', multiplier: 2 }
             },
@@ -2039,7 +2150,7 @@
                 name: 'Click Power x3',
                 desc: 'Triple la puissance de clic pendant 10min',
                 icon: '👆',
-                cost: { matter: 20 },
+                cost: { energy: 1000 },
                 duration: 10 * 60 * 1000,
                 effect: { type: 'clickPower', multiplier: 3 }
             },
@@ -2047,7 +2158,7 @@
                 name: 'Auto-Clicker',
                 desc: 'Simule 1 clic/seconde pendant 1h',
                 icon: '🤖',
-                cost: { matter: 100 },
+                cost: { energy: 5000 },
                 duration: 60 * 60 * 1000,
                 effect: { type: 'autoClick', value: 1 }
             },
@@ -2055,7 +2166,7 @@
                 name: 'Bonus Hors Ligne',
                 desc: '+50% gains hors ligne (permanent)',
                 icon: '💤',
-                cost: { matter: 500 },
+                cost: { antimatter: 5 },
                 duration: -1, // Permanent
                 effect: { type: 'offlineBonus', multiplier: 1.5 }
             }
@@ -2161,7 +2272,7 @@
                     {
                         text: 'Activer les boucliers',
                         cost: { energy: 500 },
-                        success: { chance: 0.7, reward: { lumen: 2000, matter: 100 }, message: '💥 Météorite détruite ! Fragments récupérés !' },
+                        success: { chance: 0.7, reward: { lumen: 3000, energy: 500 }, message: '💥 Météorite détruite ! Fragments récupérés !' },
                         failure: { penalty: { lumen: -500 }, message: '⚠️ Boucliers surchargés ! Pertes matérielles...' }
                     },
                     {
@@ -2184,9 +2295,9 @@
                 choices: [
                     {
                         text: 'Envoyer une sonde',
-                        cost: { energy: 300, matter: 50 },
+                        cost: { energy: 500 },
                         success: { chance: 0.6, reward: { artifact: true }, message: '🎁 Artefact alien découvert !' },
-                        failure: { penalty: { energy: -300, matter: -50 }, message: '📡 Signal perdu. Sonde détruite.' }
+                        failure: { penalty: { energy: -500 }, message: '📡 Signal perdu. Sonde détruite.' }
                     },
                     {
                         text: 'Y aller personnellement',
@@ -2208,14 +2319,14 @@
                 choices: [
                     {
                         text: 'Voyager 10 min dans le futur',
-                        cost: { matter: 100 },
+                        cost: { energy: 1000 },
                         success: { chance: 0.8, reward: { timeSkip: 600 }, message: '⏰ Saut temporel réussi ! 10 minutes de production gagnées !' },
                         failure: { penalty: { lumen: -1000, energy: -500 }, message: '⚠️ Paradoxe temporel ! Ressources perdues dans le temps !' }
                     },
                     {
                         text: 'Étudier le vortex',
                         cost: { energy: 500 },
-                        success: { chance: 1, reward: { lumen: 1000, matter: 200 }, message: '🔬 Données temporelles collectées !' }
+                        success: { chance: 1, reward: { lumen: 2000, energy: 500 }, message: '🔬 Données temporelles collectées !' }
                     },
                     {
                         text: 'S\'éloigner',
@@ -2230,16 +2341,16 @@
                 desc: 'Un vaisseau alien propose d\'échanger des ressources. Leur technologie semble avancée mais étrange.',
                 choices: [
                     {
-                        text: 'Échanger (2000L contre Matter)',
+                        text: 'Échanger (2000L contre Énergie)',
                         cost: { lumen: 2000 },
-                        success: { chance: 0.9, reward: { matter: 500 }, message: '🤝 Échange réussi ! Matière acquise !' },
+                        success: { chance: 0.9, reward: { energy: 1500 }, message: '🤝 Échange réussi ! Énergie acquise !' },
                         failure: { penalty: { lumen: -2000 }, message: '👽 Escroquerie ! Ils sont partis avec vos ressources !' }
                     },
                     {
                         text: 'Essayer de voler leur tech',
                         cost: {},
-                        success: { chance: 0.2, reward: { artifact: true, matter: 1000 }, message: '🎯 Vol réussi ! Technologie alien volée !' },
-                        failure: { penalty: { lumen: -3000, energy: -1000, matter: -200 }, message: '⚔️ Combat ! Vous perdez !' }
+                        success: { chance: 0.2, reward: { artifact: true, antimatter: 1 }, message: '🎯 Vol réussi ! Technologie alien volée !' },
+                        failure: { penalty: { lumen: -3000, energy: -1000 }, message: '⚔️ Combat ! Vous perdez !' }
                     },
                     {
                         text: 'Refuser poliment',
@@ -2251,18 +2362,18 @@
             anomaly: {
                 name: 'Anomalie Quantique',
                 icon: '⚛️',
-                desc: 'Une anomalie quantique duplique temporairement la matière. Exploiter cela est dangereux.',
+                desc: 'Une anomalie quantique amplifie l\'énergie. Exploiter cela est dangereux.',
                 choices: [
                     {
                         text: 'Dupliquer les ressources',
-                        cost: { matter: 200 },
+                        cost: { energy: 2000 },
                         success: { chance: 0.5, reward: { lumen: 10000, energy: 5000 }, message: '✨ Duplication réussie ! Ressources doublées !' },
-                        failure: { penalty: { lumen: -5000, energy: -2000, matter: -200 }, message: '💥 Effondrement quantique ! Tout est perdu !' }
+                        failure: { penalty: { lumen: -5000, energy: -2000 }, message: '💥 Effondrement quantique ! Tout est perdu !' }
                     },
                     {
                         text: 'Stabiliser l\'anomalie',
                         cost: { energy: 1000 },
-                        success: { chance: 0.9, reward: { matter: 300, boost: 'production2x' }, message: '⚡ Anomalie stabilisée ! Boost de production activé !' }
+                        success: { chance: 0.9, reward: { energy: 1500, boost: 'production2x' }, message: '⚡ Anomalie stabilisée ! Boost de production activé !' }
                     },
                     {
                         text: 'Observer de loin',
@@ -2284,7 +2395,7 @@
                 type: 'fragments',
                 rewards: [
                     { lumen: 1000, energy: 500 },
-                    { matter: 100 },
+                    { energy: 1000 },
                     { boost: 'production2x' }
                 ]
             },
@@ -2310,7 +2421,7 @@
                 type: 'buildings',
                 rewards: [
                     { lumen: 5000, energy: 2000 },
-                    { matter: 200 },
+                    { energy: 3000 },
                     { discount: 0.5, duration: 300 } // 50% off for 5min
                 ]
             },
@@ -2322,7 +2433,7 @@
                 durationRange: [60, 120],
                 type: 'lumen',
                 rewards: [
-                    { energy: 3000, matter: 300 },
+                    { energy: 4000 },
                     { lumen: 5000 },
                     { boost: 'production2x' }
                 ]
@@ -2355,13 +2466,13 @@
                 effect: { type: 'energyBonus', value: 1.15 },
                 bonus: '+15% Énergie'
             },
-            darkMatter: {
-                name: 'Matière Noire Pure',
-                desc: '+20% production Matière',
-                icon: '🌑',
+            antimatterCore: {
+                name: 'Noyau d\'Antimatière',
+                desc: '+1 antimatière par heure de jeu',
+                icon: '💥',
                 rarity: 'legendary',
-                effect: { type: 'matterBonus', value: 1.2 },
-                bonus: '+20% Matière'
+                effect: { type: 'antimatterGen', value: 1 },
+                bonus: '+1 antimatière/h'
             },
             luckyCharm: {
                 name: 'Charme de Chance',
@@ -2721,7 +2832,7 @@
 
         // Calculate production
         function calculateProduction() {
-            const prod = { lumen: 0, energy: 0, matter: 0 };
+            const prod = { lumen: 0, energy: 0 };
 
             for (let planetKey in game.planets) {
                 const planet = game.planets[planetKey];
@@ -2772,21 +2883,18 @@
                 const prestigeBonus = 1 + (game.prestige.level * 0.1);
                 prod.lumen *= prestigeBonus;
                 prod.energy *= prestigeBonus;
-                prod.matter *= prestigeBonus;
             }
 
             // Apply artifact bonuses
             const artifactBonuses = applyArtifactBonuses();
             prod.lumen *= artifactBonuses.lumenBonus * artifactBonuses.allResources;
             prod.energy *= artifactBonuses.energyBonus * artifactBonuses.allResources;
-            prod.matter *= artifactBonuses.matterBonus * artifactBonuses.allResources;
 
             // Apply active boosts
             for (let boost of game.activeBoosts) {
                 if (boost.effect.type === 'production') {
                     prod.lumen *= boost.effect.multiplier;
                     prod.energy *= boost.effect.multiplier;
-                    prod.matter *= boost.effect.multiplier;
                 }
             }
 
@@ -2899,18 +3007,14 @@
                 color = '#ffd700'; // Gold
                 shape = 'circle';
                 isGolden = true;
-            } else if (rand < 0.7) {
+            } else if (rand < 0.8) {
                 type = 'lumen';
                 color = '#00d4ff'; // Cyan
                 shape = 'circle'; // Cercles pour lumen
-            } else if (rand < 0.9) {
+            } else {
                 type = 'energy';
                 color = '#ffd93d'; // Yellow
                 shape = 'diamond'; // Diamants pour énergie
-            } else {
-                type = 'matter';
-                color = '#b19cd9'; // Purple
-                shape = 'hexagon'; // Hexagones pour matière
             }
 
             fallingFragments.push({
@@ -2966,14 +3070,12 @@
 
                     // Award resources based on fragment type
                     if (frag.type === 'golden') {
-                        // Golden gives all 3 resources!
+                        // Golden gives both lumen and energy!
                         gain = Math.floor(game.clickPower * comboMultiplier * goldenMultiplier);
                         game.resources.lumen += gain;
                         game.resources.energy += Math.floor(gain * 0.5);
-                        game.resources.matter += Math.floor(gain * 0.2);
                         game.totalResources.lumen += gain;
                         game.totalResources.energy += Math.floor(gain * 0.5);
-                        game.totalResources.matter += Math.floor(gain * 0.2);
                         resourceLabel = '✨';
                     } else if (frag.type === 'lumen') {
                         gain = Math.floor(game.clickPower * comboMultiplier);
@@ -2985,11 +3087,6 @@
                         game.resources.energy += gain;
                         game.totalResources.energy += gain;
                         resourceLabel = 'E';
-                    } else if (frag.type === 'matter') {
-                        gain = Math.ceil(game.clickPower * 0.2 * comboMultiplier); // 20% of click power
-                        game.resources.matter += gain;
-                        game.totalResources.matter += gain;
-                        resourceLabel = 'M';
                     }
 
                     // Track stats
@@ -3009,6 +3106,27 @@
 
                     // Check for artifact drop
                     checkArtifactDrop();
+
+                    // Check for antimatter drop (0.1% chance)
+                    if (Math.random() < 0.001) {
+                        const antimatterGain = 1;
+                        game.resources.antimatter += antimatterGain;
+                        game.totalResources.antimatter += antimatterGain;
+                        showNotification('💥 ANTIMATIÈRE DÉCOUVERTE ! +1 Antimatière');
+
+                        // Create special visual effect
+                        const aft = document.createElement('div');
+                        aft.className = 'floating-text';
+                        aft.textContent = '💥 +1 ANTIMATIÈRE';
+                        aft.style.color = '#ff00ff';
+                        aft.style.fontSize = '18px';
+                        aft.style.fontWeight = 'bold';
+                        aft.style.textShadow = '0 0 10px #ff00ff';
+                        aft.style.left = clientX + 'px';
+                        aft.style.top = clientY + 'px';
+                        document.body.appendChild(aft);
+                        setTimeout(() => aft.remove(), 2000);
+                    }
 
                     checkAchievements();
                     checkMasteryLevels();
@@ -3056,6 +3174,11 @@
 
             // Update flash mission
             updateFlashMission();
+
+            // Update right quest panel
+            if (Math.floor(game.stats.timePlayed * 10) % 5 === 0) {
+                updateRightQuestPanel();
+            }
 
             // Check for ASTRA dialogues (every 60s)
             if (Math.floor(game.stats.timePlayed) % 60 === 0) {
@@ -3171,7 +3294,6 @@
                 let strokeColor = frag.color;
                 if (frag.type === 'lumen') strokeColor = '#0099cc';
                 else if (frag.type === 'energy') strokeColor = '#cc9900';
-                else if (frag.type === 'matter') strokeColor = '#8866bb';
 
                 ctx.strokeStyle = strokeColor;
                 ctx.lineWidth = 2;
@@ -3184,7 +3306,7 @@
                     // Energy: Spinning coin
                     drawCoin(0, 0, frag.size, frag.color, strokeColor, frag.rotation);
                 } else if (frag.shape === 'hexagon') {
-                    // Matter: Dark gem with aura
+                    // Gem shape
                     drawGem(0, 0, frag.size, frag.color, strokeColor);
                 }
 
@@ -3376,7 +3498,7 @@
             const parts = [];
             if (cost.lumen) parts.push(`${formatNumber(cost.lumen)}L`);
             if (cost.energy) parts.push(`${formatNumber(cost.energy)}E`);
-            if (cost.matter) parts.push(`${formatNumber(cost.matter)}M`);
+            if (cost.antimatter) parts.push(`${formatNumber(cost.antimatter)}💥`);
             return parts.join(' ');
         }
 
@@ -3384,12 +3506,11 @@
         function updateUI() {
             document.getElementById('lumenVal').textContent = formatNumber(game.resources.lumen);
             document.getElementById('energyVal').textContent = formatNumber(game.resources.energy);
-            document.getElementById('matterVal').textContent = formatNumber(game.resources.matter);
+            document.getElementById('antimatterVal').textContent = formatNumber(game.resources.antimatter);
 
             const prod = calculateProduction();
             document.getElementById('lumenRate').textContent = '+' + formatNumber(prod.lumen) + '/s';
             document.getElementById('energyRate').textContent = '+' + formatNumber(prod.energy) + '/s';
-            document.getElementById('matterRate').textContent = '+' + formatNumber(prod.matter) + '/s';
 
             // Planet selector
             const planetSelect = document.getElementById('planetSelect');
@@ -3418,12 +3539,11 @@
         function updateUIOnly() {
             document.getElementById('lumenVal').textContent = formatNumber(game.resources.lumen);
             document.getElementById('energyVal').textContent = formatNumber(game.resources.energy);
-            document.getElementById('matterVal').textContent = formatNumber(game.resources.matter);
+            document.getElementById('antimatterVal').textContent = formatNumber(game.resources.antimatter);
 
             const prod = calculateProduction();
             document.getElementById('lumenRate').textContent = '+' + formatNumber(prod.lumen) + '/s';
             document.getElementById('energyRate').textContent = '+' + formatNumber(prod.energy) + '/s';
-            document.getElementById('matterRate').textContent = '+' + formatNumber(prod.matter) + '/s';
 
             game.clickPower = calculateClickPower();
             game.fragmentSpawnRate = calculateSpawnRate();
@@ -3607,7 +3727,7 @@
 
         function openProfile() {
             document.getElementById('modalUsername').textContent = game.username;
-            document.getElementById('modalScore').textContent = formatNumber(game.totalResources.lumen + game.totalResources.energy + game.totalResources.matter);
+            document.getElementById('modalScore').textContent = formatNumber(game.totalResources.lumen + game.totalResources.energy + game.totalResources.antimatter);
             document.getElementById('modalLumen').textContent = formatNumber(game.totalResources.lumen);
 
             let planetsUnlocked = 0;
@@ -3785,6 +3905,9 @@
 
                 console.log('7. Updating all...');
                 updateAll();
+
+                console.log('7.5. Updating right quest panel...');
+                updateRightQuestPanel();
 
                 console.log('8. Initializing sidebar systems...');
                 initSidebarSystems();
@@ -3978,15 +4101,200 @@
             saveGame();
         }
 
+        // Premium Purchase System
+        function purchasePremiumItem(itemKey) {
+            const item = premiumShopData[itemKey];
+            if (!item) return;
+
+            // DEMO MODE: Simulate purchase for testing
+            // In production, this would trigger real payment processing
+            const confirmPurchase = confirm(
+                `💎 ACHAT PREMIUM\\n\\n` +
+                `${item.name}\\n` +
+                `${item.desc}\\n\\n` +
+                `Prix: $${item.price.toFixed(2)} ${item.currency}\\n\\n` +
+                `⚠️ MODE DÉMO: Cet achat est simulé.\\n` +
+                `Pour activer les vrais paiements:\\n` +
+                `- iOS: Intégrer StoreKit via Capacitor\\n` +
+                `- Web: Intégrer Stripe Payment API\\n\\n` +
+                `Voulez-vous simuler cet achat ?`
+            );
+
+            if (!confirmPurchase) return;
+
+            // Process the purchase (demo)
+            processPremiumPurchase(itemKey);
+        }
+
+        function processPremiumPurchase(itemKey) {
+            const item = premiumShopData[itemKey];
+
+            // Add antimatter
+            game.resources.antimatter += item.amount;
+            game.totalResources.antimatter += item.amount;
+
+            // Add bonus if exists
+            if (item.bonus) {
+                const bonusAmount = parseInt(item.bonus.match(/\\d+/)[0]);
+                game.resources.antimatter += bonusAmount;
+                game.totalResources.antimatter += bonusAmount;
+            }
+
+            // Add extras (like boosts)
+            if (item.extras && item.extras.boost === 'production2x24h') {
+                const boostEnd = Date.now() + (24 * 60 * 60 * 1000); // 24h
+                game.activeBoosts.push({
+                    type: 'production',
+                    multiplier: 2,
+                    endTime: boostEnd
+                });
+            }
+
+            // Show success notification
+            showNotification(`💎 Achat réussi ! +${item.amount} Antimatière${item.bonus ? ' ' + item.bonus : ''}`);
+
+            // Log purchase for analytics (in production)
+            console.log('Premium purchase:', {
+                productId: item.productId,
+                amount: item.amount,
+                price: item.price,
+                timestamp: Date.now()
+            });
+
+            updateShopModal();
+            saveGame();
+        }
+
+        /*
+         * INTEGRATION GUIDE FOR REAL PAYMENTS
+         *
+         * === OPTION 1: iOS Native (StoreKit via Capacitor) ===
+         *
+         * 1. Install Capacitor and In-App Purchase plugin:
+         *    npm install @capacitor/core @capacitor/ios
+         *    npm install @capacitor-community/in-app-purchases
+         *
+         * 2. Configure products in App Store Connect with productIds from premiumShopData
+         *
+         * 3. Replace purchasePremiumItem() with:
+         *
+         *    import { InAppPurchases } from '@capacitor-community/in-app-purchases';
+         *
+         *    async function purchasePremiumItem(itemKey) {
+         *        const item = premiumShopData[itemKey];
+         *        try {
+         *            const result = await InAppPurchases.purchaseProduct({
+         *                productId: item.productId
+         *            });
+         *            if (result.receipt) {
+         *                processPremiumPurchase(itemKey);
+         *            }
+         *        } catch (error) {
+         *            showNotification('❌ Erreur d\\'achat: ' + error.message);
+         *        }
+         *    }
+         *
+         * === OPTION 2: Web Payment (Stripe) ===
+         *
+         * 1. Install Stripe:
+         *    <script src="https://js.stripe.com/v3/"></script>
+         *
+         * 2. Create Stripe account and get API keys
+         *
+         * 3. Replace purchasePremiumItem() with:
+         *
+         *    const stripe = Stripe('pk_live_YOUR_PUBLISHABLE_KEY');
+         *
+         *    async function purchasePremiumItem(itemKey) {
+         *        const item = premiumShopData[itemKey];
+         *        try {
+         *            const response = await fetch('/create-checkout-session', {
+         *                method: 'POST',
+         *                headers: { 'Content-Type': 'application/json' },
+         *                body: JSON.stringify({ productId: item.productId })
+         *            });
+         *            const session = await response.json();
+         *            await stripe.redirectToCheckout({ sessionId: session.id });
+         *        } catch (error) {
+         *            showNotification('❌ Erreur de paiement: ' + error.message);
+         *        }
+         *    }
+         *
+         * 4. Backend server (Node.js) to create checkout session:
+         *
+         *    const stripe = require('stripe')('sk_live_YOUR_SECRET_KEY');
+         *
+         *    app.post('/create-checkout-session', async (req, res) => {
+         *        const { productId } = req.body;
+         *        const item = premiumShopData[productId];
+         *
+         *        const session = await stripe.checkout.sessions.create({
+         *            payment_method_types: ['card'],
+         *            line_items: [{
+         *                price_data: {
+         *                    currency: 'usd',
+         *                    product_data: { name: item.name },
+         *                    unit_amount: item.price * 100
+         *                },
+         *                quantity: 1
+         *            }],
+         *            mode: 'payment',
+         *            success_url: 'https://yoursite.com/success?session_id={CHECKOUT_SESSION_ID}',
+         *            cancel_url: 'https://yoursite.com/cancel'
+         *        });
+         *
+         *        res.json({ id: session.id });
+         *    });
+         */
+
         function updateShopModal() {
             const body = document.getElementById('shopBody');
             if (!body) return;
 
             let html = '';
 
+            // Premium Shop Section
+            html += `<div style="text-align: center; margin-bottom: 25px; padding: 15px; background: linear-gradient(135deg, rgba(255,0,255,0.2), rgba(138,43,226,0.2)); border: 2px solid rgba(255,0,255,0.5); border-radius: 10px;">`;
+            html += `<div style="font-size: 18px; color: #ff00ff; font-weight: bold; margin-bottom: 8px;">💎 BOUTIQUE PREMIUM</div>`;
+            html += `<div style="font-size: 10px; color: #ddd; margin-bottom: 15px;">L'antimatière est extrêmement rare (0.1% drop). Accélérez votre progression!</div>`;
+
+            // Render premium items
+            for (let itemKey in premiumShopData) {
+                const item = premiumShopData[itemKey];
+
+                html += `<div style="margin: 12px 0; padding: 12px; background: rgba(0,0,0,0.4); border: 2px solid rgba(255,0,255,0.3); border-radius: 8px;">`;
+                html += `<div style="text-align: center; margin-bottom: 8px;">`;
+                html += `<div style="font-size: 28px; margin-bottom: 5px;">${item.icon}</div>`;
+                html += `<div style="font-size: 13px; font-weight: bold; color: #ff00ff;">${item.name}</div>`;
+                if (item.bonus) {
+                    html += `<div style="font-size: 10px; color: #00ff88; margin-top: 2px;">${item.bonus}</div>`;
+                }
+                html += `</div>`;
+
+                html += `<div style="font-size: 11px; color: #ddd; margin: 8px 0; text-align: center;">`;
+                html += item.desc;
+                if (item.extras) {
+                    html += `<br><span style="color: #ffd700;">+ Boost Production x2 (24h)</span>`;
+                }
+                html += `</div>`;
+
+                html += `<div style="text-align: center; margin-top: 10px;">`;
+                html += `<div style="font-size: 16px; color: #00ff88; font-weight: bold; margin-bottom: 8px;">$${item.price.toFixed(2)} ${item.currency}</div>`;
+                html += `<button class="sidebar-btn" style="background: linear-gradient(135deg, #ff00ff, #8b00ff);" onclick="purchasePremiumItem('${itemKey}')">ACHETER</button>`;
+                html += `</div>`;
+                html += `</div>`;
+            }
+
+            html += `<div style="font-size: 9px; color: #888; margin-top: 12px; padding: 8px; border-top: 1px solid rgba(255,255,255,0.1);">`;
+            html += `💳 Paiements sécurisés via App Store / Stripe<br>`;
+            html += `📱 Mode démo: Les achats ne sont pas encore activés`;
+            html += `</div>`;
+            html += `</div>`;
+
+            // Regular shop section
             html += `<div style="text-align: center; margin-bottom: 20px;">`;
-            html += `<div style="font-size: 16px; color: #00d4ff; font-weight: bold; margin-bottom: 10px;">COFFRES</div>`;
-            html += `<div style="font-size: 10px; color: #aaa;">Achetez des coffres pour obtenir des ressources et des boosts!</div>`;
+            html += `<div style="font-size: 16px; color: #00d4ff; font-weight: bold; margin-bottom: 10px;">COFFRES (Ressources du jeu)</div>`;
+            html += `<div style="font-size: 10px; color: #aaa;">Achetez des coffres avec vos ressources!</div>`;
             html += `</div>`;
 
             // Render lootboxes
@@ -4128,6 +4436,7 @@
                 showNotification(`📜 ${quest.name} complétée! ${rewards.join(', ')}`);
 
                 updateQuestsModal();
+                updateRightQuestPanel();
                 saveGame();
             }
         }
@@ -4300,7 +4609,7 @@
                 { icon: '👆', label: 'Total clics', value: formatNumber(game.stats.totalClicks) },
                 { icon: '⭐', label: 'Lumen collecté', value: formatNumber(game.totalResources.lumen) },
                 { icon: '⚡', label: 'Énergie collectée', value: formatNumber(game.totalResources.energy) },
-                { icon: '🌑', label: 'Matière collectée', value: formatNumber(game.totalResources.matter) },
+                { icon: '💥', label: 'Antimatière collectée', value: formatNumber(game.totalResources.antimatter) },
                 { icon: '🏗️', label: 'Bâtiments construits', value: formatNumber(game.stats.buildingsBuilt) },
                 { icon: '💫', label: 'Fragments attrapés', value: formatNumber(game.stats.fragmentsCaught) },
                 { icon: '🔬', label: 'Technologies', value: `${game.stats.techsUnlocked}/4` },
@@ -4367,7 +4676,6 @@
                 const bonuses = applyArtifactBonuses();
                 if (bonuses.lumenBonus > 1) html += `<div style="font-size: 11px; color: #00d4ff; margin: 3px 0;">⭐ Lumen: +${Math.floor((bonuses.lumenBonus - 1) * 100)}%</div>`;
                 if (bonuses.energyBonus > 1) html += `<div style="font-size: 11px; color: #ffd93d; margin: 3px 0;">⚡ Énergie: +${Math.floor((bonuses.energyBonus - 1) * 100)}%</div>`;
-                if (bonuses.matterBonus > 1) html += `<div style="font-size: 11px; color: #b19cd9; margin: 3px 0;">🌑 Matière: +${Math.floor((bonuses.matterBonus - 1) * 100)}%</div>`;
                 if (bonuses.clickPower > 1) html += `<div style="font-size: 11px; color: #ff6b6b; margin: 3px 0;">💎 Puissance clic: +${Math.floor((bonuses.clickPower - 1) * 100)}%</div>`;
                 if (bonuses.allResources > 1) html += `<div style="font-size: 11px; color: #ffd700; margin: 3px 0;">♾️ Toutes ressources: +${Math.floor((bonuses.allResources - 1) * 100)}%</div>`;
                 html += `</div>`;
@@ -4546,8 +4854,8 @@
                 game.prestige.totalLumenEarned = game.totalResources.lumen;
 
                 // Reset everything except prestige and technologies
-                game.resources = { lumen: 0, energy: 0, matter: 0 };
-                game.totalResources = { lumen: 0, energy: 0, matter: 0 };
+                game.resources = { lumen: 0, energy: 0, antimatter: 0 };
+                game.totalResources = { lumen: 0, energy: 0, antimatter: 0 };
                 game.defense = {};
                 for (let defKey in defenseData) game.defense[defKey] = 0;
 
@@ -4907,6 +5215,7 @@
             document.getElementById('flashMissionDesc').textContent = desc;
             document.getElementById('flashMission').classList.add('show');
 
+            updateRightQuestPanel();
             showNotification(`🎯 ${mission.name} activée !`);
         }
 
@@ -4920,6 +5229,7 @@
                 // Mission failed
                 game.flashMission.active = false;
                 document.getElementById('flashMission').classList.remove('show');
+                updateRightQuestPanel();
                 showNotification('⏱️ Mission échouée : temps écoulé !');
                 return;
             }
@@ -4971,7 +5281,69 @@
             showNotification(`🎉 Mission réussie ! Récompense obtenue !`);
             game.flashMission.active = false;
             document.getElementById('flashMission').classList.remove('show');
+            updateRightQuestPanel();
             saveGame();
+        }
+
+        // Right Quest Panel Update
+        function updateRightQuestPanel() {
+            const panel = document.getElementById('rightQuestPanel');
+            if (!panel) return;
+
+            let html = '';
+
+            // Show active flash mission
+            if (game.flashMission && game.flashMission.active) {
+                const progress = game.flashMission.progress;
+                const goal = game.flashMission.goal;
+                const percent = Math.min(100, (progress / goal) * 100);
+
+                const now = Date.now();
+                const remaining = game.flashMission.startTime + game.flashMission.duration - now;
+                const seconds = Math.floor(remaining / 1000);
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+                html += `<div class="quest-card flash">`;
+                html += `<div class="quest-card-title">${game.flashMission.missionData.icon} ${game.flashMission.missionData.name}</div>`;
+                html += `<div class="quest-card-desc">⏱️ ${timeStr}</div>`;
+                html += `<div class="quest-progress-bar">`;
+                html += `<div class="quest-progress-fill" style="width: ${percent}%"></div>`;
+                html += `<div class="quest-progress-text">${progress}/${goal}</div>`;
+                html += `</div>`;
+                html += `</div>`;
+            }
+
+            // Show top 3 unclaimed daily quests
+            if (questData && questData.daily) {
+                resetDailyQuestsIfNeeded();
+                let questCount = 0;
+                for (let questKey in questData.daily) {
+                    if (questCount >= 3) break;
+
+                    const quest = questData.daily[questKey];
+                    const progress = getQuestProgress(questKey);
+                    const claimed = game.quests.daily[questKey]?.claimed || false;
+
+                    if (claimed) continue;
+
+                    const percent = Math.min(100, (progress / quest.requirement) * 100);
+
+                    html += `<div class="quest-card">`;
+                    html += `<div class="quest-card-title">${quest.icon} ${quest.name}</div>`;
+                    html += `<div class="quest-card-desc">${quest.desc}</div>`;
+                    html += `<div class="quest-progress-bar">`;
+                    html += `<div class="quest-progress-fill" style="width: ${percent}%"></div>`;
+                    html += `<div class="quest-progress-text">${formatNumber(progress)}/${formatNumber(quest.requirement)}</div>`;
+                    html += `</div>`;
+                    html += `</div>`;
+
+                    questCount++;
+                }
+            }
+
+            panel.innerHTML = html;
         }
 
         // Artifact System
@@ -5025,7 +5397,6 @@
             let bonuses = {
                 lumenBonus: 1,
                 energyBonus: 1,
-                matterBonus: 1,
                 clickPower: 1,
                 allResources: 1
             };
@@ -5040,9 +5411,6 @@
                         break;
                     case 'energyBonus':
                         bonuses.energyBonus *= artifact.effect.value;
-                        break;
-                    case 'matterBonus':
-                        bonuses.matterBonus *= artifact.effect.value;
                         break;
                     case 'clickPower':
                         bonuses.clickPower *= artifact.effect.value;
