@@ -27,7 +27,7 @@ https://github.com/[votre-nom-utilisateur]/ProjectA
 Vous verrez une section "Build and deployment" avec "Source" :
 
 1. **Branch** : Cliquez sur le menu déroulant
-   - Sélectionnez : `claude/ios-game-tech-discussion-011CUocgaShPuwdSTPCTyziz`
+   - Sélectionnez : `main`
 
 2. **Folder** : Laissez sur `/ (root)`
 
