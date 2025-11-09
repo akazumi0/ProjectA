@@ -87,7 +87,9 @@ export const CANVAS = {
     PARTICLE_COUNT: 50,
     STAR_COUNT: 100,
     PLAYABLE_MARGIN_TOP: 90, // Header height
-    PLAYABLE_MARGIN_BOTTOM: 200 // Bottom UI height
+    PLAYABLE_MARGIN_BOTTOM: 200, // Bottom UI height
+    PLAYABLE_MARGIN_LEFT: 60, // Left icon bar margin
+    PLAYABLE_MARGIN_RIGHT: 60 // Right margin
 };
 
 /**

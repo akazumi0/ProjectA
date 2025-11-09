@@ -51,7 +51,7 @@ import {
 
 // Utility imports
 import { formatNumber, formatCost, formatLevel } from './utils/formatters.js';
-import { getCost, checkRequires, calculateClickPower } from './utils/calculations.js';
+import { getCost, checkRequires, calculateClickPower, canAfford } from './utils/calculations.js';
 
 /**
  * Canvas and rendering variables
@@ -207,12 +207,15 @@ function renderLoop() {
 function spawnFragment() {
     const playableTop = CANVAS.PLAYABLE_MARGIN_TOP;
     const playableBottom = canvas.height - CANVAS.PLAYABLE_MARGIN_BOTTOM;
+    const playableLeft = CANVAS.PLAYABLE_MARGIN_LEFT;
+    const playableRight = canvas.width - CANVAS.PLAYABLE_MARGIN_RIGHT;
+    const playableWidth = playableRight - playableLeft;
 
     const fragment = {
-        x: Math.random() * canvas.width,
+        x: playableLeft + Math.random() * playableWidth,
         y: playableTop,
         size: CANVAS.FRAGMENT_SIZE,
-        speed: 1 + Math.random() * 2,
+        speed: 1.5 + Math.random() * 1,
         value: Math.floor(Math.random() * 10) + 1,
         color: '#00d4ff',
         id: Date.now() + Math.random()
