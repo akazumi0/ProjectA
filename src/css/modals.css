@@ -1,0 +1,201 @@
+/**
+ * Modal Styles - All modal and overlay styles
+ * Part of Falling Stars modular architecture
+ */
+
+/* Modal System */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #001a33, #003366);
+    border: 2px solid var(--color-border-active);
+    border-radius: var(--border-radius-md);
+    padding: 20px;
+    max-width: 400px;
+    width: 90%;
+    max-height: 70vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+}
+
+.modal-header {
+    font-size: var(--font-size-xlarge);
+    font-weight: bold;
+    color: var(--color-primary);
+    text-align: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    background: rgba(255, 50, 50, 0.8);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: rgba(255, 50, 50, 1);
+}
+
+.modal-body {
+    color: #fff;
+    font-size: var(--font-size-medium);
+}
+
+/* Welcome Screen */
+#welcome {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.98);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+#welcome h1 {
+    font-size: 26px;
+    margin-bottom: 8px;
+    color: var(--color-primary);
+    text-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+}
+
+#welcome .subtitle {
+    font-size: 13px;
+    color: var(--color-accent);
+    margin-bottom: 15px;
+}
+
+#welcome input {
+    background: rgba(0, 50, 100, 0.8);
+    border: 2px solid var(--color-primary);
+    color: white;
+    padding: 10px 18px;
+    border-radius: var(--border-radius-xl);
+    font-size: var(--font-size-large);
+    font-family: inherit;
+    text-align: center;
+    margin-bottom: 15px;
+    width: 80%;
+    max-width: 250px;
+}
+
+#welcome button {
+    background: linear-gradient(135deg, #00a8cc, #0077b6);
+    border: 2px solid var(--color-primary);
+    color: white;
+    padding: 10px 30px;
+    font-size: var(--font-size-large);
+    border-radius: var(--border-radius-xl);
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+    font-family: inherit;
+}
+
+/* Profile Modal */
+#profileModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+#profileModal.show {
+    display: flex;
+}
+
+/* Story Event Modal */
+#storyEventModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1500;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+#storyEventModal.show {
+    display: flex;
+}
+
+.story-event-content {
+    background: linear-gradient(135deg, #1a0033, #330066);
+    border: 3px solid rgba(138, 43, 226, 0.8);
+    border-radius: var(--border-radius-lg);
+    padding: 25px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 0 40px rgba(138, 43, 226, 0.6);
+    animation: eventZoom 0.5s ease-out;
+}
+
+.story-event-icon {
+    font-size: 64px;
+    text-align: center;
+    margin-bottom: 15px;
+    animation: iconFloat 2s ease-in-out infinite;
+}
+
+.story-event-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff00ff;
+    text-align: center;
+    margin-bottom: 15px;
+    text-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+}
+
+.story-event-desc {
+    font-size: 13px;
+    color: #ddd;
+    text-align: center;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}

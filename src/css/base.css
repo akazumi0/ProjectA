@@ -1,0 +1,157 @@
+/**
+ * Base Styles - Reset, Variables, and Core Typography
+ * Part of Falling Stars modular architecture
+ */
+
+/* CSS Variables for theming */
+:root {
+    --color-primary: #00d4ff;
+    --color-secondary: #4ecdc4;
+    --color-accent: #ffd93d;
+    --color-success: #00ff88;
+    --color-danger: #ff4444;
+    --color-bg-dark: #000;
+    --color-bg-panel: rgba(0, 0, 0, 0.95);
+    --color-bg-card: rgba(0, 30, 60, 0.9);
+    --color-border: rgba(0, 212, 255, 0.3);
+    --color-border-active: rgba(0, 212, 255, 0.5);
+
+    --font-family: 'Courier New', monospace;
+    --font-size-small: 8px;
+    --font-size-normal: 10px;
+    --font-size-medium: 12px;
+    --font-size-large: 14px;
+    --font-size-xlarge: 16px;
+
+    --spacing-xs: 3px;
+    --spacing-sm: 5px;
+    --spacing-md: 10px;
+    --spacing-lg: 15px;
+    --spacing-xl: 20px;
+
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --border-radius-xl: 20px;
+
+    --transition-fast: 0.2s;
+    --transition-normal: 0.3s;
+}
+
+/* CSS Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Base Typography */
+body {
+    width: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+    background: var(--color-bg-dark);
+    font-family: var(--font-family);
+    color: white;
+}
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border-active);
+    border-radius: 2px;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes floatUp {
+    to {
+        transform: translateY(-60px);
+        opacity: 0;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateX(-50%) translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes successPulse {
+    0% { transform: scale(1); box-shadow: 0 0 8px rgba(0, 255, 100, 0.3); }
+    50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 255, 100, 0.8); }
+    100% { transform: scale(1); box-shadow: 0 0 8px rgba(0, 255, 100, 0.3); }
+}
+
+@keyframes successFlash {
+    0% { background: linear-gradient(135deg, #00ff88, #00cc66); }
+    100% { background: linear-gradient(135deg, #00a8cc, #0077b6); }
+}
+
+@keyframes comboPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes dangerPulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes flashBounce {
+    0% { transform: translateX(-50%) translateY(-30px); opacity: 0; }
+    60% { transform: translateX(-50%) translateY(5px); }
+    100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+@keyframes eventZoom {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes artifactReveal {
+    0% {
+        transform: translate(-50%, -50%) scale(0) rotate(180deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.text-bold { font-weight: bold; }
+.hidden { display: none !important; }
+.show { display: block !important; }
