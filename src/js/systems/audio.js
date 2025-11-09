@@ -10,15 +10,16 @@
  */
 const AUDIO_PATHS = {
     // Sound effects (WAV files)
-    click: './Assets/mixkit-sci-fi-click-900.wav',
-    capture: './Assets/mixkit-sci-fi-interface-robot-click-901.wav',
-    build: './Assets/mixkit-sci-fi-confirmation-914.wav',
-    notification: './Assets/mixkit-sci-fi-positive-notification-266.wav',
-    error: './Assets/mixkit-sci-fi-error-alert-898.wav',
-    reject: './Assets/mixkit-sci-fi-reject-notification-896.wav',
+    click: './src/assets/mixkit-sci-fi-click-900.wav',
+    capture: './src/assets/mixkit-sci-fi-interface-robot-click-901.wav',
+    build: './src/assets/mixkit-sci-fi-confirmation-914.wav',
+    notification: './src/assets/mixkit-sci-fi-positive-notification-266.wav',
+    success: './src/assets/mixkit-sci-fi-positive-notification-266.wav',
+    error: './src/assets/mixkit-sci-fi-error-alert-898.wav',
+    reject: './src/assets/mixkit-sci-fi-reject-notification-896.wav',
 
     // Background music (MP3)
-    music: './Assets/space-ambient-351305.mp3'
+    music: './src/assets/space-ambient-351305.mp3'
 };
 
 let soundEnabled = true;
@@ -39,6 +40,7 @@ export function initAudio() {
         preloadSound('capture');
         preloadSound('build');
         preloadSound('notification');
+        preloadSound('success');
         preloadSound('error');
         preloadSound('reject');
         preloadMusic();

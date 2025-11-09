@@ -10,6 +10,7 @@ import {
     game,
     initializePlanetBuildings,
     initializeTechnologies,
+    initializeDefense,
     loadGameState,
     resetGameState
 } from './core/gameState.js';
@@ -34,7 +35,7 @@ import {
     performPrestige,
     updateGame,
     claimDailyReward,
-    openFreeLootbox
+    openFreeLootbox as openFreeLootboxLogic
 } from './systems/gameLogic.js';
 import {
     showNotification,
@@ -451,7 +452,7 @@ window.claimDaily = () => {
 };
 
 window.openFreeLootbox = () => {
-    const rewards = openFreeLootbox();
+    const rewards = openFreeLootboxLogic();
     if (rewards) {
         showNotification(`📦 Coffre ouvert ! +${formatNumber(rewards.lumen)} Lumen`);
         updateResources();
@@ -523,6 +524,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Initialize game state
     initializePlanetBuildings();
     initializeTechnologies();
+    initializeDefense();
 
     // Try to load saved game
     const savedGame = loadGame();

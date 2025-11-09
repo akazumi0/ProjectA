@@ -4,7 +4,7 @@
  * @module core/gameState
  */
 
-import { buildingData } from '../data/buildings.js';
+import { buildingData, defenseData } from '../data/buildings.js';
 import { techData } from '../data/technologies.js';
 
 /**
@@ -155,6 +155,18 @@ export function initializeTechnologies() {
 }
 
 /**
+ * Initialize defense upgrades
+ * Sets all defense items to level 0
+ */
+export function initializeDefense() {
+    for (let defKey in defenseData) {
+        if (!(defKey in game.defense)) {
+            game.defense[defKey] = 0;
+        }
+    }
+}
+
+/**
  * Reset game state to defaults
  * @param {Object} newState - Optional new state to set
  */
@@ -162,6 +174,7 @@ export function resetGameState(newState = null) {
     game = newState || createDefaultGameState();
     initializePlanetBuildings();
     initializeTechnologies();
+    initializeDefense();
 }
 
 /**
@@ -182,6 +195,7 @@ export function loadGameState(savedState) {
 
     initializePlanetBuildings();
     initializeTechnologies();
+    initializeDefense();
 }
 
 /**

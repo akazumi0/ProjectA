@@ -131,7 +131,7 @@ export function captureFragment(fragment) {
     game.stats.totalClicks++;
     game.stats.fragmentsCaught++;
 
-    playSound('catch');
+    playSound('capture');
 
     return { lumen: value, combo: game.combo.count };
 }
