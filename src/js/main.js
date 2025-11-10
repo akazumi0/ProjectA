@@ -21,6 +21,7 @@ import { buildingData, defenseData } from './data/buildings.js';
 import { techData } from './data/technologies.js';
 import { achievementData } from './data/achievements.js';
 import { questData } from './data/quests.js';
+import { boostData, eventData } from './data/events.js';
 import { astraDialogues } from './data/dialogues.js';
 
 // System imports
@@ -40,7 +41,9 @@ import {
     generateDailyQuests,
     claimQuestReward,
     checkQuestReset,
-    checkAchievements
+    checkAchievements,
+    activateBoost,
+    activateEvent
 } from './systems/gameLogic.js';
 import {
     showNotification,
@@ -626,6 +629,8 @@ window.openModal = (id) => {
         renderQuests();
     } else if (id === 'achievements') {
         renderAchievements();
+    } else if (id === 'events') {
+        renderEvents();
     }
 };
 window.closeModal = (id) => toggleModal(id + 'Modal', false);
@@ -885,6 +890,104 @@ function renderAchievements() {
         achievementsBody.appendChild(categoryDiv);
     }
 }
+
+/**
+ * Render events and boosts in the events modal
+ */
+function renderEvents() {
+    const eventsBody = document.getElementById('eventsBody');
+    if (!eventsBody) return;
+
+    eventsBody.innerHTML = '';
+
+    // Active boosts section
+    const activeSection = document.createElement('div');
+    activeSection.innerHTML = `<div style="font-size: 14px; font-weight: bold; color: var(--color-primary); margin-bottom: 10px; border-bottom: 1px solid var(--color-border); padding-bottom: 5px;">⚡ BOOSTS ACTIFS</div>`;
+
+    if (game.activeBoosts.length === 0) {
+        activeSection.innerHTML += '<p style="color: #888; text-align: center; margin: 10px 0;">Aucun boost actif</p>';
+    } else {
+        game.activeBoosts.forEach(boost => {
+            const data = boostData[boost.key];
+            const timeLeft = boost.endTime === -1 ? 'Permanent' : formatTime(boost.endTime - Date.now());
+            activeSection.innerHTML += `
+                <div style="padding: 8px; margin: 5px 0; background: rgba(76, 175, 80, 0.2); border: 1px solid rgba(76, 175, 80, 0.5); border-radius: 5px;">
+                    <div style="font-weight: bold;">${data.icon} ${data.name}</div>
+                    <div style="font-size: 11px; color: #4ade80;">⏱️ ${timeLeft}</div>
+                </div>
+            `;
+        });
+    }
+    eventsBody.appendChild(activeSection);
+
+    // Boosts shop section
+    const boostsSection = document.createElement('div');
+    boostsSection.style.marginTop = '20px';
+    boostsSection.innerHTML = `<div style="font-size: 14px; font-weight: bold; color: var(--color-primary); margin-bottom: 10px; border-bottom: 1px solid var(--color-border); padding-bottom: 5px;">🛒 ACHETER BOOSTS</div>`;
+
+    Object.entries(boostData).forEach(([key, data]) => {
+        boostsSection.innerHTML += `
+            <div style="display: flex; align-items: center; padding: 8px; margin: 5px 0; background: rgba(0, 50, 100, 0.3); border: 1px solid var(--color-border); border-radius: 5px;">
+                <div style="font-size: 32px; margin-right: 12px;">${data.icon}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: bold;">${data.name}</div>
+                    <div style="font-size: 11px; color: #ccc;">${data.desc}</div>
+                    <div style="font-size: 11px; color: #4ade80; margin-top: 2px;">💰 ${formatCost(data.cost)}</div>
+                </div>
+                <button onclick="buyBoost('${key}')" class="quest-btn" style="width: auto; padding: 6px 15px;">ACTIVER</button>
+            </div>
+        `;
+    });
+    eventsBody.appendChild(boostsSection);
+
+    // Events section
+    const eventsSection = document.createElement('div');
+    eventsSection.style.marginTop = '20px';
+    eventsSection.innerHTML = `<div style="font-size: 14px; font-weight: bold; color: var(--color-primary); margin-bottom: 10px; border-bottom: 1px solid var(--color-border); padding-bottom: 5px;">🌟 ÉVÉNEMENTS</div>`;
+
+    Object.entries(eventData).forEach(([key, data]) => {
+        eventsSection.innerHTML += `
+            <div style="display: flex; align-items: center; padding: 8px; margin: 5px 0; background: rgba(0, 50, 100, 0.3); border: 1px solid var(--color-border); border-radius: 5px;">
+                <div style="font-size: 32px; margin-right: 12px;">${data.icon}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: bold;">${data.name}</div>
+                    <div style="font-size: 11px; color: #ccc;">${data.desc}</div>
+                    <div style="font-size: 11px; color: #4ade80; margin-top: 2px;">💰 ${formatCost(data.cost)}</div>
+                </div>
+                <button onclick="buyEvent('${key}')" class="quest-btn" style="width: auto; padding: 6px 15px;">ACTIVER</button>
+            </div>
+        `;
+    });
+    eventsBody.appendChild(eventsSection);
+}
+
+/**
+ * Buy and activate a boost
+ */
+window.buyBoost = (boostKey) => {
+    if (activateBoost(boostKey)) {
+        const data = boostData[boostKey];
+        showNotification(`⚡ ${data.name} activé !`);
+        renderEvents();
+        updateResources();
+    } else {
+        showNotification('Ressources insuffisantes !');
+    }
+};
+
+/**
+ * Buy and activate an event
+ */
+window.buyEvent = (eventKey) => {
+    if (activateEvent(eventKey)) {
+        const data = eventData[eventKey];
+        showNotification(`🌟 ${data.name} activé !`);
+        renderEvents();
+        updateResources();
+    } else {
+        showNotification('Ressources insuffisantes !');
+    }
+};
 
 /**
  * Buy functions exposed globally

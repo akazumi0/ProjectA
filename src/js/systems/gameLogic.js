@@ -9,6 +9,7 @@ import { buildingData, defenseData } from '../data/buildings.js';
 import { techData } from '../data/technologies.js';
 import { questData } from '../data/quests.js';
 import { achievementData } from '../data/achievements.js';
+import { boostData, eventData } from '../data/events.js';
 import { getCost, canAfford, checkRequires, calculateProduction, calculateClickPower } from '../utils/calculations.js';
 import { playSound } from './audio.js';
 import { saveGame } from './storage.js';
@@ -482,4 +483,54 @@ export function checkAchievements() {
     }
 
     return unlocked;
+}
+
+/**
+ * Activate a boost
+ * @param {string} boostKey - Boost key from boostData
+ * @returns {boolean} True if boost was activated
+ */
+export function activateBoost(boostKey) {
+    const data = boostData[boostKey];
+    if (!data) return false;
+
+    if (!canAfford(data.cost)) return false;
+
+    spendResources(data.cost);
+
+    const endTime = data.duration === -1 ? -1 : Date.now() + data.duration;
+
+    game.activeBoosts.push({
+        key: boostKey,
+        endTime,
+        effect: data.effect
+    });
+
+    playSound('success');
+    return true;
+}
+
+/**
+ * Activate an event
+ * @param {string} eventKey - Event key from eventData
+ * @returns {boolean} True if event was activated
+ */
+export function activateEvent(eventKey) {
+    const data = eventData[eventKey];
+    if (!data) return false;
+
+    if (!canAfford(data.cost)) return false;
+
+    spendResources(data.cost);
+
+    const endTime = Date.now() + data.duration;
+
+    game.activeEvents.push({
+        key: eventKey,
+        endTime,
+        effect: data.effect
+    });
+
+    playSound('success');
+    return true;
 }
