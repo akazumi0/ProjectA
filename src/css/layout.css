@@ -200,22 +200,28 @@
 /* ASTRA Dialogue Bubble */
 #astraDialogue {
     position: fixed;
-    bottom: 26vh;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 210px; /* Just above bottomUI */
+    left: 60px; /* Just to the right of leftIconBar */
+    right: 20px;
     background: linear-gradient(135deg, rgba(0, 100, 200, 0.95), rgba(0, 50, 150, 0.95));
     border: 2px solid rgba(0, 212, 255, 0.8);
     border-radius: var(--border-radius-lg);
-    padding: 10px 15px;
-    max-width: 75%;
+    padding: 12px 15px;
+    max-width: 600px;
     z-index: 150;
     display: none;
     box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
     animation: slideUp 0.4s ease-out;
+    cursor: pointer;
 }
 
 #astraDialogue.show {
     display: block;
+}
+
+#astraDialogue:hover {
+    border-color: rgba(0, 212, 255, 1);
+    box-shadow: 0 4px 25px rgba(0, 212, 255, 0.6);
 }
 
 .astra-text {

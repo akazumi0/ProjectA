@@ -99,8 +99,9 @@ export function startGame() {
     // Auto-save setup
     autoSaveInterval = setupAutoSave(TIMING.SAVE_INTERVAL);
 
-    // Show welcome dialogue
-    showAstraDialogue(astraDialogues[0].text);
+    // Show random welcome dialogue (pick from first 5 dialogues)
+    const randomDialogue = astraDialogues[Math.floor(Math.random() * Math.min(5, astraDialogues.length))];
+    showAstraDialogue(randomDialogue.text);
 
     // Initial UI update
     updateAllUI();
@@ -166,6 +167,7 @@ function renderLoop() {
     // Draw fragments
     fragments.forEach((fragment, index) => {
         fragment.y += fragment.speed;
+        fragment.rotation += fragment.rotSpeed;
 
         // Remove if out of bounds
         if (fragment.y > canvas.height) {
@@ -173,14 +175,26 @@ function renderLoop() {
             return;
         }
 
-        // Draw fragment
+        // Draw star fragment
         ctx.save();
+        ctx.translate(fragment.x, fragment.y);
+        ctx.rotate(fragment.rotation);
         ctx.shadowBlur = 20;
         ctx.shadowColor = fragment.color;
         ctx.fillStyle = fragment.color;
+
+        // Draw 5-pointed star
         ctx.beginPath();
-        ctx.arc(fragment.x, fragment.y, fragment.size, 0, Math.PI * 2);
+        for (let i = 0; i < 5; i++) {
+            const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+            const x = Math.cos(angle) * fragment.size;
+            const y = Math.sin(angle) * fragment.size;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
         ctx.fill();
+
         ctx.restore();
     });
 
@@ -219,6 +233,8 @@ function spawnFragment() {
         speed: 1.5 + Math.random() * 1,
         value: Math.floor(Math.random() * 10) + 1,
         color: '#00d4ff',
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.1,
         id: Date.now() + Math.random()
     };
 
@@ -244,6 +260,8 @@ function handleCanvasClick(event) {
             // Capture fragment
             const result = captureFragment(fragment);
 
+            if (!result) continue;
+
             // Create particle effect
             for (let p = 0; p < 10; p++) {
                 particles.push({
@@ -256,7 +274,9 @@ function handleCanvasClick(event) {
             }
 
             // Show floating text
-            createFloatingText(`+${formatNumber(result.lumen)}`, fragment.x, fragment.y);
+            if (result.lumen) {
+                createFloatingText(`+${formatNumber(result.lumen)}`, fragment.x, fragment.y);
+            }
 
             // Remove fragment
             fragments.splice(i, 1);
@@ -264,6 +284,9 @@ function handleCanvasClick(event) {
             // Update UI
             updateResources();
             updateComboDisplay();
+
+            // Play sound
+            playSound('capture');
 
             break;
         }
@@ -301,12 +324,11 @@ function startGameLoops() {
         updateLootboxTimer();
     }, 500);
 
-    // Fragment spawn loop (90% chance = 3x more than 30%)
+    // Fragment spawn loop - fixed rate for smoother gameplay
+    // Spawns approximately 3 stars every 2 seconds (1 every ~666ms)
     setInterval(() => {
-        if (Math.random() < 0.9) {
-            spawnFragment();
-        }
-    }, TIMING.FRAGMENT_SPAWN_BASE);
+        spawnFragment();
+    }, 666);
 }
 
 /**

@@ -73,23 +73,18 @@ export function updateComboDisplay() {
 }
 
 /**
- * Update planet selector
+ * Update prestige display
  */
-export function updatePlanetSelector() {
-    const select = document.getElementById('planetSelect');
-    if (!select) return;
+export function updatePrestigeDisplay() {
+    const prestigeDisplay = document.getElementById('prestigeLevelDisplay');
+    if (!prestigeDisplay) return;
 
-    select.innerHTML = '';
+    prestigeDisplay.textContent = game.prestige.level;
 
-    for (let key in game.planets) {
-        const planet = game.planets[key];
-        if (planet.unlocked) {
-            const option = document.createElement('option');
-            option.value = key;
-            option.textContent = planet.name;
-            option.selected = (key === game.currentPlanet);
-            select.appendChild(option);
-        }
+    // Add visual indication if prestige level > 0
+    if (game.prestige.level > 0) {
+        prestigeDisplay.style.color = '#ffd700';
+        prestigeDisplay.style.fontWeight = 'bold';
     }
 }
 
@@ -172,9 +167,9 @@ export function triggerSuccessAnimation(elementId) {
 /**
  * Show ASTRA dialogue
  * @param {string} text - Dialogue text
- * @param {number} duration - Display duration in milliseconds
+ * @param {number} duration - Display duration in milliseconds (0 = no auto-hide)
  */
-export function showAstraDialogue(text, duration = 5000) {
+export function showAstraDialogue(text, duration = 0) {
     const dialogue = document.getElementById('astraDialogue');
     const textElement = document.getElementById('astraText');
 
@@ -183,9 +178,20 @@ export function showAstraDialogue(text, duration = 5000) {
     textElement.textContent = text;
     dialogue.classList.add('show');
 
-    setTimeout(() => {
+    // Click to dismiss
+    const dismissHandler = () => {
         dialogue.classList.remove('show');
-    }, duration);
+        dialogue.removeEventListener('click', dismissHandler);
+    };
+    dialogue.addEventListener('click', dismissHandler);
+
+    // Auto-hide after duration if specified
+    if (duration > 0) {
+        setTimeout(() => {
+            dialogue.classList.remove('show');
+            dialogue.removeEventListener('click', dismissHandler);
+        }, duration);
+    }
 }
 
 /**
@@ -241,7 +247,7 @@ export function updateLootboxTimer() {
 export function updateAllUI() {
     updateResources();
     updateComboDisplay();
-    updatePlanetSelector();
+    updatePrestigeDisplay();
     updateDailyRewardsDisplay();
     updateLootboxTimer();
 }

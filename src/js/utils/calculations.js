@@ -46,7 +46,8 @@ export function getCost(data, level, type = null) {
  */
 export function canAfford(cost) {
     for (let res in cost) {
-        if (game.resources[res] < cost[res]) return false;
+        const available = game.resources[res] || 0;
+        if (available < cost[res]) return false;
     }
     return true;
 }
