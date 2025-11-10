@@ -70,6 +70,41 @@ let uiUpdateInterval = null;
 let autoSaveInterval = null;
 
 /**
+ * Selected tier (set from welcome screen)
+ */
+let selectedTier = 'FREE';
+
+/**
+ * Select a player tier
+ * @param {string} tier - FREE, SUPPORTER, or FAST_PASS
+ */
+window.selectTier = function(tier) {
+    selectedTier = tier;
+    // Update UI
+    document.querySelectorAll('.tier-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.closest('.tier-btn').classList.add('active');
+};
+
+/**
+ * Show full manifesto
+ */
+window.showManifesto = function() {
+    document.getElementById('welcomeMain').style.display = 'none';
+    document.getElementById('welcomeManifesto').style.display = 'block';
+    game.manifestoSeen = true;
+};
+
+/**
+ * Hide full manifesto
+ */
+window.hideManifesto = function() {
+    document.getElementById('welcomeMain').style.display = 'block';
+    document.getElementById('welcomeManifesto').style.display = 'none';
+};
+
+/**
  * Initialize the game
  * Called after user enters username
  */
@@ -80,6 +115,10 @@ export function startGame() {
     if (usernameInput && usernameInput.value.trim()) {
         game.username = usernameInput.value.trim();
     }
+
+    // Save selected tier
+    game.playerTier = selectedTier;
+    game.firstTime = false;
 
     if (welcomeScreen) {
         welcomeScreen.style.display = 'none';

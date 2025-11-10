@@ -95,9 +95,9 @@ export const CANVAS = {
  * @constant
  */
 export const PRESTIGE = {
-    BASE_REQUIREMENT: 1000000, // 1M lumen to prestige
+    BASE_REQUIREMENT: 500000, // 500K lumen to prestige (reduced from 1M)
     BONUS_PER_LEVEL: 10, // +10% production per prestige level
-    MAX_LEVEL: 50
+    MAX_LEVEL: 100
 };
 
 /**
@@ -112,7 +112,7 @@ export const ARTIFACT_RARITY = {
 };
 
 /**
- * Daily rewards configuration
+ * Daily rewards configuration (Escalation system)
  * @constant
  */
 export const DAILY_REWARDS = [
@@ -122,8 +122,22 @@ export const DAILY_REWARDS = [
     { day: 4, lumen: 1000, energy: 500 },
     { day: 5, lumen: 2000, energy: 1000 },
     { day: 6, lumen: 5000, energy: 2500 },
-    { day: 7, lumen: 10000, energy: 5000, antimatter: 1 }
+    { day: 7, lumen: 50000, energy: 10000, antimatter: 1 },
+    { day: 14, lumen: 100000, energy: 25000, antimatter: 5 },
+    { day: 30, lumen: 500000, energy: 100000, antimatter: 10 },
+    { day: 60, lumen: 2000000, energy: 500000, antimatter: 50 },
+    { day: 100, lumen: 10000000, energy: 2000000, antimatter: 200 }
 ];
+
+/**
+ * Fragment spawn configuration
+ * @constant
+ */
+export const FRAGMENT_SPAWN = {
+    BASE_CHANCE: 0.6, // 60% chance per check (increased from 30%)
+    CHECK_INTERVAL: 2000, // Check every 2 seconds
+    MAX_ON_SCREEN: 10 // Maximum fragments at once
+};
 
 /**
  * Achievement categories
@@ -189,6 +203,68 @@ export const STORAGE_KEYS = {
  * @constant
  */
 export const GAME_VERSION = '1.0.0';
+
+/**
+ * Player tier system (Ethical monetization)
+ * @constant
+ */
+export const PLAYER_TIERS = {
+    FREE: {
+        id: 'FREE',
+        name: 'Free Player',
+        badge: '🆓',
+        features: ['Full game access', 'Cloud save', 'F2P Leaderboard']
+    },
+    SUPPORTER: {
+        id: 'SUPPORTER',
+        name: 'Supporter',
+        badge: '⭐',
+        price: 2.99,
+        features: [
+            'All FREE features',
+            '5 UI Themes',
+            '10 Particle effects',
+            'Stats graphs',
+            'Export data',
+            '3 Save slots',
+            'Supporter Leaderboard'
+        ]
+    },
+    FAST_PASS: {
+        id: 'FAST_PASS',
+        name: 'Time Traveler',
+        badge: '⏱️',
+        price: 4.99,
+        features: [
+            'All SUPPORTER features',
+            'Auto-clicker (1/s)',
+            'Offline earnings ×2',
+            'Instant actions',
+            'Fast Lane Leaderboard'
+        ]
+    }
+};
+
+/**
+ * Badge types and acquisition
+ * @constant
+ */
+export const BADGES = {
+    // Tier badges
+    FREE_PLAYER: { id: 'free', icon: '🆓', name: 'Free Player' },
+    SUPPORTER: { id: 'supporter', icon: '⭐', name: 'Supporter' },
+    TIME_TRAVELER: { id: 'time_traveler', icon: '⏱️', name: 'Time Traveler' },
+
+    // Achievement badges
+    FIRST_PRESTIGE: { id: 'first_prestige', icon: '🌠', name: 'Renaissance' },
+    SCIENCE_MASTER: { id: 'science_master', icon: '🔬', name: 'Scientifique' },
+    SPEEDRUNNER: { id: 'speedrunner', icon: '⚡', name: 'Speedrunner' },
+    VETERAN_S1: { id: 'veteran_s1', icon: '🏆', name: 'Vétéran S1' },
+
+    // Story badges
+    EXPLORER: { id: 'explorer', icon: '🌍', name: 'Explorateur' },
+    LEGEND: { id: 'legend', icon: '👑', name: 'Légende' }
+};
 
 /**
  * Debug mode flag
