@@ -74,8 +74,14 @@ export function createDefaultGameState() {
             techsUnlocked: 0
         },
         quests: {
-            daily: {},
-            lastReset: 0
+            active: [], // Array of 3 active quest objects { key, progress, completed, claimed }
+            lastReset: 0,
+            sessionProgress: {
+                clicks: 0,
+                builds: 0,
+                lumenCollected: 0,
+                fragmentsCaught: 0
+            }
         },
         masteries: {
             clickMastery: 0,

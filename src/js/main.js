@@ -20,6 +20,7 @@ import { TIMING, CANVAS } from './core/constants.js';
 import { buildingData, defenseData } from './data/buildings.js';
 import { techData } from './data/technologies.js';
 import { achievementData } from './data/achievements.js';
+import { questData } from './data/quests.js';
 import { astraDialogues } from './data/dialogues.js';
 
 // System imports
@@ -35,7 +36,10 @@ import {
     performPrestige,
     updateGame,
     claimDailyReward,
-    openFreeLootbox as openFreeLootboxLogic
+    openFreeLootbox as openFreeLootboxLogic,
+    generateDailyQuests,
+    claimQuestReward,
+    checkQuestReset
 } from './systems/gameLogic.js';
 import {
     showNotification,
@@ -103,6 +107,11 @@ export function startGame() {
     // Initial UI update (do this before showing dialogue to prevent lag)
     updateAllUI();
     renderAllTabs();
+
+    // Initialize quests if none active
+    if (!game.quests.active || game.quests.active.length === 0) {
+        generateDailyQuests();
+    }
 
     // Show random welcome dialogue after UI is ready (delayed to prevent lag)
     setTimeout(() => {
@@ -427,6 +436,7 @@ function startGameLoops() {
         updateComboDisplay();
         updateLootboxTimer();
         updateComboVisuals();
+        checkQuestReset();
     }, 500);
 
     // Spawn rate update loop (every 100ms for responsiveness)
@@ -603,7 +613,12 @@ function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
  */
 window.startGame = startGame;
 window.switchTab = switchTab;
-window.openModal = (id) => toggleModal(id + 'Modal', true);
+window.openModal = (id) => {
+    toggleModal(id + 'Modal', true);
+    if (id === 'quests') {
+        renderQuests();
+    }
+};
 window.closeModal = (id) => toggleModal(id + 'Modal', false);
 
 window.switchPlanet = (key) => {
@@ -729,6 +744,63 @@ window.doPrestige = () => {
         renderAllTabs();
     } else {
         showNotification(result.message);
+    }
+};
+
+/**
+ * Render quests in the quests modal
+ */
+function renderQuests() {
+    const questsBody = document.getElementById('questsBody');
+    if (!questsBody) return;
+
+    if (!game.quests.active || game.quests.active.length === 0) {
+        questsBody.innerHTML = '<p style="text-align: center; color: #ccc;">Aucune quête active</p>';
+        return;
+    }
+
+    const container = document.createElement('div');
+    container.className = 'quest-container';
+
+    game.quests.active.forEach((quest, index) => {
+        const data = questData.daily[quest.key];
+        if (!data) return;
+
+        const card = document.createElement('div');
+        card.className = 'quest-card';
+        if (quest.completed) card.classList.add('completed');
+        if (quest.claimed) card.classList.add('claimed');
+
+        const progressPercent = Math.min(100, (quest.progress / data.requirement) * 100);
+
+        card.innerHTML = `
+            <div class="quest-icon">${data.icon}</div>
+            <div class="quest-name">${data.name}</div>
+            <div class="quest-desc">${data.desc}</div>
+            <div class="quest-progress">${quest.progress}/${data.requirement}</div>
+            <div class="quest-reward">🎁 ${formatCost(data.reward)}</div>
+            <button class="quest-btn" onclick="claimQuest(${index})"
+                    ${!quest.completed || quest.claimed ? 'disabled' : ''}>
+                ${quest.claimed ? 'RÉCLAMÉ' : quest.completed ? 'RÉCLAMER' : 'EN COURS'}
+            </button>
+        `;
+
+        container.appendChild(card);
+    });
+
+    questsBody.innerHTML = '';
+    questsBody.appendChild(container);
+}
+
+/**
+ * Claim a quest reward
+ */
+window.claimQuest = (questIndex) => {
+    const reward = claimQuestReward(questIndex);
+    if (reward) {
+        showNotification(`✓ Quête terminée ! ${formatCost(reward)}`);
+        renderQuests();
+        updateResources();
     }
 };
 

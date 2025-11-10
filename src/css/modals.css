@@ -199,3 +199,88 @@
     margin-bottom: 25px;
     line-height: 1.5;
 }
+
+/* Quest Cards */
+.quest-container {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.quest-card {
+    flex: 1;
+    min-width: 140px;
+    max-width: 160px;
+    background: linear-gradient(135deg, rgba(0, 50, 100, 0.6), rgba(0, 30, 60, 0.6));
+    border: 2px solid rgba(0, 212, 255, 0.3);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+}
+
+.quest-card.completed {
+    border-color: rgba(76, 175, 80, 0.6);
+    background: linear-gradient(135deg, rgba(0, 100, 50, 0.6), rgba(0, 60, 30, 0.6));
+}
+
+.quest-card.claimed {
+    opacity: 0.5;
+    border-color: rgba(128, 128, 128, 0.3);
+}
+
+.quest-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.quest-name {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--color-primary);
+    margin-bottom: 5px;
+}
+
+.quest-desc {
+    font-size: 11px;
+    color: #ccc;
+    margin-bottom: 8px;
+}
+
+.quest-progress {
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.quest-reward {
+    font-size: 11px;
+    color: #4ade80;
+    margin-bottom: 10px;
+}
+
+.quest-btn {
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    border: 1px solid #4ade80;
+    color: white;
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: inherit;
+    width: 100%;
+}
+
+.quest-btn:disabled {
+    background: rgba(128, 128, 128, 0.3);
+    border-color: rgba(128, 128, 128, 0.5);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.quest-btn:not(:disabled):hover {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    transform: scale(1.05);
+}

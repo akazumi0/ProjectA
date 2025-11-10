@@ -13,11 +13,12 @@ export const TIMING = {
     SAVE_INTERVAL: 30000, // Auto-save every 30 seconds
     FRAGMENT_SPAWN_BASE: 2000, // Base fragment spawn rate (2 seconds)
     DAILY_RESET_HOURS: 24, // Daily quest reset period
-    FREE_LOOTBOX_COOLDOWN: 2 * 60 * 60 * 1000, // 2 hours
+    FREE_LOOTBOX_COOLDOWN: 15 * 60 * 1000, // 15 minutes
     COMBO_TIMEOUT: 3000, // 3 seconds to maintain combo
     ASTRA_DIALOGUE_MIN_INTERVAL: 60000, // 1 minute minimum between dialogues
     STORY_EVENT_MIN_INTERVAL: 5 * 60 * 1000, // 5 minutes between story events
-    FLASH_MISSION_INTERVAL: 15 * 60 * 1000 // 15 minutes between flash missions
+    FLASH_MISSION_INTERVAL: 15 * 60 * 1000, // 15 minutes between flash missions
+    DAILY_QUEST_RESET: 15 * 60 * 1000 // 15 minutes between daily quest resets
 };
 
 /**
