@@ -47,7 +47,8 @@ import {
     createFloatingText,
     showAstraDialogue,
     updateDailyRewardsDisplay,
-    updateLootboxTimer
+    updateLootboxTimer,
+    triggerSuccessAnimation
 } from './systems/ui.js';
 
 // Utility imports
@@ -501,6 +502,8 @@ window.buyDefense = (key) => {
         showNotification(`✓ ${defenseData[key].name} amélioré !`);
         renderDefenseTab();
         updateResources();
+        // Trigger animation after render
+        setTimeout(() => triggerSuccessAnimation(`defense-${key}`), 10);
     }
 };
 
@@ -509,6 +512,8 @@ window.buyBuilding = (key) => {
         showNotification(`✓ ${buildingData[key].name} construit !`);
         renderBuildingsTab();
         updateResources();
+        // Trigger animation after render
+        setTimeout(() => triggerSuccessAnimation(`building-${key}`), 10);
     }
 };
 
@@ -517,6 +522,8 @@ window.buyTech = (key) => {
         showNotification(`✓ ${techData[key].name} recherché !`);
         renderTechnologiesTab();
         updateResources();
+        // Trigger animation after render
+        setTimeout(() => triggerSuccessAnimation(`tech-${key}`), 10);
     }
 };
 
