@@ -73,24 +73,18 @@ export function updateComboDisplay() {
 }
 
 /**
- * Update prestige display and commander name
+ * Update prestige display
  */
 export function updatePrestigeDisplay() {
     const prestigeDisplay = document.getElementById('prestigeLevelDisplay');
     if (prestigeDisplay) {
         prestigeDisplay.textContent = game.prestige.level;
-    }
 
-    // Update commander name in header
-    const commanderName = document.getElementById('commanderName');
-    if (commanderName) {
-        commanderName.textContent = game.username || 'Commandant';
-    }
-
-    // Add visual indication if prestige level > 0
-    if (game.prestige.level > 0) {
-        prestigeDisplay.style.color = '#ffd700';
-        prestigeDisplay.style.fontWeight = 'bold';
+        // Add visual indication if prestige level > 0
+        if (game.prestige.level > 0) {
+            prestigeDisplay.style.color = '#ffd700';
+            prestigeDisplay.style.fontWeight = 'bold';
+        }
     }
 }
 

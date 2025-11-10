@@ -578,6 +578,17 @@ window.openFreeLootbox = () => {
         showNotification(`📦 Coffre ouvert ! +${formatNumber(rewards.lumen)} Lumen`);
         updateResources();
         updateLootboxTimer();
+        // Hide the floating button immediately after opening
+        const floatButton = document.getElementById('freeLootboxFloat');
+        if (floatButton) {
+            floatButton.style.display = 'none';
+        }
+    } else {
+        // If cooldown active, hide the button (shouldn't be visible but just in case)
+        const floatButton = document.getElementById('freeLootboxFloat');
+        if (floatButton) {
+            floatButton.style.display = 'none';
+        }
     }
 };
 
