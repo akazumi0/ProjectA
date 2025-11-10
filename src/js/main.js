@@ -100,13 +100,15 @@ export function startGame() {
     // Auto-save setup
     autoSaveInterval = setupAutoSave(TIMING.SAVE_INTERVAL);
 
-    // Show random welcome dialogue (pick from first 5 dialogues)
-    const randomDialogue = astraDialogues[Math.floor(Math.random() * Math.min(5, astraDialogues.length))];
-    showAstraDialogue(randomDialogue.text);
-
-    // Initial UI update
+    // Initial UI update (do this before showing dialogue to prevent lag)
     updateAllUI();
     renderAllTabs();
+
+    // Show random welcome dialogue after UI is ready (delayed to prevent lag)
+    setTimeout(() => {
+        const randomDialogue = astraDialogues[Math.floor(Math.random() * Math.min(5, astraDialogues.length))];
+        showAstraDialogue(randomDialogue.text);
+    }, 100);
 }
 
 /**
