@@ -108,6 +108,11 @@
 
     <!-- Header -->
     <div id="header" style="display: none;">
+        <div id="playerInfo">
+            <span class="profile-icon" onclick="openProfile()" title="Profil">👤</span>
+            <span id="commanderName">Commandant</span>
+            <span id="prestigeLevelInfo">Lvl <span id="prestigeLevelDisplay">0</span></span>
+        </div>
         <div class="resources">
             <div class="resource">
                 <div>⭐ Lumen</div>
@@ -124,10 +129,6 @@
                 <div class="resource-value" id="antimatterVal">0</div>
                 <div class="resource-rate" id="antimatterRate">Rare</div>
             </div>
-        </div>
-        <div id="prestigeInfo">
-            <span class="profile-icon" onclick="openProfile()" title="Profil">👤</span>
-            🌠 Prestige: <span id="prestigeLevelDisplay">0</span>
         </div>
     </div>
 

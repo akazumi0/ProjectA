@@ -52,7 +52,7 @@ import {
 } from './systems/ui.js';
 
 // Utility imports
-import { formatNumber, formatCost, formatLevel } from './utils/formatters.js';
+import { formatNumber, formatCost, formatCostColored, formatLevel } from './utils/formatters.js';
 import { getCost, checkRequires, calculateClickPower, canAfford } from './utils/calculations.js';
 
 /**
@@ -279,6 +279,18 @@ function handleCanvasClick(event) {
 
             if (!result) continue;
 
+            // Calculate fragment color based on combo level
+            const comboCount = game.combo.count;
+            const comboLevel = comboCount >= 30 ? 3 : comboCount >= 15 ? 2 : comboCount >= 8 ? 1 : 0;
+            let fragmentColor = fragment.baseColor || '#00d4ff';
+            if (comboLevel === 1) {
+                fragmentColor = '#ffaa00'; // Orange
+            } else if (comboLevel === 2) {
+                fragmentColor = '#ff6600'; // Orange-red
+            } else if (comboLevel === 3) {
+                fragmentColor = '#ff3300'; // Red fire
+            }
+
             // Create particle effect
             for (let p = 0; p < 10; p++) {
                 particles.push({
@@ -290,9 +302,9 @@ function handleCanvasClick(event) {
                 });
             }
 
-            // Show floating text
+            // Show floating text with fragment color
             if (result.lumen) {
-                createFloatingText(`+${formatNumber(result.lumen)}`, fragment.x, fragment.y);
+                createFloatingText(`+${formatNumber(result.lumen)}`, fragment.x, fragment.y, fragmentColor);
             }
 
             // Remove fragment
@@ -346,15 +358,7 @@ function updateComboVisuals() {
         canvas.classList.remove('combo-active');
     }
 
-    // Add blinking effect to combo display at high levels
-    const comboDisplay = document.getElementById('comboDisplay');
-    if (comboDisplay) {
-        if (comboLevel >= 2) {
-            comboDisplay.style.animation = 'pulse 0.5s infinite';
-        } else {
-            comboDisplay.style.animation = '';
-        }
-    }
+    // Keep combo display stable - no animation to avoid movement
 }
 
 /**
@@ -503,10 +507,12 @@ function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
     card.id = `${type}-${key}`;
     if (canBuy) card.classList.add('buildable');
     if (locked) card.classList.add('locked');
+    if (level >= data.max) card.classList.add('maxed');
 
     const icon = data.icon || '🔧';
     const levelText = formatLevel(level, data.max);
     const effectText = data.display ? data.display(level + 1) : '';
+    const costHTML = level >= data.max ? '<span style="color: #ffd700">MAX</span>' : formatCostColored(cost, game.resources);
 
     card.innerHTML = `
         <div class="item-header">
@@ -518,13 +524,19 @@ function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
         </div>
         <div class="item-desc">${data.desc}</div>
         ${effectText ? `<div class="item-stats">${effectText}</div>` : ''}
-        <div class="item-footer">
-            <div class="item-cost">${formatCost(cost)}</div>
-            <button class="build-btn" ${!canBuy ? 'disabled' : ''} onclick="buy${type.charAt(0).toUpperCase() + type.slice(1)}('${key}')">
-                ${level >= data.max ? 'MAX' : 'ACHETER'}
-            </button>
-        </div>
+        <div class="item-cost">${costHTML}</div>
     `;
+
+    // Make card clickable if not locked and not maxed
+    if (!locked && level < data.max) {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', () => {
+            const buyFunctionName = `buy${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            if (window[buyFunctionName]) {
+                window[buyFunctionName](key);
+            }
+        });
+    }
 
     return card;
 }

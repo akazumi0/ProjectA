@@ -73,13 +73,19 @@ export function updateComboDisplay() {
 }
 
 /**
- * Update prestige display
+ * Update prestige display and commander name
  */
 export function updatePrestigeDisplay() {
     const prestigeDisplay = document.getElementById('prestigeLevelDisplay');
-    if (!prestigeDisplay) return;
+    if (prestigeDisplay) {
+        prestigeDisplay.textContent = game.prestige.level;
+    }
 
-    prestigeDisplay.textContent = game.prestige.level;
+    // Update commander name in header
+    const commanderName = document.getElementById('commanderName');
+    if (commanderName) {
+        commanderName.textContent = game.username || 'Commandant';
+    }
 
     // Add visual indication if prestige level > 0
     if (game.prestige.level > 0) {
@@ -134,13 +140,15 @@ export function toggleModal(modalId, show) {
  * @param {string} text - Text to display
  * @param {number} x - X position
  * @param {number} y - Y position
+ * @param {string} color - Text color (optional, defaults to cyan)
  */
-export function createFloatingText(text, x, y) {
+export function createFloatingText(text, x, y, color = '#00d4ff') {
     const element = document.createElement('div');
     element.className = 'floating-text';
     element.textContent = text;
     element.style.left = x + 'px';
     element.style.top = y + 'px';
+    element.style.color = color;
 
     document.body.appendChild(element);
 
