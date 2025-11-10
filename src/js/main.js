@@ -151,6 +151,10 @@ function resizeCanvas() {
 function renderLoop() {
     if (!ctx || !canvas) return;
 
+    // Get current combo level for visual effects
+    const comboCount = game.combo.count;
+    const comboLevel = comboCount >= 30 ? 3 : comboCount >= 15 ? 2 : comboCount >= 8 ? 1 : 0;
+
     // Clear canvas
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -176,13 +180,23 @@ function renderLoop() {
             return;
         }
 
+        // Calculate fire color based on combo level
+        let fragmentColor = fragment.baseColor || '#00d4ff';
+        if (comboLevel === 1) {
+            fragmentColor = '#ffaa00'; // Orange
+        } else if (comboLevel === 2) {
+            fragmentColor = '#ff6600'; // Orange-red
+        } else if (comboLevel === 3) {
+            fragmentColor = '#ff3300'; // Red fire
+        }
+
         // Draw star fragment
         ctx.save();
         ctx.translate(fragment.x, fragment.y);
         ctx.rotate(fragment.rotation);
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = fragment.color;
-        ctx.fillStyle = fragment.color;
+        ctx.shadowBlur = comboLevel > 0 ? 30 : 20;
+        ctx.shadowColor = fragmentColor;
+        ctx.fillStyle = fragmentColor;
 
         // Draw 5-pointed star
         ctx.beginPath();
@@ -210,7 +224,9 @@ function renderLoop() {
             return;
         }
 
-        ctx.fillStyle = `rgba(0, 212, 255, ${particle.life / 30})`;
+        // Change particle color during combo
+        let particleColor = comboLevel >= 2 ? '255, 100, 0' : '0, 212, 255';
+        ctx.fillStyle = `rgba(${particleColor}, ${particle.life / 30})`;
         ctx.fillRect(particle.x, particle.y, 2, 2);
     });
 
@@ -250,14 +266,14 @@ function handleCanvasClick(event) {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Check if clicked on a fragment (hitbox 1.5x larger for easier clicking)
+    // Check if clicked on a fragment (hitbox 2x larger for easier clicking)
     for (let i = fragments.length - 1; i >= 0; i--) {
         const fragment = fragments[i];
         const dx = x - fragment.x;
         const dy = y - fragment.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < fragment.size * 1.5) {
+        if (distance < fragment.size * 2) {
             // Capture fragment
             const result = captureFragment(fragment);
 
@@ -310,6 +326,70 @@ function initEventListeners() {
 }
 
 /**
+ * Update combo visual effects
+ */
+function updateComboVisuals() {
+    const comboOverlay = document.getElementById('comboOverlay');
+    const comboCount = game.combo.count;
+    const comboLevel = comboCount >= 30 ? 3 : comboCount >= 15 ? 2 : comboCount >= 8 ? 1 : 0;
+
+    if (!comboOverlay) return;
+
+    // Remove all level classes
+    comboOverlay.classList.remove('level-1', 'level-2', 'level-3');
+
+    // Add canvas combo-active class
+    if (comboLevel > 0) {
+        canvas.classList.add('combo-active');
+        comboOverlay.classList.add(`level-${comboLevel}`);
+    } else {
+        canvas.classList.remove('combo-active');
+    }
+
+    // Add blinking effect to combo display at high levels
+    const comboDisplay = document.getElementById('comboDisplay');
+    if (comboDisplay) {
+        if (comboLevel >= 2) {
+            comboDisplay.style.animation = 'pulse 0.5s infinite';
+        } else {
+            comboDisplay.style.animation = '';
+        }
+    }
+}
+
+/**
+ * Dynamic spawn rate based on combo
+ */
+let baseSpawnInterval = 666;
+let currentSpawnInterval = null;
+
+function updateSpawnRate() {
+    const comboCount = game.combo.count;
+    const comboLevel = comboCount >= 30 ? 3 : comboCount >= 15 ? 2 : comboCount >= 8 ? 1 : 0;
+
+    // Accelerate spawn rate with combo
+    let newInterval = baseSpawnInterval;
+    if (comboLevel === 1) {
+        newInterval = baseSpawnInterval * 0.8; // 20% faster
+    } else if (comboLevel === 2) {
+        newInterval = baseSpawnInterval * 0.6; // 40% faster
+    } else if (comboLevel === 3) {
+        newInterval = baseSpawnInterval * 0.4; // 60% faster
+    }
+
+    // Update spawn interval if changed
+    if (currentSpawnInterval !== newInterval) {
+        currentSpawnInterval = newInterval;
+        if (window.spawnIntervalId) {
+            clearInterval(window.spawnIntervalId);
+        }
+        window.spawnIntervalId = setInterval(() => {
+            spawnFragment();
+        }, newInterval);
+    }
+}
+
+/**
  * Start game loops (logic, UI updates, fragment spawning)
  */
 function startGameLoops() {
@@ -323,13 +403,19 @@ function startGameLoops() {
         updateResources();
         updateComboDisplay();
         updateLootboxTimer();
+        updateComboVisuals();
     }, 500);
 
-    // Fragment spawn loop - fixed rate for smoother gameplay
-    // Spawns approximately 3 stars every 2 seconds (1 every ~666ms)
+    // Spawn rate update loop (every 100ms for responsiveness)
     setInterval(() => {
+        updateSpawnRate();
+    }, 100);
+
+    // Initial fragment spawn - rate will be managed dynamically
+    currentSpawnInterval = baseSpawnInterval;
+    window.spawnIntervalId = setInterval(() => {
         spawnFragment();
-    }, 666);
+    }, baseSpawnInterval);
 }
 
 /**

@@ -60,7 +60,7 @@ export function updateComboDisplay() {
 
     if (!comboDisplay) return;
 
-    if (game.combo.count > 5) {
+    if (game.combo.count > 3) {
         comboDisplay.classList.add('show');
         if (comboCount) comboCount.textContent = game.combo.count;
         if (comboMultiplier) {
