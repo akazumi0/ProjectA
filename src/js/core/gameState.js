@@ -34,7 +34,9 @@ export function createDefaultGameState() {
                 name: 'Terre',
                 unlocked: true,
                 bonus: { lumen: 1, energy: 1 },
-                buildings: {}
+                buildings: {
+                    lumenMine: 1  // Start with 1 free mine for better early game
+                }
             },
             mars: {
                 name: 'Mars',

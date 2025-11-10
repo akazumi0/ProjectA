@@ -13,7 +13,7 @@ import {
     loadGameState,
     resetGameState
 } from './core/gameState.js';
-import { TIMING, CANVAS } from './core/constants.js';
+import { TIMING, CANVAS, FRAGMENT_SPAWN } from './core/constants.js';
 
 // Data imports
 import { buildingData, defenseData } from './data/buildings.js';
@@ -338,10 +338,10 @@ function startGameLoops() {
 
     // Fragment spawn loop
     setInterval(() => {
-        if (Math.random() < 0.3) {
+        if (Math.random() < FRAGMENT_SPAWN.BASE_CHANCE && fragments.length < FRAGMENT_SPAWN.MAX_ON_SCREEN) {
             spawnFragment();
         }
-    }, TIMING.FRAGMENT_SPAWN_BASE);
+    }, FRAGMENT_SPAWN.CHECK_INTERVAL);
 }
 
 /**

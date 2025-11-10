@@ -14,36 +14,36 @@ export const buildingData = {
         name: 'Mine de Lumen',
         desc: 'Extrait du Lumen',
         icon: '⛏️',
-        baseCost: { lumen: 15 },
+        baseCost: { lumen: 10 },  // Reduced from 15
         costMult: 1.15,
-        production: level => ({ lumen: level * 0.1 }),
+        production: level => ({ lumen: level * 0.2 }),  // Increased from 0.1
         max: 100
     },
     energyCollector: {
         name: 'Collecteur d\'Énergie',
         desc: 'Capte l\'énergie stellaire',
         icon: '🔌',
-        baseCost: { lumen: 100 },
+        baseCost: { lumen: 50 },  // Reduced from 100
         costMult: 1.15,
-        production: level => ({ lumen: level * 1 }),
+        production: level => ({ lumen: level * 1.5 }),  // Increased from 1
         max: 100
     },
     solarArray: {
         name: 'Réseau Solaire',
         desc: 'Panneaux solaires avancés',
         icon: '☀️',
-        baseCost: { lumen: 1100 },
+        baseCost: { lumen: 600 },  // Reduced from 1100
         costMult: 1.15,
-        production: level => ({ lumen: level * 8 }),
+        production: level => ({ lumen: level * 10 }),  // Increased from 8
         max: 100
     },
     fusionReactor: {
         name: 'Réacteur à Fusion',
         desc: 'Énergie nucléaire stellaire',
         icon: '⚛️',
-        baseCost: { lumen: 12000 },
+        baseCost: { lumen: 8000 },  // Reduced from 12000
         costMult: 1.15,
-        production: level => ({ lumen: level * 47 }),
+        production: level => ({ lumen: level * 60 }),  // Increased from 47
         max: 100
     },
     antimatterPlant: {
