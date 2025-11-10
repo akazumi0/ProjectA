@@ -58,49 +58,23 @@
     padding: 5px 12px;
     z-index: 100;
     border-bottom: 1px solid var(--color-border);
-    display: flex;
-    align-items: stretch;
-    justify-content: space-between;
-    gap: 15px;
-}
-
-#playerInfo {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    gap: 2px;
-}
-
-.profile-icon {
-    cursor: pointer;
-    font-size: 20px;
-    transition: transform var(--transition-fast);
-    border: 2px solid var(--color-primary);
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 212, 255, 0.1);
-}
-
-.profile-icon:active {
-    transform: scale(0.9);
-}
-
-#prestigeLevelInfo {
-    color: var(--color-secondary);
-    font-size: var(--font-size-small);
-    text-align: center;
 }
 
 .resources {
     display: flex;
-    gap: 15px;
-    flex: 1;
-    justify-content: flex-end;
+    justify-content: space-around;
+    gap: 8px;
+}
+
+#playerInfo .profile-icon {
+    cursor: pointer;
+    font-size: 22px;
+    transition: transform var(--transition-fast);
+    display: inline-block;
+}
+
+#playerInfo .profile-icon:active {
+    transform: scale(0.9);
 }
 
 .resource {

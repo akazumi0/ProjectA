@@ -547,12 +547,50 @@ function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
     // Make card clickable if not locked and not maxed
     if (!locked && level < data.max) {
         card.style.cursor = 'pointer';
-        card.addEventListener('click', () => {
+
+        let holdInterval = null;
+        let holdTimeout = null;
+
+        const buyFunction = () => {
             const buyFunctionName = `buy${type.charAt(0).toUpperCase() + type.slice(1)}`;
             if (window[buyFunctionName]) {
                 window[buyFunctionName](key);
             }
+        };
+
+        const startHold = () => {
+            // Execute immediately on press
+            buyFunction();
+
+            // Start hold-to-upgrade after 300ms
+            holdTimeout = setTimeout(() => {
+                holdInterval = setInterval(buyFunction, 100);
+            }, 300);
+        };
+
+        const endHold = () => {
+            if (holdTimeout) {
+                clearTimeout(holdTimeout);
+                holdTimeout = null;
+            }
+            if (holdInterval) {
+                clearInterval(holdInterval);
+                holdInterval = null;
+            }
+        };
+
+        // Mouse events
+        card.addEventListener('mousedown', startHold);
+        card.addEventListener('mouseup', endHold);
+        card.addEventListener('mouseleave', endHold);
+
+        // Touch events
+        card.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startHold();
         });
+        card.addEventListener('touchend', endHold);
+        card.addEventListener('touchcancel', endHold);
     }
 
     return card;

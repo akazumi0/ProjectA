@@ -122,11 +122,12 @@
 
     <!-- Header -->
     <div id="header" style="display: none;">
-        <div id="playerInfo">
-            <span class="profile-icon" onclick="openProfile()" title="Profil">👤</span>
-            <div id="prestigeLevelInfo">Lvl <span id="prestigeLevelDisplay">0</span></div>
-        </div>
         <div class="resources">
+            <div class="resource" id="playerInfo">
+                <span class="profile-icon" onclick="openProfile()" title="Profil">👤</span>
+                <div class="resource-value" id="prestigeLevelDisplay">0</div>
+                <div class="resource-rate">Lvl</div>
+            </div>
             <div class="resource">
                 <div>⭐ Lumen</div>
                 <div class="resource-value" id="lumenVal">0</div>
