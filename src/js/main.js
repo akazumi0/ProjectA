@@ -233,14 +233,14 @@ function handleCanvasClick(event) {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Check if clicked on a fragment
+    // Check if clicked on a fragment (hitbox 1.5x larger for easier clicking)
     for (let i = fragments.length - 1; i >= 0; i--) {
         const fragment = fragments[i];
         const dx = x - fragment.x;
         const dy = y - fragment.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < fragment.size) {
+        if (distance < fragment.size * 1.5) {
             // Capture fragment
             const result = captureFragment(fragment);
 
@@ -301,9 +301,9 @@ function startGameLoops() {
         updateLootboxTimer();
     }, 500);
 
-    // Fragment spawn loop
+    // Fragment spawn loop (90% chance = 3x more than 30%)
     setInterval(() => {
-        if (Math.random() < 0.3) {
+        if (Math.random() < 0.9) {
             spawnFragment();
         }
     }, TIMING.FRAGMENT_SPAWN_BASE);

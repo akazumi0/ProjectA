@@ -25,7 +25,7 @@ export const buildingData = {
         icon: '🔌',
         baseCost: { lumen: 100 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 1 }),
+        production: level => ({ lumen: level * 1, energy: level * 0.05 }),
         max: 100
     },
     solarArray: {
@@ -34,7 +34,7 @@ export const buildingData = {
         icon: '☀️',
         baseCost: { lumen: 1100 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 8 }),
+        production: level => ({ lumen: level * 10, energy: level * 0.5 }),
         max: 100
     },
     fusionReactor: {
@@ -43,7 +43,7 @@ export const buildingData = {
         icon: '⚛️',
         baseCost: { lumen: 12000 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 47 }),
+        production: level => ({ lumen: level * 100, energy: level * 5 }),
         max: 100
     },
     antimatterPlant: {
@@ -52,7 +52,7 @@ export const buildingData = {
         icon: '💥',
         baseCost: { lumen: 130000 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 260 }),
+        production: level => ({ lumen: level * 1000, energy: level * 50, antimatter: level * 0.001 }),
         requires: { tech: 'quantumResonance' },
         max: 100
     },
@@ -62,7 +62,7 @@ export const buildingData = {
         icon: '🔥',
         baseCost: { lumen: 1400000 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 1400 }),
+        production: level => ({ lumen: level * 10000, energy: level * 500 }),
         requires: { tech: 'quantumResonance' },
         max: 100
     },
@@ -72,7 +72,7 @@ export const buildingData = {
         icon: '🕳️',
         baseCost: { lumen: 20000000 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 7800 }),
+        production: level => ({ lumen: level * 100000, energy: level * 5000 }),
         requires: { tech: 'singularityControl' },
         max: 100
     },
@@ -82,7 +82,7 @@ export const buildingData = {
         icon: '💻',
         baseCost: { lumen: 330000000 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 44000 }),
+        production: level => ({ lumen: level * 1000000, energy: level * 50000 }),
         requires: { tech: 'quantumComputing' },
         max: 100
     },
@@ -92,7 +92,7 @@ export const buildingData = {
         icon: '🌌',
         baseCost: { lumen: 5100000000 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 260000 }),
+        production: level => ({ lumen: level * 10000000, energy: level * 500000 }),
         requires: { tech: 'dimensionalPhysics' },
         max: 100
     },
@@ -102,7 +102,7 @@ export const buildingData = {
         icon: '⏰',
         baseCost: { lumen: 75000000000 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 1600000 }),
+        production: level => ({ lumen: level * 100000000, energy: level * 5000000 }),
         requires: { tech: 'temporalManipulation' },
         max: 100
     },
@@ -112,7 +112,7 @@ export const buildingData = {
         icon: '🌀',
         baseCost: { lumen: 1000000000000 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 10000000 }),
+        production: level => ({ lumen: level * 1000000000, energy: level * 50000000 }),
         requires: { tech: 'cosmicTravel' },
         max: 100
     },
@@ -122,7 +122,7 @@ export const buildingData = {
         icon: '🎆',
         baseCost: { lumen: 14000000000000 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 65000000 }),
+        production: level => ({ lumen: level * 10000000000, energy: level * 500000000 }),
         requires: { tech: 'universalPower' },
         max: 100
     },
@@ -132,7 +132,7 @@ export const buildingData = {
         icon: '✨',
         baseCost: { lumen: 170000000000000 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 430000000 }),
+        production: level => ({ lumen: level * 100000000000, energy: level * 5000000000 }),
         requires: { tech: 'realityControl' },
         max: 100
     },
@@ -142,7 +142,7 @@ export const buildingData = {
         icon: '♾️',
         baseCost: { lumen: 2100000000000000 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 2900000000 }),
+        production: level => ({ lumen: level * 1000000000000, energy: level * 50000000000 }),
         requires: { tech: 'infinityTech' },
         max: 100
     },
@@ -152,7 +152,7 @@ export const buildingData = {
         icon: '🌟',
         baseCost: { lumen: 26000000000000000 },
         costMult: 1.15,
-        production: level => ({ lumen: level * 21000000000 }),
+        production: level => ({ lumen: level * 10000000000000, energy: level * 500000000000 }),
         requires: { tech: 'transcendence' },
         max: 100
     }
