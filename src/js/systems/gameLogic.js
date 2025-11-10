@@ -124,6 +124,9 @@ export function captureFragment(fragment) {
     }
     game.combo.lastClick = now;
 
+    // Reset missed fragments counter on successful catch
+    game.combo.missedFragments = 0;
+
     // Add resources
     addResources({ lumen: value });
 

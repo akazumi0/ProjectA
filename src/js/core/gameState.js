@@ -97,7 +97,8 @@ export function createDefaultGameState() {
         combo: {
             count: 0,
             lastClick: 0,
-            multiplier: 1
+            multiplier: 1,
+            missedFragments: 0
         },
         flashMission: {
             active: false,

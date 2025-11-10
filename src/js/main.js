@@ -174,9 +174,26 @@ function renderLoop() {
         fragment.y += fragment.speed;
         fragment.rotation += fragment.rotSpeed;
 
-        // Remove if out of bounds
+        // Remove if out of bounds and handle missed fragment
         if (fragment.y > canvas.height) {
             fragments.splice(index, 1);
+
+            // Increment missed fragments counter
+            game.combo.missedFragments++;
+
+            // Reset combo if 3 fragments missed
+            if (game.combo.missedFragments >= 3) {
+                // Show notification if there was an active combo
+                if (game.combo.count > 0) {
+                    showNotification('❌ Combo perdu !');
+                }
+
+                // Reset combo
+                game.combo.count = 0;
+                game.combo.multiplier = 1;
+                game.combo.missedFragments = 0;
+            }
+
             return;
         }
 
