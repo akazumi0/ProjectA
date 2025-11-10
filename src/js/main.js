@@ -39,7 +39,8 @@ import {
     openFreeLootbox as openFreeLootboxLogic,
     generateDailyQuests,
     claimQuestReward,
-    checkQuestReset
+    checkQuestReset,
+    checkAchievements
 } from './systems/gameLogic.js';
 import {
     showNotification,
@@ -437,6 +438,12 @@ function startGameLoops() {
         updateLootboxTimer();
         updateComboVisuals();
         checkQuestReset();
+
+        // Check for new achievements
+        const newAchievements = checkAchievements();
+        newAchievements.forEach(({ key, data }) => {
+            showNotification(`🏆 ${data.name} débloqué !`);
+        });
     }, 500);
 
     // Spawn rate update loop (every 100ms for responsiveness)
@@ -617,6 +624,8 @@ window.openModal = (id) => {
     toggleModal(id + 'Modal', true);
     if (id === 'quests') {
         renderQuests();
+    } else if (id === 'achievements') {
+        renderAchievements();
     }
 };
 window.closeModal = (id) => toggleModal(id + 'Modal', false);
@@ -803,6 +812,79 @@ window.claimQuest = (questIndex) => {
         updateResources();
     }
 };
+
+/**
+ * Render achievements in the achievements modal
+ */
+function renderAchievements() {
+    const achievementsBody = document.getElementById('achievementsBody');
+    if (!achievementsBody) return;
+
+    achievementsBody.innerHTML = '';
+
+    // Group achievements by category
+    const categories = {
+        clicks: '👆 Clics',
+        collection: '💰 Collection',
+        buildings: '🏗️ Construction',
+        tech: '🔬 Technologies',
+        planets: '🌍 Planètes',
+        prestige: '🌠 Prestige'
+    };
+
+    for (const [categoryKey, categoryName] of Object.entries(categories)) {
+        const categoryAchievements = Object.entries(achievementData)
+            .filter(([_, data]) => data.category === categoryKey);
+
+        if (categoryAchievements.length === 0) continue;
+
+        const categoryDiv = document.createElement('div');
+        categoryDiv.style.marginBottom = '20px';
+
+        const categoryHeader = document.createElement('div');
+        categoryHeader.style.fontSize = '14px';
+        categoryHeader.style.fontWeight = 'bold';
+        categoryHeader.style.color = 'var(--color-primary)';
+        categoryHeader.style.marginBottom = '10px';
+        categoryHeader.style.borderBottom = '1px solid var(--color-border)';
+        categoryHeader.style.paddingBottom = '5px';
+        categoryHeader.textContent = categoryName;
+        categoryDiv.appendChild(categoryHeader);
+
+        categoryAchievements.forEach(([key, data]) => {
+            const unlocked = game.achievements[key] || false;
+
+            const achievementDiv = document.createElement('div');
+            achievementDiv.style.display = 'flex';
+            achievementDiv.style.alignItems = 'center';
+            achievementDiv.style.padding = '8px';
+            achievementDiv.style.marginBottom = '5px';
+            achievementDiv.style.background = unlocked
+                ? 'linear-gradient(90deg, rgba(76, 175, 80, 0.2), rgba(0, 50, 100, 0.1))'
+                : 'rgba(0, 30, 60, 0.3)';
+            achievementDiv.style.borderRadius = '5px';
+            achievementDiv.style.border = `1px solid ${unlocked ? 'rgba(76, 175, 80, 0.5)' : 'rgba(128, 128, 128, 0.3)'}`;
+            achievementDiv.style.opacity = unlocked ? '1' : '0.6';
+
+            achievementDiv.innerHTML = `
+                <div style="font-size: 32px; margin-right: 12px;">${data.icon}</div>
+                <div style="flex: 1;">
+                    <div style="font-size: 13px; font-weight: bold; color: ${unlocked ? '#4ade80' : '#fff'};">
+                        ${unlocked ? '✓ ' : '🔒 '}${data.name}
+                    </div>
+                    <div style="font-size: 11px; color: #ccc; margin-top: 2px;">${data.desc}</div>
+                    <div style="font-size: 11px; color: #4ade80; margin-top: 2px;">
+                        🎁 ${formatCost(data.reward)}
+                    </div>
+                </div>
+            `;
+
+            categoryDiv.appendChild(achievementDiv);
+        });
+
+        achievementsBody.appendChild(categoryDiv);
+    }
+}
 
 /**
  * Buy functions exposed globally

@@ -8,6 +8,7 @@ import { game, updateGameState } from '../core/gameState.js';
 import { buildingData, defenseData } from '../data/buildings.js';
 import { techData } from '../data/technologies.js';
 import { questData } from '../data/quests.js';
+import { achievementData } from '../data/achievements.js';
 import { getCost, canAfford, checkRequires, calculateProduction, calculateClickPower } from '../utils/calculations.js';
 import { playSound } from './audio.js';
 import { saveGame } from './storage.js';
@@ -423,4 +424,62 @@ export function checkQuestReset() {
     }
 
     return false;
+}
+
+/**
+ * Check and unlock achievements
+ * @returns {Array} Array of newly unlocked achievements
+ */
+export function checkAchievements() {
+    const unlocked = [];
+
+    for (const [key, data] of Object.entries(achievementData)) {
+        // Skip if already unlocked
+        if (game.achievements[key]) continue;
+
+        let requirementMet = false;
+
+        switch (data.category) {
+            case 'clicks':
+                requirementMet = game.stats.totalClicks >= data.requirement;
+                break;
+
+            case 'collection':
+                requirementMet = game.totalResources[data.resource] >= data.requirement;
+                break;
+
+            case 'buildings':
+                requirementMet = game.stats.buildingsBuilt >= data.requirement;
+                break;
+
+            case 'tech':
+                const techCount = Object.values(game.technologies).filter(t => t > 0).length;
+                requirementMet = techCount >= data.requirement;
+                break;
+
+            case 'planets':
+                if (typeof data.requirement === 'string') {
+                    // Specific planet check
+                    requirementMet = game.planets[data.requirement]?.unlocked || false;
+                } else {
+                    // Count unlocked planets
+                    const planetsUnlocked = Object.values(game.planets).filter(p => p.unlocked).length;
+                    requirementMet = planetsUnlocked >= data.requirement;
+                }
+                break;
+
+            case 'prestige':
+                requirementMet = game.prestige.level >= data.requirement;
+                break;
+        }
+
+        if (requirementMet) {
+            game.achievements[key] = true;
+            addResources(data.reward);
+            unlocked.push({ key, data });
+            playSound('success');
+        }
+    }
+
+    return unlocked;
 }
