@@ -246,6 +246,48 @@ export function updateDailyRewardsDisplay() {
 }
 
 /**
+ * Update free lootbox floating button visibility
+ */
+export function updateFreeLootboxButton() {
+    const now = Date.now();
+    const cooldown = 2 * 60 * 60 * 1000; // 2 hours
+    const timeLeft = (game.freeLootbox.lastOpen + cooldown) - now;
+    const isAvailable = timeLeft <= 0;
+
+    const floatButton = document.getElementById('freeLootboxFloat');
+    if (!floatButton) return;
+
+    // Show/hide button based on availability
+    if (isAvailable) {
+        // Only trigger animation if button wasn't visible before
+        const wasHidden = floatButton.style.display === 'none';
+        floatButton.style.display = 'block';
+
+        if (wasHidden) {
+            // Show center animation
+            showLootboxAppearAnimation();
+        }
+    } else {
+        floatButton.style.display = 'none';
+    }
+}
+
+/**
+ * Show lootbox appear animation in center of screen
+ */
+function showLootboxAppearAnimation() {
+    const anim = document.getElementById('lootboxAppearAnim');
+    if (!anim) return;
+
+    anim.style.display = 'flex';
+
+    // Hide after animation completes
+    setTimeout(() => {
+        anim.style.display = 'none';
+    }, 2000);
+}
+
+/**
  * Update free lootbox timer
  */
 export function updateLootboxTimer() {
@@ -264,6 +306,9 @@ export function updateLootboxTimer() {
         timerElement.textContent = formatCountdown(timeLeft);
         buttonElement.disabled = true;
     }
+
+    // Also update floating button
+    updateFreeLootboxButton();
 }
 
 /**
