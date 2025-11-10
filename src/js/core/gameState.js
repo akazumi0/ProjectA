@@ -60,7 +60,8 @@ export function createDefaultGameState() {
         },
         prestige: {
             level: 0,
-            totalLumenEarned: 0
+            totalLumenEarned: 0,
+            popupDismissed: false
         },
         activeBoosts: [],
         activeEvents: [],

@@ -649,14 +649,86 @@ window.openFreeLootbox = () => {
     }
 };
 
-window.doPrestige = () => {
-    if (confirm('Confirmer le Prestige ? Cela réinitialisera votre progression (sauf technologies).')) {
-        const result = performPrestige();
-        if (result.success) {
-            showNotification(`🌠 Prestige Niveau ${result.newLevel} ! +${result.bonus}% production`);
-            updateAllUI();
-            renderAllTabs();
+/**
+ * Check if prestige is available
+ */
+function checkPrestigeAvailable() {
+    const requirement = 1000000 * Math.pow(10, game.prestige.level);
+    return game.prestige.totalLumenEarned >= requirement;
+}
+
+/**
+ * Update prestige UI elements
+ */
+window.updatePrestigeUI = function() {
+    const available = checkPrestigeAvailable();
+    const modal = document.getElementById('prestigeModal');
+    const floatButton = document.getElementById('prestigeFloat');
+
+    if (available) {
+        if (!game.prestige.popupDismissed) {
+            // Show popup for the first time
+            updatePrestigeModal();
+            modal.classList.add('active');
+            floatButton.style.display = 'none';
+        } else {
+            // Show floating button if dismissed
+            modal.classList.remove('active');
+            floatButton.style.display = 'block';
         }
+    } else {
+        // Not available, hide both
+        modal.classList.remove('active');
+        floatButton.style.display = 'none';
+        game.prestige.popupDismissed = false; // Reset for next time
+    }
+};
+
+/**
+ * Update prestige modal content
+ */
+function updatePrestigeModal() {
+    const currentLevel = game.prestige.level;
+    const newLevel = currentLevel + 1;
+    const newBonus = newLevel * 10;
+
+    document.getElementById('prestigeLevel').textContent = currentLevel;
+    document.getElementById('prestigeNewLevel').textContent = newLevel;
+    document.getElementById('prestigeBonus').textContent = newBonus;
+}
+
+/**
+ * Open prestige popup from floating button
+ */
+window.openPrestigePopup = () => {
+    updatePrestigeModal();
+    document.getElementById('prestigeModal').classList.add('active');
+    document.getElementById('prestigeFloat').style.display = 'none';
+};
+
+/**
+ * Dismiss prestige popup
+ */
+window.dismissPrestigePopup = () => {
+    game.prestige.popupDismissed = true;
+    document.getElementById('prestigeModal').classList.remove('active');
+    document.getElementById('prestigeFloat').style.display = 'block';
+};
+
+/**
+ * Perform prestige
+ */
+window.doPrestige = () => {
+    const result = performPrestige();
+    if (result.success) {
+        showNotification(`🌠 Prestige Niveau ${result.newLevel} ! +${result.bonus}% production`);
+        document.getElementById('prestigeModal').classList.remove('active');
+        document.getElementById('prestigeFloat').style.display = 'none';
+        game.prestige.popupDismissed = false;
+        updateAllUI();
+        renderAllTabs();
+    } else {
+        showNotification(result.message);
     }
 };
 
@@ -697,13 +769,17 @@ window.buyTech = (key) => {
  * Update profile modal
  */
 function updateProfileModal() {
-    document.getElementById('modalUsername').textContent = game.username;
-    document.getElementById('modalScore').textContent = formatNumber(game.stats.timePlayed / 1000);
     document.getElementById('modalLumen').textContent = formatNumber(game.totalResources.lumen);
 
     const planetsUnlocked = Object.values(game.planets).filter(p => p.unlocked).length;
     document.getElementById('modalPlanets').textContent = `${planetsUnlocked}/3`;
     document.getElementById('modalTechs').textContent = Object.values(game.technologies).filter(t => t > 0).length;
+
+    // Update statistics
+    document.getElementById('modalTimePlayed').textContent = formatTime(game.stats.timePlayed);
+    document.getElementById('modalTotalClicks').textContent = formatNumber(game.stats.totalClicks);
+    document.getElementById('modalFragmentsCaught').textContent = formatNumber(game.stats.fragmentsCaught);
+    document.getElementById('modalBuildingsBuilt').textContent = formatNumber(game.stats.buildingsBuilt);
 }
 
 /**

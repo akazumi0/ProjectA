@@ -63,6 +63,12 @@
         <div class="lootbox-label">GRATUIT</div>
     </div>
 
+    <!-- Prestige Floating Button -->
+    <div id="prestigeFloat" style="display: none;" onclick="openPrestigePopup()">
+        <div class="prestige-icon">🌠</div>
+        <div class="prestige-label">PRESTIGE</div>
+    </div>
+
     <!-- Lootbox Appear Animation -->
     <div id="lootboxAppearAnim" style="display: none;">
         <div class="lootbox-anim-content">
@@ -96,14 +102,6 @@
             <div class="modal-header">PROFIL DU COMMANDANT</div>
             <div class="modal-body">
                 <div class="stat-row">
-                    <span class="stat-label">Nom</span>
-                    <span class="stat-value" id="modalUsername">-</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Score Total</span>
-                    <span class="stat-value" id="modalScore">0</span>
-                </div>
-                <div class="stat-row">
                     <span class="stat-label">Lumen Total</span>
                     <span class="stat-value" id="modalLumen">0</span>
                 </div>
@@ -114,6 +112,27 @@
                 <div class="stat-row">
                     <span class="stat-label">Technologies</span>
                     <span class="stat-value" id="modalTechs">0</span>
+                </div>
+
+                <div style="margin: 15px 0; padding-top: 10px; border-top: 1px solid var(--color-border);">
+                    <div style="font-size: 14px; font-weight: bold; color: var(--color-primary); margin-bottom: 10px; text-align: center;">📊 STATISTIQUES</div>
+                </div>
+
+                <div class="stat-row">
+                    <span class="stat-label">Temps de jeu</span>
+                    <span class="stat-value" id="modalTimePlayed">0s</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Clics totaux</span>
+                    <span class="stat-value" id="modalTotalClicks">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Fragments capturés</span>
+                    <span class="stat-value" id="modalFragmentsCaught">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Bâtiments construits</span>
+                    <span class="stat-value" id="modalBuildingsBuilt">0</span>
                 </div>
             </div>
             <button class="close-btn" onclick="closeProfile()">FERMER</button>
@@ -153,7 +172,6 @@
         <div class="icon-button" onclick="openModal('achievements')" id="achievementsIcon">🏆</div>
         <div class="icon-button" onclick="openModal('artifacts')" id="artifactsIcon">💎</div>
         <div class="icon-button" onclick="openModal('events')" id="eventsIcon">🌟</div>
-        <div class="icon-button" onclick="openModal('prestige')" id="prestigeIcon">🌠</div>
         <div class="icon-button" onclick="openModal('shop')" id="shopIcon">🏪</div>
     </div>
 
@@ -218,17 +236,6 @@
         </div>
     </div>
 
-    <!-- Stats Modal -->
-    <div id="statsModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 500px;">
-            <button class="modal-close" onclick="closeModal('stats')">✕</button>
-            <div class="modal-header">📊 STATISTIQUES</div>
-            <div class="modal-body" id="statsBody" style="max-height: 60vh; overflow-y: auto;">
-                <!-- Populated by JS -->
-            </div>
-        </div>
-    </div>
-
     <!-- Artifacts Modal -->
     <div id="artifactsModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 500px;">
@@ -243,25 +250,27 @@
     <!-- Prestige Modal -->
     <div id="prestigeModal" class="modal-overlay">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('prestige')">✕</button>
-            <div class="modal-header">🌠 PRESTIGE</div>
+            <div class="modal-header">🌠 PRESTIGE DISPONIBLE</div>
             <div class="modal-body">
                 <div class="info-row">
                     <div class="info-label">Niveau actuel</div>
                     <div class="info-value" id="prestigeLevel">0</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">Bonus de production</div>
-                    <div class="info-value">+<span id="prestigeBonus">0</span>%</div>
+                    <div class="info-label">Nouveau niveau</div>
+                    <div class="info-value" id="prestigeNewLevel">1</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">Progression</div>
-                    <div class="info-value" id="prestigeProgress">--</div>
+                    <div class="info-label">Nouveau bonus</div>
+                    <div class="info-value">+<span id="prestigeBonus">10</span>%</div>
                 </div>
                 <div style="margin: 15px 0; padding: 10px; background: rgba(255,50,50,0.1); border: 1px solid rgba(255,50,50,0.3); border-radius: 5px; font-size: 11px; text-align: center;">
                     ⚠️ Le prestige réinitialise tout sauf les technologies
                 </div>
-                <button class="sidebar-btn gold" id="prestigeBtn" onclick="doPrestige()" disabled>PRESTIGE</button>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="sidebar-btn" onclick="dismissPrestigePopup()" style="flex: 1;">PLUS TARD</button>
+                    <button class="sidebar-btn gold" onclick="doPrestige()" style="flex: 1;">PRESTIGE</button>
+                </div>
             </div>
         </div>
     </div>

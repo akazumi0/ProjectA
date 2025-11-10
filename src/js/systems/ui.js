@@ -166,9 +166,6 @@ export function triggerSuccessAnimation(elementId) {
     }, 500);
 }
 
-// Keep track of current dialogue handler
-let currentDialogueHandler = null;
-
 /**
  * Show ASTRA dialogue
  * @param {string} text - Dialogue text
@@ -180,35 +177,39 @@ export function showAstraDialogue(text, duration = 0) {
 
     if (!dialogue || !textElement) return;
 
-    // Remove previous click handler if exists
-    if (currentDialogueHandler) {
-        dialogue.removeEventListener('click', currentDialogueHandler);
-        currentDialogueHandler = null;
-    }
-
     textElement.textContent = text;
-    dialogue.classList.add('show');
 
-    // Click to dismiss handler
-    currentDialogueHandler = () => {
+    // Use requestAnimationFrame to ensure smooth transition
+    requestAnimationFrame(() => {
+        dialogue.classList.add('show');
+    });
+
+    // Simple click handler - use event delegation to avoid multiple listeners
+    const handleClick = () => {
         dialogue.classList.remove('show');
-        if (currentDialogueHandler) {
-            dialogue.removeEventListener('click', currentDialogueHandler);
-            currentDialogueHandler = null;
-        }
     };
 
-    // Add listener with once option for auto-cleanup
-    dialogue.addEventListener('click', currentDialogueHandler, { once: true });
+    // Remove any existing listeners by cloning
+    const newDialogue = dialogue.cloneNode(true);
+    dialogue.parentNode.replaceChild(newDialogue, dialogue);
+
+    // Re-get the element after cloning
+    const freshDialogue = document.getElementById('astraDialogue');
+    const freshText = document.getElementById('astraText');
+    freshText.textContent = text;
+
+    // Add show class after clone
+    requestAnimationFrame(() => {
+        freshDialogue.classList.add('show');
+    });
+
+    // Add single click listener
+    freshDialogue.addEventListener('click', handleClick, { once: true });
 
     // Auto-hide after duration if specified
     if (duration > 0) {
         setTimeout(() => {
-            dialogue.classList.remove('show');
-            if (currentDialogueHandler) {
-                dialogue.removeEventListener('click', currentDialogueHandler);
-                currentDialogueHandler = null;
-            }
+            freshDialogue.classList.remove('show');
         }, duration);
     }
 }
@@ -314,4 +315,9 @@ export function updateAllUI() {
     updatePrestigeDisplay();
     updateDailyRewardsDisplay();
     updateLootboxTimer();
+
+    // Check and update prestige popup/floating button
+    if (typeof window.updatePrestigeUI === 'function') {
+        window.updatePrestigeUI();
+    }
 }
