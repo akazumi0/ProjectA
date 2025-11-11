@@ -222,30 +222,37 @@ function loadStarSprites() {
         const totalSprites = 4;
 
         const spriteMap = {
-            normal: '/src/assets/fragments/star-pixel.svg',
-            golden: '/src/assets/fragments/star-golden.svg',
-            rare: '/src/assets/fragments/star-rare.svg',
-            legendary: '/src/assets/fragments/star-legendary.svg'
+            normal: './src/assets/fragments/star-pixel.svg',
+            golden: './src/assets/fragments/star-golden.svg',
+            rare: './src/assets/fragments/star-rare.svg',
+            legendary: './src/assets/fragments/star-legendary.svg'
         };
 
-        function onSpriteLoad() {
+        console.log('🎨 Loading star sprites...');
+
+        function onSpriteLoad(key, success) {
             loadedCount++;
+            console.log(`${success ? '✅' : '❌'} Sprite ${key}: ${success ? 'loaded' : 'failed'} (${loadedCount}/${totalSprites})`);
             if (loadedCount === totalSprites) {
                 starSprites.loaded = true;
-                console.log('✅ All star sprites loaded');
+                console.log('✅ All star sprites loaded successfully!');
                 resolve();
             }
         }
 
         for (const [key, path] of Object.entries(spriteMap)) {
             const img = new Image();
-            img.onload = onSpriteLoad;
-            img.onerror = () => {
-                console.warn(`⚠️ Failed to load sprite: ${path}, using fallback`);
-                onSpriteLoad(); // Continue even if one fails
+            img.onload = () => {
+                console.log(`✓ Sprite loaded: ${key} (${img.width}x${img.height})`);
+                onSpriteLoad(key, true);
+            };
+            img.onerror = (e) => {
+                console.error(`✗ Failed to load sprite ${key} from ${path}:`, e);
+                onSpriteLoad(key, false);
             };
             img.src = path;
             starSprites[key] = img;
+            console.log(`📥 Loading sprite: ${key} from ${path}`);
         }
     });
 }
@@ -783,6 +790,12 @@ function renderLoop() {
                 const sprite = starSprites[fragment.type];
                 if (sprite && sprite.complete) {
                     ctx.drawImage(sprite, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
+                } else if (sprite && !sprite.complete) {
+                    // Sprite still loading, show fallback temporarily
+                    ctx.fillStyle = fragment.baseColor || '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, spriteSize / 2, 0, Math.PI * 2);
+                    ctx.fill();
                 }
 
                 ctx.restore();
@@ -919,6 +932,7 @@ function getRandomFragmentType() {
 /**
  * Spawn a new fragment with rarity system
  */
+let fragmentSpawnCount = 0;
 function spawnFragment() {
     const playableTop = CANVAS.PLAYABLE_MARGIN_TOP;
     const playableBottom = canvas.height - CANVAS.PLAYABLE_MARGIN_BOTTOM;
@@ -945,7 +959,18 @@ function spawnFragment() {
     };
 
     fragments.push(fragment);
-    console.log(`⭐ ${fragmentType.type.toUpperCase()} fragment spawned (value: ${fragmentValue}) at x:`, Math.round(fragment.x), 'y:', fragment.y, '| Total fragments:', fragments.length);
+    fragmentSpawnCount++;
+
+    // Log first 3 spawns for debugging
+    if (fragmentSpawnCount <= 3) {
+        console.log(`⭐ Fragment #${fragmentSpawnCount} spawned:`, {
+            type: fragmentType.type.toUpperCase(),
+            position: `(${Math.round(fragment.x)}, ${Math.round(fragment.y)})`,
+            speed: fragment.speed.toFixed(2),
+            spritesLoaded: starSprites.loaded,
+            hasSprite: starSprites[fragment.type] ? 'YES' : 'NO'
+        });
+    }
 }
 
 /**
