@@ -201,6 +201,9 @@ function initCanvas() {
     // Initialize multi-layer starfield with parallax
     initStarfield();
 
+    // Mark canvas as initialized (CRITICAL for game loops to start)
+    canvasInitialized = true;
+
     // Start render loop
     renderLoop();
 }
