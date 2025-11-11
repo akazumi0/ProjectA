@@ -629,8 +629,13 @@ function calculateBuildingPositions() {
     const planet = game.planets[game.currentPlanet];
     const positions = [];
 
-    // Bottom area for production buildings (20% of screen height)
-    const buildingAreaY = canvas.height * 0.85;
+    // Check if bottom UI is minimized
+    const bottomUI = document.getElementById('bottomUI');
+    const isMinimized = bottomUI && bottomUI.classList.contains('minimized');
+
+    // Bottom area for production buildings - adjust based on UI state
+    // If minimized, buildings can be lower (90%), if expanded use 75% to avoid overlap
+    const buildingAreaY = canvas.height * (isMinimized ? 0.90 : 0.68);
     const buildingSpacing = 60;
     let buildingIndex = 0;
 
@@ -1910,6 +1915,26 @@ function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
 
     return card;
 }
+
+/**
+ * Toggle bottom UI minimized/expanded state
+ */
+window.toggleBottomUI = function() {
+    const bottomUI = document.getElementById('bottomUI');
+    const toggleIcon = document.getElementById('toggleIcon');
+
+    if (bottomUI.classList.contains('minimized')) {
+        // Expand
+        bottomUI.classList.remove('minimized');
+        bottomUI.classList.add('expanded');
+        toggleIcon.textContent = '▼';
+    } else {
+        // Minimize
+        bottomUI.classList.remove('expanded');
+        bottomUI.classList.add('minimized');
+        toggleIcon.textContent = '▲';
+    }
+};
 
 /**
  * Core functions exposed globally for inline onclick handlers

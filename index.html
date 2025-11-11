@@ -464,7 +464,10 @@
     </div>
 
     <!-- Bottom UI -->
-    <div id="bottomUI" style="display: none;">
+    <div id="bottomUI" style="display: none;" class="expanded">
+        <button id="bottomUIToggle" onclick="toggleBottomUI()" title="Réduire/Agrandir">
+            <span id="toggleIcon">▼</span>
+        </button>
         <div id="tabs">
             <div class="tab active" onclick="switchTab(0)">DÉFENSE</div>
             <div class="tab" onclick="switchTab(1)">BÂTIMENTS</div>
