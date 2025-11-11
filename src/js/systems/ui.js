@@ -37,7 +37,24 @@ export function updateResources() {
 
     for (let res in elements) {
         if (elements[res]) {
-            elements[res].textContent = formatNumber(game.resources[res]);
+            const el = elements[res];
+            const oldValue = parseFloat(el.textContent.replace(/[^0-9.]/g, '')) || 0;
+            const newValue = game.resources[res];
+
+            el.textContent = formatNumber(newValue);
+
+            // Trigger pulse animation if value increased significantly (>1% change or first time)
+            if (newValue > oldValue * 1.01 || (oldValue === 0 && newValue > 0)) {
+                el.classList.remove('pulse');
+                // Force reflow to restart animation
+                void el.offsetWidth;
+                el.classList.add('pulse');
+
+                // Remove class after animation completes
+                setTimeout(() => {
+                    el.classList.remove('pulse');
+                }, 300);
+            }
         }
     }
 
@@ -63,20 +80,60 @@ export function updateComboDisplay() {
 
     if (!comboDisplay) return;
 
+    // Show combo display when combo > 3
     if (game.combo.count > 3) {
+        const wasHidden = !comboDisplay.classList.contains('show');
         comboDisplay.classList.add('show');
+
         if (comboCount) comboCount.textContent = game.combo.count;
         if (comboMultiplier) {
             const bonusPercent = ((game.combo.multiplier - 1) * 100).toFixed(0);
             comboMultiplier.textContent = `+${bonusPercent}%`;
         }
 
-        // Set combo level for visual styling
-        const comboLevel = game.combo.count >= 30 ? 3 : game.combo.count >= 15 ? 2 : game.combo.count >= 8 ? 1 : 0;
+        // Calculate combo level based on new thresholds
+        // Level 1: x3-5 Cyan
+        // Level 2: x6-10 Green
+        // Level 3: x11-15 Gold
+        // Level 4: x16-20 Orange Fire
+        // Level 5: x21+ LEGENDARY
+        let comboLevel = 1;
+        if (game.combo.count >= 21) {
+            comboLevel = 5;
+        } else if (game.combo.count >= 16) {
+            comboLevel = 4;
+        } else if (game.combo.count >= 11) {
+            comboLevel = 3;
+        } else if (game.combo.count >= 6) {
+            comboLevel = 2;
+        }
+
+        const previousLevel = parseInt(comboDisplay.getAttribute('data-level')) || 0;
         comboDisplay.setAttribute('data-level', comboLevel);
+
+        // Play sound when reaching a new combo level
+        if (comboLevel > previousLevel && !wasHidden) {
+            import('./audio.js').then(({ playSound }) => {
+                // Different sounds for different levels
+                if (comboLevel === 5) {
+                    playSound('achievement'); // Epic sound for legendary
+                } else if (comboLevel >= 3) {
+                    playSound('success'); // Success sound for gold+
+                } else {
+                    playSound('notification'); // Ding sound for lower levels
+                }
+            });
+        }
     } else {
-        comboDisplay.classList.remove('show');
-        comboDisplay.removeAttribute('data-level');
+        // Combo broken - show break animation
+        if (comboDisplay.classList.contains('show')) {
+            comboDisplay.style.animation = 'comboBreak 0.3s ease-out';
+            setTimeout(() => {
+                comboDisplay.classList.remove('show');
+                comboDisplay.removeAttribute('data-level');
+                comboDisplay.style.animation = '';
+            }, 300);
+        }
     }
 }
 

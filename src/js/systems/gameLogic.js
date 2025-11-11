@@ -14,6 +14,7 @@ import { getCost, canAfford, checkRequires, calculateProduction, calculateClickP
 import { playSound } from './audio.js';
 import { saveGame } from './storage.js';
 import { lightHaptic, mediumHaptic, heavyHaptic, successHaptic, errorHaptic } from '../utils/haptics.js';
+import { checkMilestone, checkAllMilestones } from '../utils/milestones.js';
 
 /**
  * Spend resources from game state
@@ -36,6 +37,11 @@ export function addResources(resources) {
             game.totalResources[res] += resources[res];
             game.prestige.totalLumenEarned += (res === 'lumen' ? resources[res] : 0);
         }
+    }
+
+    // Check lumen milestones
+    if (resources.lumen) {
+        checkMilestone('lumen', game.totalResources.lumen);
     }
 }
 
@@ -101,6 +107,10 @@ export function buyBuilding(key) {
     playSound('build');
     mediumHaptic();
 
+    // Check buildings milestone
+    const totalBuildings = Object.values(planet.buildings).reduce((a, b) => a + b, 0);
+    checkMilestone('buildings', totalBuildings);
+
     return true;
 }
 
@@ -134,6 +144,10 @@ export function buyTechnology(key) {
     playSound('success');
     heavyHaptic(); // Technologies are important!
 
+    // Check technologies milestone
+    const totalTechs = Object.values(game.technologies).reduce((a, b) => a + b, 0);
+    checkMilestone('technologies', totalTechs);
+
     return true;
 }
 
@@ -161,11 +175,27 @@ export function captureFragment(fragment) {
     game.combo.missedFragments = 0;
 
     // Add resources
-    addResources({ lumen: value });
+    const rewards = { lumen: value };
+
+    // Antimatter drop chance (0.5% = 1 in 200 fragments)
+    // Increased from 0.1% for better progression
+    if (Math.random() < 0.005) {
+        rewards.antimatter = 1;
+        // Show special notification for rare antimatter drop
+        import('./ui.js').then(({ showNotification }) => {
+            showNotification('💎 ANTIMATIÈRE CAPTURÉE! +1 Antimatière', 4000);
+        });
+        playSound('achievement');
+    }
+
+    addResources(rewards);
 
     // Update stats
     game.stats.totalClicks++;
     game.stats.fragmentsCaught++;
+
+    // Check clicks milestone
+    checkMilestone('clicks', game.stats.totalClicks);
 
     // Update quests
     updateQuestProgress('clicks');
@@ -247,6 +277,9 @@ export function performPrestige() {
 
     // Increment prestige level
     game.prestige.level++;
+
+    // Check prestige milestone
+    checkMilestone('prestige', game.prestige.level);
 
     saveGame();
     playSound('success');
