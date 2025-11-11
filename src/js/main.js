@@ -163,12 +163,16 @@ window.hideManifesto = function() {
  * Called after user enters username
  */
 export async function startGame() {
+    console.log('🎮 startGame() called!');
+
     const usernameInput = document.getElementById('usernameInput');
     const welcomeScreen = document.getElementById('welcome');
 
     if (usernameInput && usernameInput.value.trim()) {
         game.username = usernameInput.value.trim();
     }
+
+    console.log('👤 Username:', game.username, '| Tier:', selectedTier);
 
     // Save selected tier
     game.playerTier = selectedTier;
@@ -183,8 +187,16 @@ export async function startGame() {
     document.getElementById('leftIconBar').style.display = 'block';
     document.getElementById('bottomUI').style.display = 'block';
 
+    console.log('🎨 Initializing canvas...');
+
     // Initialize systems (await canvas init for sprite loading)
-    await initCanvas();
+    try {
+        await initCanvas();
+        console.log('✅ Canvas initialized successfully');
+    } catch (error) {
+        console.error('❌ Canvas initialization failed:', error);
+        throw error;
+    }
     initEventListeners();
     startGameLoops();
 
@@ -1939,7 +1951,10 @@ window.toggleBottomUI = function() {
 /**
  * Core functions exposed globally for inline onclick handlers
  */
-window.startGame = startGame;
+window.startGame = function() {
+    console.log('🔘 window.startGame() button clicked!');
+    return startGame();
+};
 window.switchTab = switchTab;
 window.openModal = (id) => {
     // Initialize settings UI when opening settings modal
@@ -2410,7 +2425,9 @@ function updateProfileModal() {
 /**
  * App initialization
  */
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+    console.log('📱 DOMContentLoaded - App initializing...');
+
     // Initialize audio systems
     initAudio();
     initAmbientMusic();
@@ -2423,6 +2440,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Try to load saved game
     const savedGame = loadGame();
     if (savedGame) {
+        console.log('💾 Saved game found, loading...');
         loadGameState(savedGame.game);
 
         // Process offline earnings
@@ -2433,9 +2451,11 @@ window.addEventListener('DOMContentLoaded', () => {
         }
 
         // Skip welcome screen if returning player
-        startGame();
+        console.log('⏭️ Skipping welcome screen for returning player');
+        await startGame();
     } else {
         // Show welcome screen for new players
+        console.log('👋 New player - showing welcome screen');
         document.getElementById('welcome').style.display = 'flex';
     }
 });
