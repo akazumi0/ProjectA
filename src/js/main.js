@@ -28,6 +28,7 @@ import { astraDialogues } from './data/dialogues.js';
 import { initAudio, playSound, resumeAudio, playBackgroundMusic, toggleMusic, toggleSound } from './systems/audio.js';
 import { loadGame, saveGame, processOfflineEarnings, setupAutoSave } from './systems/storage.js';
 import { initializeSettingsUI } from './systems/settings.js';
+import { initTutorial, onTutorialAction, checkSystemUnlocks, isTutorialActive } from './systems/tutorial.js';
 import {
     buyDefense,
     buyBuilding,
@@ -63,6 +64,7 @@ import {
 // Utility imports
 import { formatNumber, formatCost, formatCostColored, formatLevel } from './utils/formatters.js';
 import { getCost, canAfford, checkRequires, calculateClickPower } from './utils/calculations.js';
+import { screenShake, flashEffect, createParticleBurst, createSparkles, renderParticles } from './utils/screenEffects.js';
 
 /**
  * Canvas and rendering variables
@@ -163,11 +165,16 @@ export function startGame() {
         generateDailyQuests();
     }
 
-    // Show random welcome dialogue after UI is ready (delayed to prevent lag)
-    setTimeout(() => {
-        const randomDialogue = astraDialogues[Math.floor(Math.random() * Math.min(5, astraDialogues.length))];
-        showAstraDialogue(randomDialogue.text);
-    }, 100);
+    // Initialize tutorial for new players
+    const tutorialStarted = initTutorial();
+
+    // Show random welcome dialogue only if tutorial is not active
+    if (!tutorialStarted) {
+        setTimeout(() => {
+            const randomDialogue = astraDialogues[Math.floor(Math.random() * Math.min(5, astraDialogues.length))];
+            showAstraDialogue(randomDialogue.text);
+        }, 100);
+    }
 }
 
 /**
@@ -292,22 +299,8 @@ function renderLoop() {
             ctx.restore();
         });
 
-        // Draw particles (simple version)
-        particles.forEach((particle, index) => {
-            particle.x += particle.vx;
-            particle.y += particle.vy;
-            particle.life--;
-
-            if (particle.life <= 0) {
-                particles.splice(index, 1);
-                return;
-            }
-
-            // Change particle color during combo
-            let particleColor = comboLevel >= 2 ? '255, 100, 0' : '0, 212, 255';
-            ctx.fillStyle = `rgba(${particleColor}, ${particle.life / 30})`;
-            ctx.fillRect(particle.x, particle.y, 2, 2);
-        });
+        // Draw particles with enhanced rendering
+        renderParticles(ctx, particles);
     } catch (error) {
         console.error('Render loop error:', error);
     }
@@ -378,15 +371,24 @@ function handleCanvasClick(event) {
                 fragmentColor = '#ff3300'; // Red fire
             }
 
-            // Create particle effect
-            for (let p = 0; p < 10; p++) {
-                particles.push({
-                    x: fragment.x,
-                    y: fragment.y,
-                    vx: (Math.random() - 0.5) * 4,
-                    vy: (Math.random() - 0.5) * 4,
-                    life: 30
-                });
+            // Enhanced particle effects based on combo level
+            const particleCount = 15 + (comboLevel * 10); // More particles at higher combos
+            const particleSpeed = 1 + (comboLevel * 0.3);
+            createParticleBurst(particles, fragment.x, fragment.y, fragmentColor, particleCount, particleSpeed);
+
+            // Add sparkles for high combos
+            if (comboLevel >= 2) {
+                createSparkles(particles, fragment.x, fragment.y, '#ffd700', 5 + comboLevel * 3);
+            }
+
+            // Screen shake based on combo level
+            const shakeIntensity = 2 + (comboLevel * 2); // 2-8px shake
+            const shakeDuration = 100 + (comboLevel * 50); // 100-250ms
+            screenShake(canvas, shakeIntensity, shakeDuration);
+
+            // Flash effect for very high combos
+            if (comboLevel >= 3) {
+                flashEffect(canvas, 'rgba(255, 100, 0, 0.3)', 100);
             }
 
             // Show floating text with fragment color
@@ -403,6 +405,9 @@ function handleCanvasClick(event) {
 
             // Play sound
             playSound('capture');
+
+            // Notify tutorial system
+            onTutorialAction('fragment_captured');
 
             break;
         }
@@ -516,6 +521,9 @@ function startGameLoops() {
             updateLootboxTimer();
             updateComboVisuals();
             checkQuestReset();
+
+            // Check for progressive system unlocks
+            checkSystemUnlocks();
 
             // Check for new achievements
             const newAchievements = checkAchievements();
@@ -1084,6 +1092,8 @@ window.buyDefense = (key) => {
         updateResources();
         // Trigger animation after render
         setTimeout(() => triggerSuccessAnimation(`defense-${key}`), 10);
+        // Notify tutorial system
+        onTutorialAction('defense_bought', { key });
     }
 };
 
@@ -1094,6 +1104,8 @@ window.buyBuilding = (key) => {
         updateResources();
         // Trigger animation after render
         setTimeout(() => triggerSuccessAnimation(`building-${key}`), 10);
+        // Notify tutorial system
+        onTutorialAction('building_bought', { key });
     }
 };
 

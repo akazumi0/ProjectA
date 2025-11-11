@@ -149,6 +149,7 @@ export function createDefaultGameState() {
         // Tutorial & First Time
         firstTime: true,
         tutorialCompleted: false,
+        tutorialStep: 0,
         manifestoSeen: false,
         // Leaderboard data (will sync with Firebase)
         leaderboard: {
@@ -239,6 +240,7 @@ export function loadGameState(savedState) {
     if (!game.prestige.artifacts) game.prestige.artifacts = defaultState.prestige.artifacts;
     if (game.firstTime === undefined) game.firstTime = false; // Existing players
     if (!game.tutorialCompleted) game.tutorialCompleted = false;
+    if (game.tutorialStep === undefined) game.tutorialStep = 0;
     if (!game.manifestoSeen) game.manifestoSeen = false;
     if (!game.leaderboard) game.leaderboard = defaultState.leaderboard;
 
