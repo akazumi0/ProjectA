@@ -131,11 +131,14 @@ let selectedTier = 'FREE';
  */
 window.selectTier = function(tier) {
     selectedTier = tier;
+    console.log('Tier selected:', tier);
     // Update UI
     document.querySelectorAll('.tier-btn').forEach(btn => {
         btn.classList.remove('active');
+        if (btn.onclick && btn.onclick.toString().includes(tier)) {
+            btn.classList.add('active');
+        }
     });
-    event.target.closest('.tier-btn').classList.add('active');
 };
 
 /**
@@ -950,9 +953,9 @@ function renderLoop() {
                     const result = captureFragment(fragment);
 
                     if (result) {
-                        // Visual effects
+                        // Minimal visual effects for auto-collect
                         const fragmentColor = fragment.baseColor || '#00d4ff';
-                        createParticleBurst(particles, fragment.x, fragment.y, fragmentColor, 10, 1);
+                        createParticleBurst(particles, fragment.x, fragment.y, fragmentColor, 3, 0.8); // Reduced from 10 to 3
                         createFloatingText(`+${formatNumber(result.lumen)}`, fragment.x, fragment.y, fragmentColor);
 
                         // Remove fragment
@@ -992,9 +995,9 @@ function renderLoop() {
                 // Collect fragment
                 const result = captureFragment(fragment);
                 if (result) {
-                    // Visual effects - beam from companion to fragment
+                    // Minimal visual effects - beam from companion to fragment
                     const fragmentColor = fragment.baseColor || '#00d4ff';
-                    createParticleBurst(particles, fragment.x, fragment.y, fragmentColor, 8, 1);
+                    createParticleBurst(particles, fragment.x, fragment.y, fragmentColor, 3, 0.8); // Reduced from 8 to 3
                     createFloatingText(`+${formatNumber(result.lumen)}`, fragment.x, fragment.y, fragmentColor);
 
                     // Remove fragment
@@ -1534,25 +1537,22 @@ function handleCanvasClick(event) {
                 fragmentColor = '#ff3300'; // Red fire
             }
 
-            // Enhanced particle effects based on combo level
-            const particleCount = 15 + (comboLevel * 10); // More particles at higher combos
-            const particleSpeed = 1 + (comboLevel * 0.3);
+            // Reduced particle effects - much lighter
+            const particleCount = 5 + (comboLevel * 2); // 5-11 particles max (was 15-45!)
+            const particleSpeed = 1 + (comboLevel * 0.2);
             createParticleBurst(particles, fragment.x, fragment.y, fragmentColor, particleCount, particleSpeed);
 
-            // Add sparkles for high combos
-            if (comboLevel >= 2) {
-                createSparkles(particles, fragment.x, fragment.y, '#ffd700', 5 + comboLevel * 3);
+            // Add minimal sparkles only for very high combos
+            if (comboLevel >= 3) {
+                createSparkles(particles, fragment.x, fragment.y, '#ffd700', 3);
             }
 
-            // Screen shake based on combo level
-            const shakeIntensity = 2 + (comboLevel * 2); // 2-8px shake
-            const shakeDuration = 100 + (comboLevel * 50); // 100-250ms
+            // Reduced screen shake
+            const shakeIntensity = 1 + comboLevel; // 1-4px shake (was 2-8px)
+            const shakeDuration = 50 + (comboLevel * 25); // 50-125ms (was 100-250ms)
             screenShake(canvas, shakeIntensity, shakeDuration);
 
-            // Flash effect for very high combos
-            if (comboLevel >= 3) {
-                flashEffect(canvas, 'rgba(255, 100, 0, 0.3)', 100);
-            }
+            // No flash effect - removed to reduce visual overload
 
             // Show floating text with fragment color
             if (result.lumen) {
