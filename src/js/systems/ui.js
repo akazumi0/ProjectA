@@ -67,8 +67,13 @@ export function updateComboDisplay() {
             const bonusPercent = ((game.combo.multiplier - 1) * 100).toFixed(0);
             comboMultiplier.textContent = `+${bonusPercent}%`;
         }
+
+        // Set combo level for visual styling
+        const comboLevel = game.combo.count >= 30 ? 3 : game.combo.count >= 15 ? 2 : game.combo.count >= 8 ? 1 : 0;
+        comboDisplay.setAttribute('data-level', comboLevel);
     } else {
         comboDisplay.classList.remove('show');
+        comboDisplay.removeAttribute('data-level');
     }
 }
 

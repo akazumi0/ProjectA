@@ -322,8 +322,8 @@ function spawnFragment() {
         x: playableLeft + Math.random() * playableWidth,
         y: playableTop,
         size: CANVAS.FRAGMENT_SIZE,
-        speed: 1.5 + Math.random() * 1,
-        value: Math.floor(Math.random() * 10) + 1,
+        speed: 1.0 + Math.random() * 0.8,  // Reduced from 1.5-2.5 to 1.0-1.8 (20-30% slower)
+        value: Math.floor(Math.random() * 15) + 5,  // Increased value from 1-10 to 5-19
         color: '#00d4ff',
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.1,

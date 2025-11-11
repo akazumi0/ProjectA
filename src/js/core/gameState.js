@@ -52,18 +52,18 @@ export function createDefaultGameState() {
             }
         },
         resources: {
-            lumen: 0,
+            lumen: 50,  // Start with 50 Lumen for better first experience
             energy: 0,
             antimatter: 0
         },
         totalResources: {
-            lumen: 0,
+            lumen: 50,
             energy: 0,
             antimatter: 0
         },
         technologies: {},
         defense: {},
-        clickPower: 10,
+        clickPower: 15,  // Increased from 10 to make clicks more satisfying
         fragmentSpawnRate: 1,
         lastTick: Date.now(),
         // Systems
