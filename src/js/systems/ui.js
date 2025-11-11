@@ -287,9 +287,6 @@ function createSuccessParticles(x, y) {
 let astraTimeoutId = null;
 let astraClickHandler = null;
 
-// Milestone tracking
-const milestonesReached = new Set();
-
 // Milestone definitions
 const milestones = [
     { amount: 100, tier: 'bronze', icon: '🥉', title: 'Premier Pas', message: 'Vous avez collecté 100 Lumen!' },
@@ -308,10 +305,24 @@ const milestones = [
  * @param {number} totalLumen - Current total Lumen count
  */
 export function checkMilestones(totalLumen) {
+    // Ensure milestonesReached array exists
+    if (!game.milestonesReached) {
+        game.milestonesReached = [];
+    }
+
     milestones.forEach(milestone => {
-        if (totalLumen >= milestone.amount && !milestonesReached.has(milestone.amount)) {
-            milestonesReached.add(milestone.amount);
+        // Check if this milestone hasn't been reached yet
+        if (totalLumen >= milestone.amount && !game.milestonesReached.includes(milestone.amount)) {
+            // Mark as reached
+            game.milestonesReached.push(milestone.amount);
+
+            // Trigger celebration
             triggerMilestoneCelebration(milestone);
+
+            // Auto-save to persist milestone progress
+            if (typeof saveGame === 'function') {
+                saveGame();
+            }
         }
     });
 }

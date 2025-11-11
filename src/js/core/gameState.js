@@ -88,6 +88,7 @@ export function createDefaultGameState() {
         activeBoosts: [],
         activeEvents: [],
         achievements: {},
+        milestonesReached: [],  // Array of milestone amounts that have been reached (e.g., [100, 1000])
         stats: {
             totalClicks: 0,
             buildingsBuilt: 0,

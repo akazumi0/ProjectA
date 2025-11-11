@@ -82,7 +82,7 @@ export function flashEffect(element, color = 'rgba(255, 255, 255, 0.5)', duratio
 }
 
 /**
- * Create enhanced particle burst
+ * Create enhanced particle burst with multiple particle types
  * @param {Array} particlesArray - Array to push particles to
  * @param {number} x - X position
  * @param {number} y - Y position
@@ -92,19 +92,33 @@ export function flashEffect(element, color = 'rgba(255, 255, 255, 0.5)', duratio
  */
 export function createParticleBurst(particlesArray, x, y, color = '#00d4ff', count = 20, speed = 1) {
     for (let i = 0; i < count; i++) {
-        const angle = (Math.PI * 2 * i) / count;
+        const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5; // Add randomness to angle
         const velocity = (2 + Math.random() * 3) * speed;
+        const particleType = Math.random();
+
+        // 70% normal particles, 20% sparkles, 10% trails
+        let type = 'normal';
+        if (particleType > 0.7 && particleType <= 0.9) {
+            type = 'sparkle';
+        } else if (particleType > 0.9) {
+            type = 'trail';
+        }
 
         particlesArray.push({
             x,
             y,
             vx: Math.cos(angle) * velocity,
             vy: Math.sin(angle) * velocity,
-            life: 30 + Math.random() * 20,
-            maxLife: 30 + Math.random() * 20,
-            size: 2 + Math.random() * 3,
+            life: type === 'trail' ? 50 + Math.random() * 30 : 30 + Math.random() * 20,
+            maxLife: type === 'trail' ? 50 + Math.random() * 30 : 30 + Math.random() * 20,
+            size: type === 'sparkle' ? 3 + Math.random() * 2 : 2 + Math.random() * 3,
             color,
-            gravity: 0.1
+            gravity: type === 'trail' ? 0.05 : 0.1,
+            type,
+            rotation: type === 'sparkle' ? Math.random() * Math.PI * 2 : 0,
+            rotSpeed: type === 'sparkle' ? (Math.random() - 0.5) * 0.3 : 0,
+            // Trail effect properties
+            trail: type === 'trail' ? [] : undefined
         });
     }
 }
@@ -173,6 +187,11 @@ export function createConfettiBurst(particlesArray, x, y, count = 30) {
  */
 export function renderParticles(ctx, particlesArray) {
     particlesArray.forEach((particle, index) => {
+        // Store trail position before updating
+        if (particle.trail && particle.trail.length < 8) {
+            particle.trail.push({ x: particle.x, y: particle.y, alpha: particle.life / particle.maxLife });
+        }
+
         // Update physics
         particle.x += particle.vx;
         particle.y += particle.vy;
@@ -188,6 +207,10 @@ export function renderParticles(ctx, particlesArray) {
             particle.rotation += particle.rotSpeed;
         }
 
+        // Apply air resistance for smoother motion
+        particle.vx *= 0.98;
+        particle.vy *= 0.98;
+
         // Remove dead particles
         if (particle.life <= 0) {
             particlesArray.splice(index, 1);
@@ -199,7 +222,33 @@ export function renderParticles(ctx, particlesArray) {
 
         ctx.save();
 
-        if (particle.type === 'sparkle') {
+        if (particle.type === 'trail') {
+            // Draw trail effect
+            if (particle.trail && particle.trail.length > 1) {
+                ctx.strokeStyle = particle.color;
+                ctx.lineWidth = particle.size;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                for (let i = 0; i < particle.trail.length - 1; i++) {
+                    const trailAlpha = (i / particle.trail.length) * alpha * 0.5;
+                    ctx.globalAlpha = trailAlpha;
+                    ctx.beginPath();
+                    ctx.moveTo(particle.trail[i].x, particle.trail[i].y);
+                    ctx.lineTo(particle.trail[i + 1].x, particle.trail[i + 1].y);
+                    ctx.stroke();
+                }
+            }
+
+            // Draw main particle
+            ctx.globalAlpha = alpha;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = particle.color;
+            ctx.fillStyle = particle.color;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (particle.type === 'sparkle') {
             // Draw sparkle as a star
             ctx.translate(particle.x, particle.y);
             ctx.rotate(particle.rotation);
@@ -218,6 +267,18 @@ export function renderParticles(ctx, particlesArray) {
                 else ctx.lineTo(x, y);
             }
             ctx.fill();
+
+            // Add cross sparkle
+            ctx.globalAlpha = alpha * 0.6;
+            ctx.beginPath();
+            for (let i = 0; i < 4; i++) {
+                const angle = (i * Math.PI) / 2 + Math.PI / 4;
+                const x = Math.cos(angle) * particle.size * 0.6;
+                const y = Math.sin(angle) * particle.size * 0.6;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.fill();
         } else if (particle.type === 'confetti') {
             // Draw confetti as rotating rectangles
             ctx.translate(particle.x, particle.y);
@@ -226,9 +287,19 @@ export function renderParticles(ctx, particlesArray) {
             ctx.globalAlpha = alpha;
             ctx.fillRect(-particle.size / 2, -particle.size / 4, particle.size, particle.size / 2);
         } else {
-            // Draw normal particle as a circle with glow
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = particle.color;
+            // Draw normal particle as a circle with enhanced glow
+            const gradient = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, particle.size * 2);
+            gradient.addColorStop(0, particle.color);
+            gradient.addColorStop(0.5, particle.color.replace(')', ', 0.5)').replace('rgb', 'rgba'));
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+            ctx.fillStyle = gradient;
+            ctx.globalAlpha = alpha;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.size * 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw core
             ctx.fillStyle = particle.color;
             ctx.globalAlpha = alpha;
             ctx.beginPath();

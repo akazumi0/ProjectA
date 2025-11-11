@@ -183,6 +183,10 @@ export function startGame() {
             startAmbientMusic();
         }
     }, 2000);
+
+    // Mark game as fully initialized (CRITICAL for click detection)
+    gameInitialized = true;
+    console.log('🎮 Game fully initialized! Click detection enabled.');
 }
 
 /**
@@ -626,13 +630,29 @@ function renderLoop() {
                 fragmentColor = '#ff3300'; // Red fire
             }
 
-            // Draw star fragment
+            // Draw enhanced star fragment with glow and inner detail
             ctx.save();
             ctx.translate(fragment.x, fragment.y);
             ctx.rotate(fragment.rotation);
-            ctx.shadowBlur = comboLevel > 0 ? 30 : 20;
-            ctx.shadowColor = fragmentColor;
-            ctx.fillStyle = fragmentColor;
+
+            // Outer glow (largest)
+            const glowSize = comboLevel > 0 ? 40 : 25;
+            const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, fragment.size + glowSize);
+            glowGradient.addColorStop(0, fragmentColor);
+            glowGradient.addColorStop(0.3, fragmentColor.replace(')', ', 0.6)').replace('rgb', 'rgba'));
+            glowGradient.addColorStop(0.6, fragmentColor.replace(')', ', 0.2)').replace('rgb', 'rgba'));
+            glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = glowGradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, fragment.size + glowSize, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Main star body with gradient
+            const starGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, fragment.size);
+            starGradient.addColorStop(0, '#ffffff');
+            starGradient.addColorStop(0.3, fragmentColor);
+            starGradient.addColorStop(1, fragmentColor);
+            ctx.fillStyle = starGradient;
 
             // Draw 5-pointed star
             ctx.beginPath();
@@ -646,9 +666,22 @@ function renderLoop() {
             ctx.closePath();
             ctx.fill();
 
-            // DEBUG: Draw hitbox circle (semi-transparent)
-            ctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
-            ctx.lineWidth = 2;
+            // Inner white core for sparkle effect
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+                const x = Math.cos(angle) * fragment.size * 0.3;
+                const y = Math.sin(angle) * fragment.size * 0.3;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // DEBUG: Draw hitbox circle (semi-transparent) - remove this later
+            ctx.strokeStyle = 'rgba(0, 255, 0, 0.2)';
+            ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.arc(0, 0, fragment.size * 3, 0, Math.PI * 2); // 3x hitbox
             ctx.stroke();
