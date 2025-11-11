@@ -52,18 +52,18 @@ export function createDefaultGameState() {
             }
         },
         resources: {
-            lumen: 0,
+            lumen: 50,  // Start with 50 Lumen for better first experience
             energy: 0,
             antimatter: 0
         },
         totalResources: {
-            lumen: 0,
+            lumen: 50,
             energy: 0,
             antimatter: 0
         },
         technologies: {},
         defense: {},
-        clickPower: 10,
+        clickPower: 15,  // Increased from 10 to make clicks more satisfying
         fragmentSpawnRate: 1,
         lastTick: Date.now(),
         // Systems
@@ -88,6 +88,7 @@ export function createDefaultGameState() {
         activeBoosts: [],
         activeEvents: [],
         achievements: {},
+        milestonesReached: [],  // Array of milestone amounts that have been reached (e.g., [100, 1000])
         stats: {
             totalClicks: 0,
             buildingsBuilt: 0,
@@ -149,6 +150,7 @@ export function createDefaultGameState() {
         // Tutorial & First Time
         firstTime: true,
         tutorialCompleted: false,
+        tutorialStep: 0,
         manifestoSeen: false,
         // Leaderboard data (will sync with Firebase)
         leaderboard: {
@@ -239,6 +241,7 @@ export function loadGameState(savedState) {
     if (!game.prestige.artifacts) game.prestige.artifacts = defaultState.prestige.artifacts;
     if (game.firstTime === undefined) game.firstTime = false; // Existing players
     if (!game.tutorialCompleted) game.tutorialCompleted = false;
+    if (game.tutorialStep === undefined) game.tutorialStep = 0;
     if (!game.manifestoSeen) game.manifestoSeen = false;
     if (!game.leaderboard) game.leaderboard = defaultState.leaderboard;
 

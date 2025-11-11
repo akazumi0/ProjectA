@@ -12,11 +12,11 @@
 export const buildingData = {
     lumenMine: {
         name: 'Mine de Lumen',
-        desc: 'Extrait du Lumen',
+        desc: 'Extrait du Lumen automatiquement',
         icon: '⛏️',
-        baseCost: { lumen: 10 },  // Reduced from 15
+        baseCost: { lumen: 5 },  // Very cheap for first building experience
         costMult: 1.15,
-        production: level => ({ lumen: level * 0.2 }),  // Increased from 0.1
+        production: level => ({ lumen: level * 0.3 }),  // Increased from 0.2 for faster progression
         max: 100
     },
     energyCollector: {

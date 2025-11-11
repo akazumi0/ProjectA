@@ -26,8 +26,10 @@ import { astraDialogues } from './data/dialogues.js';
 
 // System imports
 import { initAudio, playSound, resumeAudio, playBackgroundMusic, toggleMusic, toggleSound } from './systems/audio.js';
+import { initAmbientMusic, startAmbientMusic, stopAmbientMusic, triggerComboMusicEffect, playMilestoneCelebration } from './systems/ambientMusic.js';
 import { loadGame, saveGame, processOfflineEarnings, setupAutoSave } from './systems/storage.js';
 import { initializeSettingsUI } from './systems/settings.js';
+import { initTutorial, onTutorialAction, checkSystemUnlocks, isTutorialActive } from './systems/tutorial.js';
 import {
     buyDefense,
     buyBuilding,
@@ -63,6 +65,7 @@ import {
 // Utility imports
 import { formatNumber, formatCost, formatCostColored, formatLevel } from './utils/formatters.js';
 import { getCost, canAfford, checkRequires, calculateClickPower } from './utils/calculations.js';
+import { screenShake, flashEffect, createParticleBurst, createSparkles, renderParticles } from './utils/screenEffects.js';
 
 /**
  * Canvas and rendering variables
@@ -163,11 +166,27 @@ export function startGame() {
         generateDailyQuests();
     }
 
-    // Show random welcome dialogue after UI is ready (delayed to prevent lag)
+    // Initialize tutorial for new players
+    const tutorialStarted = initTutorial();
+
+    // Show random welcome dialogue only if tutorial is not active
+    if (!tutorialStarted) {
+        setTimeout(() => {
+            const randomDialogue = astraDialogues[Math.floor(Math.random() * Math.min(5, astraDialogues.length))];
+            showAstraDialogue(randomDialogue.text);
+        }, 100);
+    }
+
+    // Start ambient music after a short delay (gives time for user interaction for autoplay policy)
     setTimeout(() => {
-        const randomDialogue = astraDialogues[Math.floor(Math.random() * Math.min(5, astraDialogues.length))];
-        showAstraDialogue(randomDialogue.text);
-    }, 100);
+        if (game.settings.musicEnabled !== false) {
+            startAmbientMusic();
+        }
+    }, 2000);
+
+    // Mark game as fully initialized (CRITICAL for click detection)
+    gameInitialized = true;
+    console.log('🎮 Game fully initialized! Click detection enabled.');
 }
 
 /**
@@ -175,35 +194,353 @@ export function startGame() {
  */
 function initCanvas() {
     canvas = document.getElementById('gameCanvas');
-    if (!canvas) return;
+    if (!canvas) {
+        console.error('❌ Canvas element not found!');
+        return;
+    }
 
     ctx = canvas.getContext('2d');
+    console.log('✅ Canvas initialized:', canvas.width, 'x', canvas.height);
 
     // Set canvas size
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Initialize simple stars background
+    // Initialize multi-layer starfield with parallax
+    initStarfield();
+    console.log('✅ Starfield initialized with', stars.length, 'stars');
+
+    // Mark canvas as initialized (CRITICAL for game loops to start)
+    canvasInitialized = true;
+    console.log('✅ canvasInitialized flag set to TRUE');
+
+    // Start render loop
+    renderLoop();
+    console.log('✅ Render loop started');
+}
+
+/**
+ * Initialize immersive starfield with multiple layers and nebulae
+ */
+function initStarfield() {
+    stars.length = 0; // Clear existing stars
+
+    // Star colors for variety
+    const starColors = [
+        '#ffffff', // White (most common)
+        '#ffffff',
+        '#ffffff',
+        '#ffe9c4', // Warm white
+        '#cce0ff', // Cool blue-white
+        '#ffccaa', // Orange tint
+        '#ccddff', // Blue tint
+    ];
+
+    // Layer 1: Distant stars (slowest, smallest, faintest)
+    for (let i = 0; i < 150; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 0.8 + 0.2, // 0.2-1.0
+            opacity: Math.random() * 0.4 + 0.2, // 0.2-0.6
+            layer: 1,
+            color: starColors[Math.floor(Math.random() * starColors.length)],
+            twinkleSpeed: Math.random() * 0.02 + 0.01
+        });
+    }
+
+    // Layer 2: Mid-distance stars (medium)
     for (let i = 0; i < 100; i++) {
         stars.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
-            size: Math.random() * 2,
-            opacity: Math.random()
+            size: Math.random() * 1.2 + 0.8, // 0.8-2.0
+            opacity: Math.random() * 0.5 + 0.4, // 0.4-0.9
+            layer: 2,
+            color: starColors[Math.floor(Math.random() * starColors.length)],
+            twinkleSpeed: Math.random() * 0.03 + 0.02
         });
     }
 
-    // Start render loop
-    renderLoop();
+    // Layer 3: Close stars (brightest, largest)
+    for (let i = 0; i < 50; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 1.5 + 1.5, // 1.5-3.0
+            opacity: Math.random() * 0.4 + 0.6, // 0.6-1.0
+            layer: 3,
+            color: starColors[Math.floor(Math.random() * starColors.length)],
+            twinkleSpeed: Math.random() * 0.05 + 0.03,
+            glow: true // Close stars have glow
+        });
+    }
 }
 
 /**
  * Resize canvas to window size
+ * Note: We set canvas internal resolution to match display size 1:1
+ * This ensures click coordinates align perfectly with visual positions
  */
 function resizeCanvas() {
     if (!canvas) return;
+
+    // Set canvas internal resolution to match window size exactly
+    // This ensures 1:1 pixel mapping for accurate hit detection
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
+    console.log('📐 Canvas resized to:', canvas.width, 'x', canvas.height);
+
+    // Reinitialize starfield after resize to match new canvas dimensions
+    if (stars.length > 0) {
+        initStarfield();
+        console.log('🌟 Starfield reinitialized after resize');
+    }
+}
+
+/**
+ * Earth rendering variables
+ */
+let earthRotation = 0;
+let cloudOffset = 0;
+
+/**
+ * Render cosmic nebulae in background
+ */
+function renderNebulae() {
+    // Nebula 1: Purple-pink nebula (top-left)
+    const nebula1 = ctx.createRadialGradient(
+        canvas.width * 0.15,
+        canvas.height * 0.2,
+        0,
+        canvas.width * 0.15,
+        canvas.height * 0.2,
+        canvas.width * 0.4
+    );
+    nebula1.addColorStop(0, 'rgba(138, 43, 226, 0.08)');  // Violet
+    nebula1.addColorStop(0.3, 'rgba(147, 51, 234, 0.05)');
+    nebula1.addColorStop(0.6, 'rgba(219, 39, 119, 0.03)');
+    nebula1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+    ctx.fillStyle = nebula1;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Nebula 2: Blue-cyan nebula (top-right)
+    const nebula2 = ctx.createRadialGradient(
+        canvas.width * 0.8,
+        canvas.height * 0.25,
+        0,
+        canvas.width * 0.8,
+        canvas.height * 0.25,
+        canvas.width * 0.35
+    );
+    nebula2.addColorStop(0, 'rgba(0, 212, 255, 0.06)');  // Cyan
+    nebula2.addColorStop(0.3, 'rgba(59, 130, 246, 0.04)');
+    nebula2.addColorStop(0.6, 'rgba(99, 102, 241, 0.02)');
+    nebula2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+    ctx.fillStyle = nebula2;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Nebula 3: Orange-red nebula (mid-left)
+    const nebula3 = ctx.createRadialGradient(
+        canvas.width * 0.1,
+        canvas.height * 0.6,
+        0,
+        canvas.width * 0.1,
+        canvas.height * 0.6,
+        canvas.width * 0.3
+    );
+    nebula3.addColorStop(0, 'rgba(251, 146, 60, 0.05)');  // Orange
+    nebula3.addColorStop(0.3, 'rgba(249, 115, 22, 0.03)');
+    nebula3.addColorStop(0.6, 'rgba(234, 88, 12, 0.02)');
+    nebula3.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+    ctx.fillStyle = nebula3;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Nebula 4: Magenta-purple nebula (center-right)
+    const nebula4 = ctx.createRadialGradient(
+        canvas.width * 0.75,
+        canvas.height * 0.55,
+        0,
+        canvas.width * 0.75,
+        canvas.height * 0.55,
+        canvas.width * 0.28
+    );
+    nebula4.addColorStop(0, 'rgba(236, 72, 153, 0.07)');  // Pink
+    nebula4.addColorStop(0.3, 'rgba(219, 39, 119, 0.04)');
+    nebula4.addColorStop(0.6, 'rgba(190, 24, 93, 0.02)');
+    nebula4.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+    ctx.fillStyle = nebula4;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+/**
+ * Render Earth with procedural texture, clouds, and atmospheric glow
+ */
+function renderEarth() {
+    const earthRadius = 120;
+    const earthX = canvas.width / 2;
+    const earthY = canvas.height - earthRadius + 20; // Partially visible at bottom
+
+    // Increment rotation for spinning effect (very slow)
+    earthRotation += 0.0003;
+    cloudOffset += 0.0005;
+
+    ctx.save();
+    ctx.translate(earthX, earthY);
+
+    // === Atmospheric Glow (outer) ===
+    const glowGradient = ctx.createRadialGradient(0, 0, earthRadius, 0, 0, earthRadius + 40);
+    glowGradient.addColorStop(0, 'rgba(100, 200, 255, 0)');
+    glowGradient.addColorStop(0.7, 'rgba(100, 200, 255, 0.1)');
+    glowGradient.addColorStop(0.85, 'rgba(100, 200, 255, 0.3)');
+    glowGradient.addColorStop(1, 'rgba(100, 200, 255, 0)');
+
+    ctx.fillStyle = glowGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, earthRadius + 40, 0, Math.PI * 2);
+    ctx.fill();
+
+    // === Clip to circle for Earth surface ===
+    ctx.beginPath();
+    ctx.arc(0, 0, earthRadius, 0, Math.PI * 2);
+    ctx.clip();
+
+    // === Base ocean (blue gradient) ===
+    const oceanGradient = ctx.createRadialGradient(-30, -30, 0, 0, 0, earthRadius);
+    oceanGradient.addColorStop(0, '#4a90e2');  // Bright ocean
+    oceanGradient.addColorStop(0.5, '#2171b5'); // Medium blue
+    oceanGradient.addColorStop(1, '#084594');   // Deep ocean
+
+    ctx.fillStyle = oceanGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, earthRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // === Procedural continents (green patches) ===
+    const continents = [
+        { x: -50, y: -20, size: 40, angle: 0.3 },
+        { x: 30, y: -40, size: 35, angle: -0.2 },
+        { x: -20, y: 30, size: 45, angle: 0.5 },
+        { x: 60, y: 20, size: 30, angle: -0.4 },
+        { x: -70, y: -50, size: 25, angle: 0.8 }
+    ];
+
+    continents.forEach(continent => {
+        // Apply earth rotation to continent position
+        const rotatedX = continent.x * Math.cos(earthRotation) - continent.y * Math.sin(earthRotation);
+        const rotatedY = continent.x * Math.sin(earthRotation) + continent.y * Math.cos(earthRotation);
+
+        // Only draw if on visible hemisphere
+        if (rotatedX > -earthRadius * 0.8) {
+            ctx.save();
+            ctx.translate(rotatedX, rotatedY);
+            ctx.rotate(continent.angle);
+
+            // Land gradient (green-brown)
+            const landGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, continent.size);
+            landGradient.addColorStop(0, '#7cb342');    // Bright green
+            landGradient.addColorStop(0.6, '#558b2f');  // Forest green
+            landGradient.addColorStop(1, '#33691e');    // Dark green
+
+            ctx.fillStyle = landGradient;
+
+            // Organic blob shape
+            ctx.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                const variance = 0.7 + Math.sin(i * 2.3) * 0.3;
+                const radius = continent.size * variance;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+        }
+    });
+
+    // === Ice caps (white) ===
+    // North pole
+    const iceCap = ctx.createRadialGradient(0, -earthRadius + 20, 0, 0, -earthRadius + 20, 35);
+    iceCap.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+    iceCap.addColorStop(1, 'rgba(200, 230, 255, 0.3)');
+    ctx.fillStyle = iceCap;
+    ctx.beginPath();
+    ctx.arc(0, -earthRadius + 20, 35, 0, Math.PI * 2);
+    ctx.fill();
+
+    // South pole
+    const iceCapSouth = ctx.createRadialGradient(0, earthRadius - 20, 0, 0, earthRadius - 20, 30);
+    iceCapSouth.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+    iceCapSouth.addColorStop(1, 'rgba(200, 230, 255, 0.2)');
+    ctx.fillStyle = iceCapSouth;
+    ctx.beginPath();
+    ctx.arc(0, earthRadius - 20, 30, 0, Math.PI * 2);
+    ctx.fill();
+
+    // === Animated clouds (white swirls) ===
+    const clouds = [
+        { x: -40 + cloudOffset * 100, y: -30, size: 25 },
+        { x: 20 + cloudOffset * 120, y: -50, size: 20 },
+        { x: -60 + cloudOffset * 80, y: 10, size: 30 },
+        { x: 40 + cloudOffset * 150, y: 35, size: 18 },
+        { x: -10 + cloudOffset * 110, y: -60, size: 22 }
+    ];
+
+    clouds.forEach(cloud => {
+        // Wrap clouds around Earth (modulo)
+        let wrappedX = cloud.x % (earthRadius * 2.5);
+        if (wrappedX > earthRadius) wrappedX -= earthRadius * 2.5;
+        if (wrappedX < -earthRadius) wrappedX += earthRadius * 2.5;
+
+        // Only draw if within Earth bounds
+        if (Math.sqrt(wrappedX * wrappedX + cloud.y * cloud.y) < earthRadius - 5) {
+            const cloudGradient = ctx.createRadialGradient(wrappedX, cloud.y, 0, wrappedX, cloud.y, cloud.size);
+            cloudGradient.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+            cloudGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
+            cloudGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+            ctx.fillStyle = cloudGradient;
+            ctx.beginPath();
+            ctx.arc(wrappedX, cloud.y, cloud.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
+
+    // === Shadow for 3D effect (terminator line) ===
+    ctx.globalCompositeOperation = 'multiply';
+    const shadowGradient = ctx.createRadialGradient(30, -20, 0, 0, 0, earthRadius);
+    shadowGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    shadowGradient.addColorStop(0.6, 'rgba(0, 0, 0, 0.2)');
+    shadowGradient.addColorStop(1, 'rgba(0, 0, 0, 0.6)');
+    ctx.fillStyle = shadowGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, earthRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+
+    ctx.restore();
+
+    // === Atmospheric rim light (inner glow) ===
+    ctx.save();
+    ctx.translate(earthX, earthY);
+    ctx.strokeStyle = 'rgba(100, 200, 255, 0.4)';
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = 'rgba(100, 200, 255, 0.8)';
+    ctx.beginPath();
+    ctx.arc(0, 0, earthRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
 }
 
 /**
@@ -217,19 +554,43 @@ function renderLoop() {
         const comboCount = game.combo.count;
         const comboLevel = comboCount >= 30 ? 3 : comboCount >= 15 ? 2 : comboCount >= 8 ? 1 : 0;
 
-        // Clear canvas
-        ctx.fillStyle = '#000';
+        // Clear canvas with deep space color
+        ctx.fillStyle = '#020814';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw stars
-        stars.forEach(star => {
-            ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
-            ctx.fillRect(star.x, star.y, star.size, star.size);
+        // === Draw nebulae (background cosmic clouds) ===
+        renderNebulae();
 
-            // Twinkle effect
-            star.opacity += (Math.random() - 0.5) * 0.05;
-            star.opacity = Math.max(0.1, Math.min(1, star.opacity));
+        // === Draw multi-layer starfield with parallax ===
+        stars.forEach(star => {
+            // Enhanced twinkle effect
+            const twinklePhase = Date.now() * star.twinkleSpeed * 0.001;
+            const twinkleFactor = 0.3 + Math.sin(twinklePhase) * 0.3;
+            const currentOpacity = star.opacity * (0.7 + twinkleFactor);
+
+            // Draw star with color
+            if (star.glow) {
+                // Bright stars with glow
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = star.color;
+                ctx.fillStyle = star.color;
+                ctx.globalAlpha = currentOpacity;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1;
+            } else {
+                // Regular stars
+                ctx.fillStyle = star.color;
+                ctx.globalAlpha = currentOpacity;
+                ctx.fillRect(star.x - star.size / 2, star.y - star.size / 2, star.size, star.size);
+                ctx.globalAlpha = 1;
+            }
         });
+
+        // Draw Earth (enhanced procedural rendering)
+        renderEarth();
 
         // Draw fragments
         fragments.forEach((fragment, index) => {
@@ -269,13 +630,29 @@ function renderLoop() {
                 fragmentColor = '#ff3300'; // Red fire
             }
 
-            // Draw star fragment
+            // Draw enhanced star fragment with glow and inner detail
             ctx.save();
             ctx.translate(fragment.x, fragment.y);
             ctx.rotate(fragment.rotation);
-            ctx.shadowBlur = comboLevel > 0 ? 30 : 20;
-            ctx.shadowColor = fragmentColor;
-            ctx.fillStyle = fragmentColor;
+
+            // Outer glow (largest)
+            const glowSize = comboLevel > 0 ? 40 : 25;
+            const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, fragment.size + glowSize);
+            glowGradient.addColorStop(0, fragmentColor);
+            glowGradient.addColorStop(0.3, fragmentColor.replace(')', ', 0.6)').replace('rgb', 'rgba'));
+            glowGradient.addColorStop(0.6, fragmentColor.replace(')', ', 0.2)').replace('rgb', 'rgba'));
+            glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = glowGradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, fragment.size + glowSize, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Main star body with gradient
+            const starGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, fragment.size);
+            starGradient.addColorStop(0, '#ffffff');
+            starGradient.addColorStop(0.3, fragmentColor);
+            starGradient.addColorStop(1, fragmentColor);
+            ctx.fillStyle = starGradient;
 
             // Draw 5-pointed star
             ctx.beginPath();
@@ -289,25 +666,31 @@ function renderLoop() {
             ctx.closePath();
             ctx.fill();
 
+            // Inner white core for sparkle effect
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+                const x = Math.cos(angle) * fragment.size * 0.3;
+                const y = Math.sin(angle) * fragment.size * 0.3;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // DEBUG: Draw hitbox circle (semi-transparent) - remove this later
+            ctx.strokeStyle = 'rgba(0, 255, 0, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(0, 0, fragment.size * 3, 0, Math.PI * 2); // 3x hitbox
+            ctx.stroke();
+
             ctx.restore();
         });
 
-        // Draw particles (simple version)
-        particles.forEach((particle, index) => {
-            particle.x += particle.vx;
-            particle.y += particle.vy;
-            particle.life--;
-
-            if (particle.life <= 0) {
-                particles.splice(index, 1);
-                return;
-            }
-
-            // Change particle color during combo
-            let particleColor = comboLevel >= 2 ? '255, 100, 0' : '0, 212, 255';
-            ctx.fillStyle = `rgba(${particleColor}, ${particle.life / 30})`;
-            ctx.fillRect(particle.x, particle.y, 2, 2);
-        });
+        // Draw particles with enhanced rendering
+        renderParticles(ctx, particles);
     } catch (error) {
         console.error('Render loop error:', error);
     }
@@ -329,8 +712,8 @@ function spawnFragment() {
         x: playableLeft + Math.random() * playableWidth,
         y: playableTop,
         size: CANVAS.FRAGMENT_SIZE,
-        speed: 1.5 + Math.random() * 1,
-        value: Math.floor(Math.random() * 10) + 1,
+        speed: 1.0 + Math.random() * 0.8,  // Reduced from 1.5-2.5 to 1.0-1.8 (20-30% slower)
+        value: Math.floor(Math.random() * 15) + 5,  // Increased value from 1-10 to 5-19
         color: '#00d4ff',
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.1,
@@ -338,6 +721,7 @@ function spawnFragment() {
     };
 
     fragments.push(fragment);
+    console.log('⭐ Fragment spawned at x:', Math.round(fragment.x), 'y:', fragment.y, '| Total fragments:', fragments.length);
 }
 
 /**
@@ -353,14 +737,20 @@ function handleCanvasClick(event) {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Check if clicked on a fragment (hitbox 2x larger for easier clicking)
+    console.log('🖱️ Click at:', Math.round(x), Math.round(y), '| Fragments on screen:', fragments.length);
+
+    // Check if clicked on a fragment (hitbox 3x larger for easier clicking on mobile)
+    let hitDetected = false;
     for (let i = fragments.length - 1; i >= 0; i--) {
         const fragment = fragments[i];
         const dx = x - fragment.x;
         const dy = y - fragment.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+        const hitboxRadius = fragment.size * 3; // Increased from 2x to 3x for easier tapping
 
-        if (distance < fragment.size * 2) {
+        if (distance < hitboxRadius) {
+            hitDetected = true;
+            console.log('✅ HIT! Fragment at:', Math.round(fragment.x), Math.round(fragment.y), '| Distance:', Math.round(distance), '| Hitbox:', hitboxRadius);
             // Capture fragment
             const result = captureFragment(fragment);
 
@@ -378,15 +768,24 @@ function handleCanvasClick(event) {
                 fragmentColor = '#ff3300'; // Red fire
             }
 
-            // Create particle effect
-            for (let p = 0; p < 10; p++) {
-                particles.push({
-                    x: fragment.x,
-                    y: fragment.y,
-                    vx: (Math.random() - 0.5) * 4,
-                    vy: (Math.random() - 0.5) * 4,
-                    life: 30
-                });
+            // Enhanced particle effects based on combo level
+            const particleCount = 15 + (comboLevel * 10); // More particles at higher combos
+            const particleSpeed = 1 + (comboLevel * 0.3);
+            createParticleBurst(particles, fragment.x, fragment.y, fragmentColor, particleCount, particleSpeed);
+
+            // Add sparkles for high combos
+            if (comboLevel >= 2) {
+                createSparkles(particles, fragment.x, fragment.y, '#ffd700', 5 + comboLevel * 3);
+            }
+
+            // Screen shake based on combo level
+            const shakeIntensity = 2 + (comboLevel * 2); // 2-8px shake
+            const shakeDuration = 100 + (comboLevel * 50); // 100-250ms
+            screenShake(canvas, shakeIntensity, shakeDuration);
+
+            // Flash effect for very high combos
+            if (comboLevel >= 3) {
+                flashEffect(canvas, 'rgba(255, 100, 0, 0.3)', 100);
             }
 
             // Show floating text with fragment color
@@ -404,8 +803,21 @@ function handleCanvasClick(event) {
             // Play sound
             playSound('capture');
 
+            // Notify tutorial system
+            onTutorialAction('fragment_captured');
+
             break;
         }
+    }
+
+    if (!hitDetected && fragments.length > 0) {
+        console.log('❌ MISS! No fragment hit. Closest fragments:');
+        fragments.slice(0, 3).forEach((f, idx) => {
+            const dx = x - f.x;
+            const dy = y - f.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            console.log(`   [${idx}] at (${Math.round(f.x)}, ${Math.round(f.y)}) - distance: ${Math.round(dist)}px`);
+        });
     }
 }
 
@@ -490,14 +902,26 @@ function updateSpawnRate() {
  * Start game loops (logic, UI updates, fragment spawning)
  */
 function startGameLoops() {
+    console.log('🎮 startGameLoops() called');
+    console.log('   - gameLoopInterval:', gameLoopInterval);
+    console.log('   - canvasInitialized:', canvasInitialized);
+    console.log('   - canvas:', canvas);
+
     // Prevent multiple game loops
-    if (gameLoopInterval) return;
+    if (gameLoopInterval) {
+        console.warn('⚠️ Game loops already running, skipping');
+        return;
+    }
 
     // Ensure canvas is initialized before starting loops
     if (!canvasInitialized || !canvas) {
-        console.warn('Cannot start game loops: canvas not initialized');
+        console.error('❌ Cannot start game loops: canvas not initialized');
+        console.error('   - canvasInitialized:', canvasInitialized);
+        console.error('   - canvas:', canvas);
         return;
     }
+
+    console.log('✅ Starting game loops...');
 
     // Main game loop (10 ticks per second)
     gameLoopInterval = setInterval(() => {
@@ -507,6 +931,7 @@ function startGameLoops() {
             console.error('Game loop error:', error);
         }
     }, TIMING.TICK_RATE);
+    console.log('✅ Main game loop started (tick rate:', TIMING.TICK_RATE, 'ms)');
 
     // UI update loop (every 500ms)
     uiUpdateInterval = setInterval(() => {
@@ -517,6 +942,9 @@ function startGameLoops() {
             updateComboVisuals();
             checkQuestReset();
 
+            // Check for progressive system unlocks
+            checkSystemUnlocks();
+
             // Check for new achievements
             const newAchievements = checkAchievements();
             newAchievements.forEach(({ key, data }) => {
@@ -526,17 +954,21 @@ function startGameLoops() {
             console.error('UI update error:', error);
         }
     }, 500);
+    console.log('✅ UI update loop started (500ms)');
 
     // Spawn rate update loop (every 100ms for responsiveness)
     setInterval(() => {
         updateSpawnRate();
     }, 100);
+    console.log('✅ Spawn rate update loop started (100ms)');
 
     // Initial fragment spawn - rate will be managed dynamically
     currentSpawnInterval = baseSpawnInterval;
     window.spawnIntervalId = setInterval(() => {
         spawnFragment();
     }, baseSpawnInterval);
+    console.log('✅ Fragment spawn interval started (interval:', baseSpawnInterval, 'ms)');
+    console.log('🎉 All game loops started successfully!');
 }
 
 /**
@@ -1084,6 +1516,8 @@ window.buyDefense = (key) => {
         updateResources();
         // Trigger animation after render
         setTimeout(() => triggerSuccessAnimation(`defense-${key}`), 10);
+        // Notify tutorial system
+        onTutorialAction('defense_bought', { key });
     }
 };
 
@@ -1094,6 +1528,8 @@ window.buyBuilding = (key) => {
         updateResources();
         // Trigger animation after render
         setTimeout(() => triggerSuccessAnimation(`building-${key}`), 10);
+        // Notify tutorial system
+        onTutorialAction('building_bought', { key });
     }
 };
 
@@ -1128,8 +1564,9 @@ function updateProfileModal() {
  * App initialization
  */
 window.addEventListener('DOMContentLoaded', () => {
-    // Initialize audio
+    // Initialize audio systems
     initAudio();
+    initAmbientMusic();
 
     // Initialize game state
     initializePlanetBuildings();
