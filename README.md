@@ -61,9 +61,9 @@ La Terre change d'apparence selon votre progression :
 
 **Étapes rapides :**
 1. Sur Safari, allez sur `https://github.com/akazumi0/ProjectA/settings/pages`
-2. Sous "Branch", sélectionnez `claude/ios-game-tech-discussion-011CUocgaShPuwdSTPCTyziz`
+2. Sous "Branch", sélectionnez `main`
 3. Cliquez "Save" et attendez 1-2 minutes ⏱️
-4. Votre jeu sera en ligne à : `https://[votre-nom].github.io/ProjectA/` 🎮
+4. Votre jeu sera en ligne à : `https://akazumi0.github.io/ProjectA/` 🎮
 
 **C'est 100% gratuit et sans publicité !**
 

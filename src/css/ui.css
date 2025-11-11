@@ -1,0 +1,401 @@
+/**
+ * UI Components - Buttons, Cards, Icons, Forms
+ * Part of Falling Stars modular architecture
+ */
+
+/* Icon Buttons */
+.icon-button {
+    width: 40px;
+    height: 40px;
+    margin: 5px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: rgba(0, 50, 100, 0.5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.icon-button:hover {
+    background: rgba(0, 100, 150, 0.7);
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.icon-button:active {
+    transform: scale(0.95);
+}
+
+.icon-button.has-notification::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    background: var(--color-danger);
+    border-radius: 50%;
+    animation: pulse 1s infinite;
+}
+
+/* Item Cards */
+.item-card {
+    background: var(--color-bg-card);
+    border: 1px solid rgba(0, 212, 255, 0.4);
+    border-radius: var(--border-radius-sm);
+    padding: 6px 8px;
+    min-height: 75px;
+    max-height: 75px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.item-card:hover:not(.locked):not(.maxed) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+}
+
+.item-card.buildable {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
+}
+
+.item-card.buildable:hover {
+    box-shadow: 0 4px 16px rgba(0, 212, 255, 0.5);
+}
+
+.item-card.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.item-card.maxed {
+    opacity: 0.7;
+    cursor: default;
+}
+
+.item-card.upgrade-success {
+    animation: successPulse 0.5s ease-out;
+    border-color: var(--color-success);
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3px;
+}
+
+.item-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.item-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.item-info {
+    flex: 1;
+    min-width: 0;
+    margin-left: 5px;
+}
+
+.item-title {
+    font-size: var(--font-size-normal);
+    font-weight: bold;
+    color: var(--color-primary);
+    line-height: 1.2;
+    margin-bottom: 1px;
+}
+
+.item-level {
+    font-size: var(--font-size-small);
+    color: var(--color-secondary);
+}
+
+.item-desc {
+    font-size: var(--font-size-small);
+    color: #aaa;
+    margin-bottom: 3px;
+    line-height: 1.2;
+}
+
+.item-stats {
+    font-size: var(--font-size-small);
+    color: var(--color-secondary);
+    margin-bottom: 3px;
+}
+
+.item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 3px;
+    margin-top: auto;
+}
+
+.item-cost {
+    font-size: var(--font-size-normal);
+    font-weight: bold;
+    margin-top: auto;
+    padding-top: 2px;
+    text-align: right;
+}
+
+/* Buttons */
+.build-btn {
+    background: linear-gradient(135deg, #00a8cc, #0077b6);
+    border: none;
+    color: white;
+    padding: 4px 8px;
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-small);
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.build-btn:disabled {
+    background: #333;
+    opacity: 0.5;
+}
+
+.build-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.build-btn.flash {
+    animation: successFlash 0.5s ease-out;
+}
+
+.sidebar-btn {
+    background: linear-gradient(135deg, #00a8cc, #0077b6);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-medium);
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    font-family: inherit;
+}
+
+.sidebar-btn:disabled {
+    background: #333;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.sidebar-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.sidebar-btn.gold {
+    background: linear-gradient(135deg, #ffd700, #daa520);
+    color: #000;
+}
+
+.sidebar-btn.green {
+    background: linear-gradient(135deg, var(--color-success), #00cc66);
+}
+
+.close-btn {
+    background: linear-gradient(135deg, #ff6b6b, #c92a2a);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: var(--border-radius-xl);
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    font-family: inherit;
+}
+
+/* Quest Cards */
+.quest-card {
+    background: rgba(0, 30, 60, 0.6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: 8px;
+    margin-bottom: 8px;
+    font-size: var(--font-size-normal);
+}
+
+.quest-card.flash {
+    background: linear-gradient(135deg, rgba(255, 0, 100, 0.4), rgba(200, 0, 80, 0.4));
+    border-color: rgba(255, 100, 150, 0.6);
+}
+
+.quest-card-title {
+    font-weight: bold;
+    color: var(--color-primary);
+    margin-bottom: 4px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.quest-card.flash .quest-card-title {
+    color: #ffb3d1;
+}
+
+.quest-card-desc {
+    color: #aaa;
+    margin-bottom: 6px;
+    font-size: 9px;
+}
+
+.quest-progress-bar {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    height: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.quest-progress-fill {
+    background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+    height: 100%;
+    transition: width var(--transition-normal);
+}
+
+.quest-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 9px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 0 3px black;
+}
+
+/* Text Elements */
+.timer-text {
+    color: var(--color-accent);
+    font-size: var(--font-size-large);
+    text-align: center;
+    margin: 10px 0;
+}
+
+.reward-text {
+    color: var(--color-success);
+    font-size: var(--font-size-medium);
+    text-align: center;
+    margin: 8px 0;
+}
+
+/* Daily Rewards */
+.daily-day {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    background: rgba(0, 100, 150, 0.3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-large);
+    margin: 3px;
+}
+
+.daily-day.claimed {
+    background: rgba(0, 255, 100, 0.3);
+    border-color: var(--color-success);
+}
+
+.daily-day.available {
+    background: rgba(255, 215, 0, 0.3);
+    border-color: #ffd700;
+    animation: pulse 1s infinite;
+}
+
+/* Info Rows */
+.info-row {
+    margin: 10px 0;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.info-label {
+    color: var(--color-primary);
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.info-value {
+    color: #fff;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* Stat Rows */
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px;
+    background: rgba(0, 50, 100, 0.3);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 4px;
+    font-size: 11px;
+}
+
+.stat-label {
+    color: #aaa;
+}
+
+.stat-value {
+    color: var(--color-primary);
+    font-weight: bold;
+}
+
+/* Story Event Choices */
+.story-choice {
+    background: rgba(0, 100, 200, 0.3);
+    border: 2px solid rgba(0, 212, 255, 0.5);
+    border-radius: var(--border-radius-md);
+    padding: 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.story-choice:hover {
+    background: rgba(0, 100, 200, 0.6);
+    border-color: var(--color-primary);
+    transform: translateX(5px);
+}
+
+.story-choice-text {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--color-primary);
+    margin-bottom: 5px;
+}
+
+.story-choice-cost {
+    font-size: var(--font-size-normal);
+    color: var(--color-accent);
+}
+
+.story-choice-chance {
+    font-size: 9px;
+    color: #aaa;
+    margin-top: 3px;
+}

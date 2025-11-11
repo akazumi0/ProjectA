@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#000000"/>
+
+  <!-- Gradient definition -->
+  <defs>
+    <radialGradient id="starGlow" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#0099cc;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Glow circle -->
+  <circle cx="256" cy="256" r="180" fill="url(#starGlow)" opacity="0.4"/>
+
+  <!-- Star shape -->
+  <path d="M256 80 L280 200 L400 224 L300 324 L324 444 L256 380 L188 444 L212 324 L112 224 L232 200 Z"
+        fill="#00d4ff"
+        stroke="#0099cc"
+        stroke-width="4"/>
+
+  <!-- Inner star accent -->
+  <path d="M256 140 L270 220 L350 234 L290 294 L304 374 L256 330 L208 374 L222 294 L162 234 L242 220 Z"
+        fill="#4ecdc4"
+        opacity="0.6"/>
+
+  <!-- Center dot -->
+  <circle cx="256" cy="256" r="20" fill="#ffd93d"/>
+</svg>
