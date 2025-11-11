@@ -57,7 +57,7 @@ La Terre change d'apparence selon votre progression :
 
 ### 🎯 GitHub Pages (Gratuit et permanent)
 
-**👉 [GUIDE COMPLET : GITHUB-PAGES-SETUP.md](GITHUB-PAGES-SETUP.md)**
+**👉 [GUIDE COMPLET : docs/guides/GITHUB-PAGES-SETUP.md](docs/guides/GITHUB-PAGES-SETUP.md)**
 
 **Étapes rapides :**
 1. Sur Safari, allez sur `https://github.com/akazumi0/ProjectA/settings/pages`
@@ -66,13 +66,6 @@ La Terre change d'apparence selon votre progression :
 4. Votre jeu sera en ligne à : `https://akazumi0.github.io/ProjectA/` 🎮
 
 **C'est 100% gratuit et sans publicité !**
-
-### Alternative : CodePen (test immédiat)
-
-1. Allez sur : **https://codepen.io/pen/**
-2. Copiez le code de `falling-stars.html`
-3. Collez dans l'onglet "HTML"
-4. Jouez !
 
 ## 🎯 Fonctionnalités
 
@@ -108,26 +101,22 @@ Tous désactivables dans les paramètres.
 - **LocalStorage** - Persistance avec compression
 - **100% vanilla** - Zéro dépendance externe
 
-## 📖 Versions du Jeu
+## 📖 Structure du Projet
 
-Ce repository contient plusieurs versions :
+Le jeu est organisé de manière modulaire :
 
-- **`falling-stars.html`** ⭐ - Version narrative complète (RECOMMANDÉ)
-- **`cosmic-idle.html`** - Version idle simple sans narration
-- **`cosmic-catch.html`** - Version action/arcade originale
+- **`index.html`** - Jeu principal avec toutes les fonctionnalités
+- **`src/`** - Code source modulaire (CSS + JavaScript ES6)
+- **`docs/`** - Documentation complète du projet
+- **Archive :** `index-old.html` - Version monolithique originale (backup)
 
-## 🚀 Roadmap Possible
+## 🚀 Roadmap & Développement
 
-Idées d'améliorations futures :
+Pour voir l'état actuel du projet et les prochaines étapes :
 
-1. **Achievements/Succès** - Objectifs à long terme
-2. **Événements temporels** - Pluies stellaires x2
-3. **Nouvelles ères** - Débloquer différentes époques
-4. **Mode Défi** - Contraintes spéciales
-5. **Statistiques étendues** - Graphiques de progression
-6. **Thèmes visuels** - Différents styles graphiques
-7. **Musique d'ambiance** - Soundtrack spatiale
-8. **App Store** - Version native iOS
+- **[TODO Améliorations iOS](docs/planning/TODO_AMELIORATIONS_IOS.md)** - Liste complète des tâches prioritaires
+- **[Idées d'Améliorations](docs/planning/IDLE_GAME_IDEAS.md)** - Propositions inspirées des meilleurs idle games
+- **[Audit iOS Release](docs/history/AUDIT_IOS_RELEASE.md)** - Analyse de viabilité complète
 
 ## 💡 Philosophie de Design
 
@@ -137,8 +126,25 @@ Idées d'améliorations futures :
 
 **Pas de monétisation** : Jeu complet gratuit, aucun paywall, aucune pub. Fait pour le plaisir, pas pour le profit.
 
+## 📚 Documentation Complète
+
+Toute la documentation du projet est organisée dans le dossier `docs/` :
+
+**👉 [INDEX DE LA DOCUMENTATION](docs/INDEX.md)**
+
+- **[Architecture](docs/development/ARCHITECTURE.md)** - Structure modulaire ES6
+- **[Guide de Développement](docs/development/DEVELOPMENT.md)** - Mécaniques et systèmes
+- **[Refactoring](docs/development/REFACTORING.md)** - Migration vers modules
+- **[Intégration IAP](docs/development/PREMIUM_SHOP_INTEGRATION.md)** - Achats intégrés
+
 ---
 
 Créé avec passion. Profitez de votre voyage cosmique ! 🌟✨
 
 **Bon jeu, Commandant Astra !** ⚡
+
+---
+
+**Version :** 1.0.0
+**Dernière mise à jour :** 11 novembre 2025
+**Branche de développement :** `claude/update-project-documentation-011CV253wKEHNaoyodh2NSyN`
