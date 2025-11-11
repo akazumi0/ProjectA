@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <style>
+      .pixel { shape-rendering: crispEdges; }
+    </style>
+  </defs>
+
+  <!-- Rare blue star -->
+  <rect class="pixel" x="15" y="5" width="2" height="2" fill="#AAFFFF"/>
+  <rect class="pixel" x="15" y="25" width="2" height="2" fill="#AAFFFF"/>
+  <rect class="pixel" x="5" y="15" width="2" height="2" fill="#AAFFFF"/>
+  <rect class="pixel" x="25" y="15" width="2" height="2" fill="#AAFFFF"/>
+
+  <!-- Blue core -->
+  <rect class="pixel" x="12" y="8" width="8" height="2" fill="#00D4FF"/>
+  <rect class="pixel" x="12" y="22" width="8" height="2" fill="#00D4FF"/>
+  <rect class="pixel" x="8" y="12" width="2" height="8" fill="#00D4FF"/>
+  <rect class="pixel" x="22" y="12" width="2" height="8" fill="#00D4FF"/>
+
+  <!-- Center bright -->
+  <rect class="pixel" x="10" y="10" width="12" height="12" fill="#33E0FF"/>
+  <rect class="pixel" x="12" y="12" width="8" height="8" fill="#66F0FF"/>
+  <rect class="pixel" x="14" y="14" width="4" height="4" fill="#AAFFFF"/>
+
+  <!-- Diagonals -->
+  <rect class="pixel" x="9" y="9" width="2" height="2" fill="#00D4FF"/>
+  <rect class="pixel" x="21" y="9" width="2" height="2" fill="#00D4FF"/>
+  <rect class="pixel" x="9" y="21" width="2" height="2" fill="#00D4FF"/>
+  <rect class="pixel" x="21" y="21" width="2" height="2" fill="#00D4FF"/>
+
+  <!-- Extra rays -->
+  <rect class="pixel" x="7" y="7" width="2" height="2" fill="#FFFFFF" opacity="0.7"/>
+  <rect class="pixel" x="23" y="7" width="2" height="2" fill="#FFFFFF" opacity="0.7"/>
+  <rect class="pixel" x="7" y="23" width="2" height="2" fill="#FFFFFF" opacity="0.7"/>
+  <rect class="pixel" x="23" y="23" width="2" height="2" fill="#FFFFFF" opacity="0.7"/>
+</svg>
