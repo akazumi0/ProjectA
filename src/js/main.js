@@ -51,7 +51,7 @@ import {
 } from './systems/ui.js';
 
 // Utility imports
-import { formatNumber, formatCost, formatLevel } from './utils/formatters.js';
+import { formatNumber, formatCost, formatCostColored, formatLevel } from './utils/formatters.js';
 import { getCost, canAfford, checkRequires, calculateClickPower } from './utils/calculations.js';
 
 /**
@@ -460,7 +460,7 @@ function renderTechnologiesTab() {
 }
 
 /**
- * Create item card element
+ * Create item card element with hold-to-upgrade functionality
  */
 function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
     const card = document.createElement('div');
@@ -468,10 +468,12 @@ function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
     card.id = `${type}-${key}`;
     if (canBuy) card.classList.add('buildable');
     if (locked) card.classList.add('locked');
+    if (level >= data.max) card.classList.add('maxed');
 
     const icon = data.icon || '🔧';
     const levelText = formatLevel(level, data.max);
     const effectText = data.display ? data.display(level + 1) : '';
+    const costHTML = level >= data.max ? '<span style="color: #ffd700">MAX</span>' : formatCostColored(cost, game.resources);
 
     card.innerHTML = `
         <div class="item-header">
@@ -483,13 +485,57 @@ function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
         </div>
         <div class="item-desc">${data.desc}</div>
         ${effectText ? `<div class="item-stats">${effectText}</div>` : ''}
-        <div class="item-footer">
-            <div class="item-cost">${formatCost(cost)}</div>
-            <button class="build-btn" ${!canBuy ? 'disabled' : ''} onclick="buy${type.charAt(0).toUpperCase() + type.slice(1)}('${key}')">
-                ${level >= data.max ? 'MAX' : 'ACHETER'}
-            </button>
-        </div>
+        <div class="item-cost">${costHTML}</div>
     `;
+
+    // Make card clickable with hold-to-upgrade if not locked and not maxed
+    if (!locked && level < data.max) {
+        card.style.cursor = 'pointer';
+
+        let holdInterval = null;
+        let holdTimeout = null;
+
+        const buyFunction = () => {
+            const buyFunctionName = `buy${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            if (window[buyFunctionName]) {
+                window[buyFunctionName](key);
+            }
+        };
+
+        const startHold = () => {
+            // Execute immediately on press
+            buyFunction();
+
+            // Start hold-to-upgrade after 300ms
+            holdTimeout = setTimeout(() => {
+                holdInterval = setInterval(buyFunction, 100);
+            }, 300);
+        };
+
+        const endHold = () => {
+            if (holdTimeout) {
+                clearTimeout(holdTimeout);
+                holdTimeout = null;
+            }
+            if (holdInterval) {
+                clearInterval(holdInterval);
+                holdInterval = null;
+            }
+        };
+
+        // Mouse events
+        card.addEventListener('mousedown', startHold);
+        card.addEventListener('mouseup', endHold);
+        card.addEventListener('mouseleave', endHold);
+
+        // Touch events
+        card.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startHold();
+        });
+        card.addEventListener('touchend', endHold);
+        card.addEventListener('touchcancel', endHold);
+    }
 
     return card;
 }

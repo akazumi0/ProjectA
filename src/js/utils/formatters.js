@@ -50,6 +50,35 @@ export function formatCost(cost) {
 }
 
 /**
+ * Format resource cost with colors (green if affordable, red if not)
+ * @param {Object} cost - Resource cost object
+ * @param {Object} available - Available resources
+ * @returns {string} Formatted cost string with HTML colors
+ */
+export function formatCostColored(cost, available) {
+    if (!cost || Object.keys(cost).length === 0) return '<span style="color: #4ade80">Gratuit</span>';
+
+    const parts = [];
+    if (cost.lumen) {
+        const canAfford = (available.lumen || 0) >= cost.lumen;
+        const color = canAfford ? '#4ade80' : '#f87171';
+        parts.push(`<span style="color: ${color}">⭐${formatNumber(cost.lumen)}</span>`);
+    }
+    if (cost.energy) {
+        const canAfford = (available.energy || 0) >= cost.energy;
+        const color = canAfford ? '#4ade80' : '#f87171';
+        parts.push(`<span style="color: ${color}">⚡${formatNumber(cost.energy)}</span>`);
+    }
+    if (cost.antimatter) {
+        const canAfford = (available.antimatter || 0) >= cost.antimatter;
+        const color = canAfford ? '#4ade80' : '#f87171';
+        parts.push(`<span style="color: ${color}">💥${formatNumber(cost.antimatter)}</span>`);
+    }
+
+    return parts.join(' ');
+}
+
+/**
  * Format production rate per second
  * @param {number} rate - Production rate
  * @returns {string} Formatted rate string
