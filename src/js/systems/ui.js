@@ -48,6 +48,9 @@ export function updateResources() {
 
     if (lumenRate) lumenRate.textContent = formatRate(production.lumen);
     if (energyRate) energyRate.textContent = formatRate(production.energy);
+
+    // Check for milestone celebrations
+    checkMilestones(game.totalResources.lumen);
 }
 
 /**
@@ -157,23 +160,330 @@ export function createFloatingText(text, x, y, color = '#00d4ff') {
 }
 
 /**
- * Trigger success animation on element
+ * Trigger enhanced success animation on element with particles and effects
  * @param {string} elementId - Element ID
  */
 export function triggerSuccessAnimation(elementId) {
     const element = document.getElementById(elementId);
     if (!element) return;
 
+    // Add success class for glow effect
     element.classList.add('upgrade-success');
 
+    // Get element position for particle burst
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    // Create expanding rings effect
+    createPurchaseRings(centerX, centerY);
+
+    // Create success particles
+    createSuccessParticles(centerX, centerY);
+
+    // Play success sound (imported from audio.js)
+    if (typeof window.playSound === 'function') {
+        window.playSound('build');
+    }
+
+    // Remove success class after animation
     setTimeout(() => {
         element.classList.remove('upgrade-success');
-    }, 500);
+    }, 600);
+}
+
+/**
+ * Create expanding ring effects for purchase feedback
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ */
+function createPurchaseRings(x, y) {
+    for (let i = 0; i < 2; i++) {
+        setTimeout(() => {
+            const ring = document.createElement('div');
+            ring.className = 'purchase-ring';
+            ring.style.position = 'fixed';
+            ring.style.left = x + 'px';
+            ring.style.top = y + 'px';
+            ring.style.pointerEvents = 'none';
+            ring.style.zIndex = '9998';
+
+            document.body.appendChild(ring);
+
+            setTimeout(() => ring.remove(), 600);
+        }, i * 150);
+    }
+}
+
+/**
+ * Create success particles for purchase feedback
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ */
+function createSuccessParticles(x, y) {
+    const particleCount = 15;
+    const colors = ['#00ff88', '#00d4ff', '#ffd93d'];
+
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        const angle = (i / particleCount) * Math.PI * 2;
+        const velocity = 80 + Math.random() * 40;
+        const vx = Math.cos(angle) * velocity;
+        const vy = Math.sin(angle) * velocity;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const size = Math.random() * 6 + 4;
+
+        particle.style.position = 'fixed';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.backgroundColor = color;
+        particle.style.borderRadius = '50%';
+        particle.style.pointerEvents = 'none';
+        particle.style.zIndex = '9998';
+        particle.style.boxShadow = `0 0 10px ${color}`;
+
+        document.body.appendChild(particle);
+
+        // Animate particle
+        let posX = x;
+        let posY = y;
+        let currentVx = vx;
+        let currentVy = vy;
+        let opacity = 1;
+        const gravity = 150;
+        const friction = 0.98;
+        const startTime = Date.now();
+
+        function animateParticle() {
+            const elapsed = (Date.now() - startTime) / 1000;
+
+            if (elapsed > 0.8) {
+                particle.remove();
+                return;
+            }
+
+            currentVy += gravity * 0.016;
+            currentVx *= friction;
+            currentVy *= friction;
+
+            posX += currentVx * 0.016;
+            posY += currentVy * 0.016;
+            opacity = 1 - (elapsed / 0.8);
+
+            particle.style.left = posX + 'px';
+            particle.style.top = posY + 'px';
+            particle.style.opacity = opacity;
+
+            requestAnimationFrame(animateParticle);
+        }
+
+        animateParticle();
+    }
 }
 
 // Store current dialogue timeout
 let astraTimeoutId = null;
 let astraClickHandler = null;
+
+// Milestone tracking
+const milestonesReached = new Set();
+
+// Milestone definitions
+const milestones = [
+    { amount: 100, tier: 'bronze', icon: '🥉', title: 'Premier Pas', message: 'Vous avez collecté 100 Lumen!' },
+    { amount: 500, tier: 'bronze', icon: '🌟', title: 'En Route', message: '500 Lumen! Vous progressez bien!' },
+    { amount: 1000, tier: 'silver', icon: '🥈', title: 'Millier Stellaire', message: '1 000 Lumen collectés!' },
+    { amount: 5000, tier: 'silver', icon: '✨', title: 'Collecteur Aguerri', message: '5 000 Lumen! Impressionnant!' },
+    { amount: 10000, tier: 'gold', icon: '🥇', title: 'Maître Collecteur', message: '10 000 Lumen! Extraordinaire!' },
+    { amount: 50000, tier: 'gold', icon: '💫', title: 'Champion Cosmique', message: '50 000 Lumen! Incroyable!' },
+    { amount: 100000, tier: 'platinum', icon: '🏆', title: 'Légende Stellaire', message: '100 000 Lumen! Vous êtes une légende!' },
+    { amount: 500000, tier: 'platinum', icon: '👑', title: 'Elite Galactique', message: '500 000 Lumen! L\'élite absolue!' },
+    { amount: 1000000, tier: 'diamond', icon: '💎', title: 'Maître de l\'Univers', message: '1 MILLION de Lumen! Suprématie absolue!' }
+];
+
+/**
+ * Check and trigger milestone celebrations
+ * @param {number} totalLumen - Current total Lumen count
+ */
+export function checkMilestones(totalLumen) {
+    milestones.forEach(milestone => {
+        if (totalLumen >= milestone.amount && !milestonesReached.has(milestone.amount)) {
+            milestonesReached.add(milestone.amount);
+            triggerMilestoneCelebration(milestone);
+        }
+    });
+}
+
+/**
+ * Trigger milestone celebration with popup, confetti, and sounds
+ * @param {Object} milestone - Milestone data
+ */
+function triggerMilestoneCelebration(milestone) {
+    // Create milestone popup
+    const popup = document.createElement('div');
+    popup.className = 'milestone-popup show';
+    popup.innerHTML = `
+        <div class="milestone-content ${milestone.tier}">
+            <div class="milestone-icon">${milestone.icon}</div>
+            <div class="milestone-title">${milestone.title}</div>
+            <div class="milestone-amount">${formatMilestoneAmount(milestone.amount)} Lumen</div>
+            <div class="milestone-message">${milestone.message}</div>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    // Play achievement sound
+    if (typeof window.playSound === 'function') {
+        window.playSound('achievement');
+    }
+
+    // Create confetti burst
+    createConfetti(milestone.tier);
+
+    // Screen shake
+    const canvas = document.getElementById('gameCanvas');
+    if (canvas) {
+        screenShakeEffect(canvas, 8, 500);
+    }
+
+    // Remove popup after 4 seconds
+    setTimeout(() => {
+        popup.classList.remove('show');
+        setTimeout(() => popup.remove(), 500);
+    }, 4000);
+
+    // Show ASTRA congratulations
+    setTimeout(() => {
+        const astraMessages = {
+            'bronze': `🎉 Bravo, Commandant ! ${milestone.title} atteint !`,
+            'silver': `✨ Fantastique ! Vous êtes sur la bonne voie avec ${formatMilestoneAmount(milestone.amount)} Lumen !`,
+            'gold': `🌟 Incroyable ! ${milestone.title} ! Vous êtes exceptionnel !`,
+            'platinum': `👑 EXTRAORDINAIRE ! ${formatMilestoneAmount(milestone.amount)} Lumen ! Vous êtes parmi l'élite !`,
+            'diamond': `💎 LÉGENDAIRE ! Vous avez atteint le sommet absolu avec ${formatMilestoneAmount(milestone.amount)} Lumen !`
+        };
+
+        showAstraDialogue(astraMessages[milestone.tier] || milestone.message, 5000);
+    }, 1500);
+}
+
+/**
+ * Create confetti explosion for milestone
+ * @param {string} tier - Milestone tier (bronze/silver/gold/platinum/diamond)
+ */
+function createConfetti(tier) {
+    const confettiCount = tier === 'diamond' ? 100 : tier === 'platinum' ? 80 : tier === 'gold' ? 60 : 40;
+    const colors = {
+        'bronze': ['#cd7f32', '#d4a76a', '#b8860b'],
+        'silver': ['#c0c0c0', '#d3d3d3', '#a8a8a8'],
+        'gold': ['#ffd700', '#ffed4e', '#ffc107'],
+        'platinum': ['#e5e4e2', '#ffffff', '#b9f2ff'],
+        'diamond': ['#b9f2ff', '#00d4ff', '#66e6ff', '#ffffff']
+    };
+
+    const confettiColors = colors[tier] || colors.gold;
+
+    for (let i = 0; i < confettiCount; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            const startX = window.innerWidth * (0.3 + Math.random() * 0.4);
+            const vx = (Math.random() - 0.5) * 400;
+            const vy = -400 - Math.random() * 200;
+            const color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+            const size = 8 + Math.random() * 6;
+            const rotation = Math.random() * 360;
+            const rotationSpeed = (Math.random() - 0.5) * 720;
+
+            confetti.style.position = 'fixed';
+            confetti.style.left = startX + 'px';
+            confetti.style.top = window.innerHeight + 'px';
+            confetti.style.width = size + 'px';
+            confetti.style.height = size + 'px';
+            confetti.style.backgroundColor = color;
+            confetti.style.pointerEvents = 'none';
+            confetti.style.zIndex = '9999';
+            confetti.style.transform = `rotate(${rotation}deg)`;
+
+            document.body.appendChild(confetti);
+
+            // Animate confetti
+            let posX = startX;
+            let posY = window.innerHeight;
+            let currentVx = vx;
+            let currentVy = vy;
+            let currentRotation = rotation;
+            const gravity = 500;
+            const friction = 0.99;
+            const startTime = Date.now();
+
+            function animateConfetti() {
+                const elapsed = (Date.now() - startTime) / 1000;
+
+                if (posY > window.innerHeight + 50 || elapsed > 3) {
+                    confetti.remove();
+                    return;
+                }
+
+                currentVy += gravity * 0.016;
+                currentVx *= friction;
+                currentRotation += rotationSpeed * 0.016;
+
+                posX += currentVx * 0.016;
+                posY += currentVy * 0.016;
+
+                confetti.style.left = posX + 'px';
+                confetti.style.top = posY + 'px';
+                confetti.style.transform = `rotate(${currentRotation}deg)`;
+
+                requestAnimationFrame(animateConfetti);
+            }
+
+            animateConfetti();
+        }, i * 20); // Stagger confetti creation
+    }
+}
+
+/**
+ * Simple screen shake effect
+ * @param {HTMLElement} element - Element to shake
+ * @param {number} intensity - Shake intensity
+ * @param {number} duration - Shake duration in ms
+ */
+function screenShakeEffect(element, intensity, duration) {
+    const startTime = Date.now();
+
+    function shake() {
+        const elapsed = Date.now() - startTime;
+        if (elapsed > duration) {
+            element.style.transform = '';
+            return;
+        }
+
+        const progress = elapsed / duration;
+        const currentIntensity = intensity * (1 - progress);
+        const x = (Math.random() - 0.5) * currentIntensity * 2;
+        const y = (Math.random() - 0.5) * currentIntensity * 2;
+
+        element.style.transform = `translate(${x}px, ${y}px)`;
+
+        requestAnimationFrame(shake);
+    }
+
+    shake();
+}
+
+/**
+ * Format milestone amount with k/M suffixes
+ * @param {number} amount - Amount to format
+ * @returns {string} Formatted amount
+ */
+function formatMilestoneAmount(amount) {
+    if (amount >= 1000000) return (amount / 1000000).toFixed(1).replace('.0', '') + 'M';
+    if (amount >= 1000) return (amount / 1000).toFixed(1).replace('.0', '') + 'K';
+    return amount.toString();
+}
 
 /**
  * Show ASTRA dialogue
