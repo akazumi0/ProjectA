@@ -26,6 +26,7 @@ import { astraDialogues } from './data/dialogues.js';
 
 // System imports
 import { initAudio, playSound, resumeAudio, playBackgroundMusic, toggleMusic, toggleSound } from './systems/audio.js';
+import { initAmbientMusic, startAmbientMusic, stopAmbientMusic, triggerComboMusicEffect, playMilestoneCelebration } from './systems/ambientMusic.js';
 import { loadGame, saveGame, processOfflineEarnings, setupAutoSave } from './systems/storage.js';
 import { initializeSettingsUI } from './systems/settings.js';
 import { initTutorial, onTutorialAction, checkSystemUnlocks, isTutorialActive } from './systems/tutorial.js';
@@ -175,6 +176,13 @@ export function startGame() {
             showAstraDialogue(randomDialogue.text);
         }, 100);
     }
+
+    // Start ambient music after a short delay (gives time for user interaction for autoplay policy)
+    setTimeout(() => {
+        if (game.settings.musicEnabled !== false) {
+            startAmbientMusic();
+        }
+    }, 2000);
 }
 
 /**
@@ -1140,8 +1148,9 @@ function updateProfileModal() {
  * App initialization
  */
 window.addEventListener('DOMContentLoaded', () => {
-    // Initialize audio
+    // Initialize audio systems
     initAudio();
+    initAmbientMusic();
 
     // Initialize game state
     initializePlanetBuildings();
