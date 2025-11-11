@@ -61,8 +61,6 @@ let canvas, ctx;
 let fragments = [];
 let particles = [];
 let stars = [];
-let starLayers = []; // Parallax star layers
-let nebula = null; // Nebula effect
 let animationFrameId = null;
 
 /**
@@ -71,6 +69,12 @@ let animationFrameId = null;
 let gameLoopInterval = null;
 let uiUpdateInterval = null;
 let autoSaveInterval = null;
+
+/**
+ * Initialization flags
+ */
+let gameInitialized = false;
+let canvasInitialized = false;
 
 /**
  * Selected tier (set from welcome screen)
@@ -112,6 +116,10 @@ window.hideManifesto = function() {
  * Called after user enters username
  */
 export function startGame() {
+    // Prevent multiple initializations
+    if (gameInitialized) return;
+    gameInitialized = true;
+
     const usernameInput = document.getElementById('usernameInput');
     const welcomeScreen = document.getElementById('welcome');
 
@@ -152,6 +160,10 @@ export function startGame() {
  * Initialize canvas and rendering
  */
 function initCanvas() {
+    // Prevent multiple initializations
+    if (canvasInitialized) return;
+    canvasInitialized = true;
+
     canvas = document.getElementById('gameCanvas');
     if (!canvas) return;
 
@@ -161,32 +173,15 @@ function initCanvas() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Initialize parallax star layers
-    for (let layer = 0; layer < CANVAS.STAR_LAYERS; layer++) {
-        const starsInLayer = [];
-        const starCount = Math.floor(CANVAS.STAR_COUNT / CANVAS.STAR_LAYERS);
-
-        for (let i = 0; i < starCount; i++) {
-            starsInLayer.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                size: (layer + 1) * 0.5, // Far stars are smaller
-                opacity: 0.3 + (layer * 0.3), // Far stars are dimmer
-                speed: (layer + 1) * 0.02 // Parallax speed
-            });
-        }
-
-        starLayers.push(starsInLayer);
+    // Initialize simple stars background
+    for (let i = 0; i < 100; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 2,
+            opacity: Math.random()
+        });
     }
-
-    // Initialize nebula effect
-    nebula = {
-        x: canvas.width / 2,
-        y: canvas.height / 2,
-        radius: Math.max(canvas.width, canvas.height),
-        hue: 270, // Purple
-        animationOffset: 0
-    };
 
     // Start render loop
     renderLoop();
@@ -207,50 +202,18 @@ function resizeCanvas() {
 function renderLoop() {
     if (!ctx || !canvas) return;
 
-    // Clear canvas with deep space black
-    ctx.fillStyle = '#0a0a15';
+    // Clear canvas
+    ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw nebula effect
-    if (nebula) {
-        nebula.animationOffset += 0.001;
-        const gradient = ctx.createRadialGradient(
-            nebula.x, nebula.y, 0,
-            nebula.x, nebula.y, nebula.radius
-        );
+    // Draw stars
+    stars.forEach(star => {
+        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+        ctx.fillRect(star.x, star.y, star.size, star.size);
 
-        const hue = nebula.hue + Math.sin(nebula.animationOffset) * 20;
-        gradient.addColorStop(0, `hsla(${hue}, 80%, 40%, 0.15)`);
-        gradient.addColorStop(0.3, `hsla(${hue + 30}, 70%, 30%, 0.08)`);
-        gradient.addColorStop(1, 'rgba(0,0,0,0)');
-
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    // Draw parallax star layers (back to front)
-    starLayers.forEach((layer, layerIndex) => {
-        ctx.globalAlpha = 0.3 + (layerIndex * 0.3);
-
-        layer.forEach(star => {
-            // Twinkle effect
-            star.opacity += (Math.random() - 0.5) * 0.05;
-            star.opacity = Math.max(0.3, Math.min(1, star.opacity));
-
-            ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
-            ctx.beginPath();
-            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Slow parallax movement (optional subtle effect)
-            star.y += star.speed;
-            if (star.y > canvas.height) {
-                star.y = 0;
-                star.x = Math.random() * canvas.width;
-            }
-        });
-
-        ctx.globalAlpha = 1; // Reset
+        // Twinkle effect
+        star.opacity += (Math.random() - 0.5) * 0.05;
+        star.opacity = Math.max(0.1, Math.min(1, star.opacity));
     });
 
     // Draw fragments
@@ -274,12 +237,10 @@ function renderLoop() {
         ctx.restore();
     });
 
-    // Draw particles
+    // Draw particles (simple version)
     particles.forEach((particle, index) => {
-        // Physics
         particle.x += particle.vx;
         particle.y += particle.vy;
-        particle.vy += 0.1; // Gravity effect
         particle.life--;
 
         if (particle.life <= 0) {
@@ -287,31 +248,8 @@ function renderLoop() {
             return;
         }
 
-        // Calculate scale and alpha
-        const maxLife = particle.maxLife || 60;
-        const scale = particle.scale !== undefined ? particle.life / maxLife : 1;
-        const alpha = particle.life / maxLife;
-        const size = (particle.size || 2) * scale;
-
-        // Draw with glow
-        ctx.save();
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = particle.color || '#00d4ff';
-
-        // Create RGBA color with alpha
-        let fillColor = particle.color || 'rgb(0, 212, 255)';
-        if (fillColor.startsWith('rgb(')) {
-            fillColor = fillColor.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`);
-        } else {
-            // Fallback for other color formats
-            ctx.globalAlpha = alpha;
-        }
-
-        ctx.fillStyle = fillColor;
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+        ctx.fillStyle = `rgba(0, 212, 255, ${particle.life / 30})`;
+        ctx.fillRect(particle.x, particle.y, 2, 2);
     });
 
     animationFrameId = requestAnimationFrame(renderLoop);
@@ -356,29 +294,14 @@ function handleCanvasClick(event) {
             // Capture fragment
             const result = captureFragment(fragment);
 
-            // Create enhanced particle effect
-            const particleCount = 20 + Math.floor(Math.random() * 10); // 20-30 particles
-            const colors = [
-                'rgb(0, 212, 255)',  // Cyan
-                'rgb(78, 236, 196)', // Turquoise
-                'rgb(255, 217, 61)', // Yellow
-                'rgb(147, 51, 234)'  // Purple
-            ];
-
-            for (let p = 0; p < particleCount; p++) {
-                const angle = (Math.PI * 2 * p) / particleCount;
-                const speed = 2 + Math.random() * 4;
-
+            // Create simple particle effect
+            for (let p = 0; p < 10; p++) {
                 particles.push({
                     x: fragment.x,
                     y: fragment.y,
-                    vx: Math.cos(angle) * speed,
-                    vy: Math.sin(angle) * speed,
-                    life: 40 + Math.random() * 20,
-                    maxLife: 60,
-                    size: 2 + Math.random() * 2,
-                    scale: 1,
-                    color: colors[Math.floor(Math.random() * colors.length)]
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
+                    life: 30
                 });
             }
 
@@ -400,7 +323,13 @@ function handleCanvasClick(event) {
 /**
  * Initialize event listeners
  */
+let eventListenersInitialized = false;
+
 function initEventListeners() {
+    // Prevent duplicate event listeners
+    if (eventListenersInitialized) return;
+    eventListenersInitialized = true;
+
     // Canvas click
     if (canvas) {
         canvas.addEventListener('click', handleCanvasClick);
@@ -416,6 +345,9 @@ function initEventListeners() {
  * Start game loops (logic, UI updates, fragment spawning)
  */
 function startGameLoops() {
+    // Prevent multiple game loops
+    if (gameLoopInterval) return;
+
     // Main game loop (10 ticks per second)
     gameLoopInterval = setInterval(() => {
         updateGame(TIMING.TICK_RATE / 1000);
