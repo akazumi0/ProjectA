@@ -11,6 +11,41 @@
     width: 100%;
     height: 100vh;
     z-index: 1;
+    transition: box-shadow 0.3s ease;
+}
+
+#gameCanvas.combo-active {
+    box-shadow: inset 0 0 100px rgba(255, 100, 0, 0.3);
+}
+
+/* Combo Fire Overlay */
+#comboOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+#comboOverlay.level-1 {
+    opacity: 0.15;
+    background: radial-gradient(circle, transparent 30%, rgba(255, 150, 0, 0.15) 100%);
+}
+
+#comboOverlay.level-2 {
+    opacity: 0.25;
+    background: radial-gradient(circle, transparent 20%, rgba(255, 100, 0, 0.25) 100%);
+    animation: pulse 1s infinite;
+}
+
+#comboOverlay.level-3 {
+    opacity: 0.4;
+    background: radial-gradient(circle, transparent 10%, rgba(255, 50, 0, 0.35) 100%);
+    animation: pulse 0.5s infinite, shake 0.15s infinite;
 }
 
 /* Header */
@@ -20,15 +55,27 @@
     left: 0;
     right: 0;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.7));
-    padding: 5px 12px 4px;
+    padding: 5px 12px;
     z-index: 100;
     border-bottom: 1px solid var(--color-border);
 }
 
 .resources {
     display: flex;
-    justify-content: space-around;
-    margin-bottom: 3px;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 100%;
+}
+
+#playerInfo .profile-icon {
+    cursor: pointer;
+    font-size: 22px;
+    transition: transform var(--transition-fast);
+    display: inline-block;
+}
+
+#playerInfo .profile-icon:active {
+    transform: scale(0.9);
 }
 
 .resource {
@@ -103,6 +150,189 @@
     z-index: 98;
     padding: 8px;
     overflow-y: auto;
+}
+
+/* Free Lootbox Floating Button */
+#freeLootboxFloat {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 99;
+    background: linear-gradient(135deg, #ff9500, #ff6b00);
+    border: 3px solid #ffd700;
+    border-radius: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(255, 149, 0, 0.6);
+    animation: lootboxPulse 2s ease-in-out infinite, lootboxBounce 3s ease-in-out infinite;
+    transition: transform 0.2s ease;
+}
+
+#freeLootboxFloat:hover {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 30px rgba(255, 149, 0, 0.8);
+}
+
+#freeLootboxFloat:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.lootbox-icon {
+    font-size: 40px;
+    text-align: center;
+    margin-bottom: 4px;
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+}
+
+.lootbox-label {
+    font-size: var(--font-size-small);
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes lootboxPulse {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(255, 149, 0, 0.6);
+    }
+    50% {
+        box-shadow: 0 4px 30px rgba(255, 149, 0, 1);
+    }
+}
+
+/* Prestige Floating Button */
+#prestigeFloat {
+    position: fixed;
+    right: 20px;
+    bottom: 30px;
+    z-index: 99;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    border: 3px solid #a78bfa;
+    border-radius: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.6);
+    animation: prestigePulse 2s ease-in-out infinite;
+    transition: transform 0.2s ease;
+}
+
+#prestigeFloat:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 30px rgba(139, 92, 246, 0.8);
+}
+
+#prestigeFloat:active {
+    transform: scale(0.95);
+}
+
+.prestige-icon {
+    font-size: 40px;
+    text-align: center;
+    margin-bottom: 4px;
+    filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.8));
+}
+
+.prestige-label {
+    font-size: var(--font-size-small);
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes prestigePulse {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.6);
+    }
+    50% {
+        box-shadow: 0 4px 30px rgba(139, 92, 246, 1);
+    }
+}
+
+@keyframes lootboxBounce {
+    0%, 100% {
+        transform: translateY(-50%);
+    }
+    50% {
+        transform: translateY(calc(-50% - 8px));
+    }
+}
+
+/* Lootbox Appear Animation */
+#lootboxAppearAnim {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    animation: fadeOut 2s ease-in-out forwards;
+    pointer-events: none;
+}
+
+.lootbox-anim-content {
+    background: linear-gradient(135deg, #ff9500, #ff6b00);
+    border: 4px solid #ffd700;
+    border-radius: 20px;
+    padding: 30px 50px;
+    animation: lootboxAppear 2s ease-in-out;
+}
+
+.lootbox-anim-icon {
+    font-size: 80px;
+    text-align: center;
+    margin-bottom: 10px;
+    animation: lootboxSpin 1s ease-in-out;
+}
+
+.lootbox-anim-text {
+    font-size: var(--font-size-xlarge);
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes lootboxAppear {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes lootboxSpin {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+    50% {
+        transform: rotate(180deg) scale(1.3);
+    }
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+@keyframes fadeOut {
+    0%, 70% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
 }
 
 /* Bottom UI */
@@ -200,22 +430,32 @@
 /* ASTRA Dialogue Bubble */
 #astraDialogue {
     position: fixed;
-    bottom: 26vh;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 210px; /* Just above bottomUI */
+    left: 60px; /* Just to the right of leftIconBar */
+    right: 20px;
     background: linear-gradient(135deg, rgba(0, 100, 200, 0.95), rgba(0, 50, 150, 0.95));
     border: 2px solid rgba(0, 212, 255, 0.8);
     border-radius: var(--border-radius-lg);
-    padding: 10px 15px;
-    max-width: 75%;
+    padding: 12px 15px;
+    max-width: 600px;
     z-index: 150;
-    display: none;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
     box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
-    animation: slideUp 0.4s ease-out;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
 }
 
 #astraDialogue.show {
-    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+#astraDialogue:hover {
+    border-color: rgba(0, 212, 255, 1);
+    box-shadow: 0 4px 25px rgba(0, 212, 255, 0.6);
 }
 
 .astra-text {
@@ -232,38 +472,57 @@
     text-align: right;
 }
 
-/* Combo Display */
+/* Combo Display - Banner under header */
 #comboDisplay {
     position: fixed;
-    top: 100px;
-    right: 20px;
-    background: linear-gradient(135deg, rgba(255, 100, 0, 0.9), rgba(255, 50, 0, 0.9));
-    border: 3px solid rgba(255, 200, 0, 0.8);
-    border-radius: var(--border-radius-md);
-    padding: 10px 20px;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 100, 0, 0.3) 20%,
+        rgba(255, 100, 0, 0.5) 50%,
+        rgba(255, 100, 0, 0.3) 80%,
+        transparent 100%);
+    border-bottom: 2px solid rgba(255, 200, 0, 0.6);
+    padding: 5px 30px;
     z-index: 150;
     display: none;
-    box-shadow: 0 0 30px rgba(255, 100, 0, 0.8);
-    animation: comboPulse 0.5s ease infinite;
+    min-width: 300px;
+    text-align: center;
+    backdrop-filter: blur(5px);
 }
 
 #comboDisplay.show {
     display: block;
+    animation: slideDown 0.3s ease;
 }
 
 .combo-text {
-    font-size: 24px;
+    font-size: var(--font-size-xlarge);
     font-weight: bold;
     color: #fff;
     text-shadow: 0 0 10px rgba(255, 200, 0, 1);
-    text-align: center;
+    display: inline-block;
+    margin-right: 10px;
 }
 
 .combo-multiplier {
     font-size: var(--font-size-large);
     color: #ffd700;
-    text-align: center;
-    margin-top: 3px;
+    display: inline-block;
+    text-shadow: 0 0 5px rgba(255, 200, 0, 0.8);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 
 /* Flash Mission */

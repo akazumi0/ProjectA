@@ -60,7 +60,7 @@ export function updateComboDisplay() {
 
     if (!comboDisplay) return;
 
-    if (game.combo.count > 5) {
+    if (game.combo.count > 3) {
         comboDisplay.classList.add('show');
         if (comboCount) comboCount.textContent = game.combo.count;
         if (comboMultiplier) {
@@ -73,22 +73,17 @@ export function updateComboDisplay() {
 }
 
 /**
- * Update planet selector
+ * Update prestige display
  */
-export function updatePlanetSelector() {
-    const select = document.getElementById('planetSelect');
-    if (!select) return;
+export function updatePrestigeDisplay() {
+    const prestigeDisplay = document.getElementById('prestigeLevelDisplay');
+    if (prestigeDisplay) {
+        prestigeDisplay.textContent = game.prestige.level;
 
-    select.innerHTML = '';
-
-    for (let key in game.planets) {
-        const planet = game.planets[key];
-        if (planet.unlocked) {
-            const option = document.createElement('option');
-            option.value = key;
-            option.textContent = planet.name;
-            option.selected = (key === game.currentPlanet);
-            select.appendChild(option);
+        // Add visual indication if prestige level > 0
+        if (game.prestige.level > 0) {
+            prestigeDisplay.style.color = '#ffd700';
+            prestigeDisplay.style.fontWeight = 'bold';
         }
     }
 }
@@ -139,13 +134,15 @@ export function toggleModal(modalId, show) {
  * @param {string} text - Text to display
  * @param {number} x - X position
  * @param {number} y - Y position
+ * @param {string} color - Text color (optional, defaults to cyan)
  */
-export function createFloatingText(text, x, y) {
+export function createFloatingText(text, x, y, color = '#00d4ff') {
     const element = document.createElement('div');
     element.className = 'floating-text';
     element.textContent = text;
     element.style.left = x + 'px';
     element.style.top = y + 'px';
+    element.style.color = color;
 
     document.body.appendChild(element);
 
@@ -172,20 +169,49 @@ export function triggerSuccessAnimation(elementId) {
 /**
  * Show ASTRA dialogue
  * @param {string} text - Dialogue text
- * @param {number} duration - Display duration in milliseconds
+ * @param {number} duration - Display duration in milliseconds (0 = no auto-hide)
  */
-export function showAstraDialogue(text, duration = 5000) {
+export function showAstraDialogue(text, duration = 0) {
     const dialogue = document.getElementById('astraDialogue');
     const textElement = document.getElementById('astraText');
 
     if (!dialogue || !textElement) return;
 
     textElement.textContent = text;
-    dialogue.classList.add('show');
 
-    setTimeout(() => {
+    // Use requestAnimationFrame to ensure smooth transition
+    requestAnimationFrame(() => {
+        dialogue.classList.add('show');
+    });
+
+    // Simple click handler - use event delegation to avoid multiple listeners
+    const handleClick = () => {
         dialogue.classList.remove('show');
-    }, duration);
+    };
+
+    // Remove any existing listeners by cloning
+    const newDialogue = dialogue.cloneNode(true);
+    dialogue.parentNode.replaceChild(newDialogue, dialogue);
+
+    // Re-get the element after cloning
+    const freshDialogue = document.getElementById('astraDialogue');
+    const freshText = document.getElementById('astraText');
+    freshText.textContent = text;
+
+    // Add show class after clone
+    requestAnimationFrame(() => {
+        freshDialogue.classList.add('show');
+    });
+
+    // Add single click listener
+    freshDialogue.addEventListener('click', handleClick, { once: true });
+
+    // Auto-hide after duration if specified
+    if (duration > 0) {
+        setTimeout(() => {
+            freshDialogue.classList.remove('show');
+        }, duration);
+    }
 }
 
 /**
@@ -215,6 +241,48 @@ export function updateDailyRewardsDisplay() {
 }
 
 /**
+ * Update free lootbox floating button visibility
+ */
+export function updateFreeLootboxButton() {
+    const now = Date.now();
+    const cooldown = 2 * 60 * 60 * 1000; // 2 hours
+    const timeLeft = (game.freeLootbox.lastOpen + cooldown) - now;
+    const isAvailable = timeLeft <= 0;
+
+    const floatButton = document.getElementById('freeLootboxFloat');
+    if (!floatButton) return;
+
+    // Show/hide button based on availability
+    if (isAvailable) {
+        // Only trigger animation if button wasn't visible before
+        const wasHidden = floatButton.style.display === 'none';
+        floatButton.style.display = 'block';
+
+        if (wasHidden) {
+            // Show center animation
+            showLootboxAppearAnimation();
+        }
+    } else {
+        floatButton.style.display = 'none';
+    }
+}
+
+/**
+ * Show lootbox appear animation in center of screen
+ */
+function showLootboxAppearAnimation() {
+    const anim = document.getElementById('lootboxAppearAnim');
+    if (!anim) return;
+
+    anim.style.display = 'flex';
+
+    // Hide after animation completes
+    setTimeout(() => {
+        anim.style.display = 'none';
+    }, 2000);
+}
+
+/**
  * Update free lootbox timer
  */
 export function updateLootboxTimer() {
@@ -233,6 +301,9 @@ export function updateLootboxTimer() {
         timerElement.textContent = formatCountdown(timeLeft);
         buttonElement.disabled = true;
     }
+
+    // Also update floating button
+    updateFreeLootboxButton();
 }
 
 /**
@@ -241,7 +312,12 @@ export function updateLootboxTimer() {
 export function updateAllUI() {
     updateResources();
     updateComboDisplay();
-    updatePlanetSelector();
+    updatePrestigeDisplay();
     updateDailyRewardsDisplay();
     updateLootboxTimer();
+
+    // Check and update prestige popup/floating button
+    if (typeof window.updatePrestigeUI === 'function') {
+        window.updatePrestigeUI();
+    }
 }

@@ -107,6 +107,12 @@ body {
     100% { background: linear-gradient(135deg, #00a8cc, #0077b6); }
 }
 
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
 @keyframes comboPulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.05); }

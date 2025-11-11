@@ -4,7 +4,7 @@
  * @module core/gameState
  */
 
-import { buildingData } from '../data/buildings.js';
+import { buildingData, defenseData } from '../data/buildings.js';
 import { techData } from '../data/technologies.js';
 
 /**
@@ -60,7 +60,8 @@ export function createDefaultGameState() {
         },
         prestige: {
             level: 0,
-            totalLumenEarned: 0
+            totalLumenEarned: 0,
+            popupDismissed: false
         },
         activeBoosts: [],
         activeEvents: [],
@@ -73,8 +74,14 @@ export function createDefaultGameState() {
             techsUnlocked: 0
         },
         quests: {
-            daily: {},
-            lastReset: 0
+            active: [], // Array of 3 active quest objects { key, progress, completed, claimed }
+            lastReset: 0,
+            sessionProgress: {
+                clicks: 0,
+                builds: 0,
+                lumenCollected: 0,
+                fragmentsCaught: 0
+            }
         },
         masteries: {
             clickMastery: 0,
@@ -97,7 +104,8 @@ export function createDefaultGameState() {
         combo: {
             count: 0,
             lastClick: 0,
-            multiplier: 1
+            multiplier: 1,
+            missedFragments: 0
         },
         flashMission: {
             active: false,
@@ -155,6 +163,18 @@ export function initializeTechnologies() {
 }
 
 /**
+ * Initialize defense upgrades
+ * Sets all defense items to level 0
+ */
+export function initializeDefense() {
+    for (let defKey in defenseData) {
+        if (!(defKey in game.defense)) {
+            game.defense[defKey] = 0;
+        }
+    }
+}
+
+/**
  * Reset game state to defaults
  * @param {Object} newState - Optional new state to set
  */
@@ -162,6 +182,7 @@ export function resetGameState(newState = null) {
     game = newState || createDefaultGameState();
     initializePlanetBuildings();
     initializeTechnologies();
+    initializeDefense();
 }
 
 /**
@@ -182,6 +203,7 @@ export function loadGameState(savedState) {
 
     initializePlanetBuildings();
     initializeTechnologies();
+    initializeDefense();
 }
 
 /**

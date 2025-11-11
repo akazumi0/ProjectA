@@ -7,6 +7,9 @@
 import { game, updateGameState } from '../core/gameState.js';
 import { buildingData, defenseData } from '../data/buildings.js';
 import { techData } from '../data/technologies.js';
+import { questData } from '../data/quests.js';
+import { achievementData } from '../data/achievements.js';
+import { boostData, eventData } from '../data/events.js';
 import { getCost, canAfford, checkRequires, calculateProduction, calculateClickPower } from '../utils/calculations.js';
 import { playSound } from './audio.js';
 import { saveGame } from './storage.js';
@@ -52,6 +55,7 @@ export function buyDefense(key) {
     spendResources(cost);
     game.defense[key] = level + 1;
     game.stats.buildingsBuilt++;
+    updateQuestProgress('builds');
     playSound('build');
 
     return true;
@@ -76,6 +80,7 @@ export function buyBuilding(key) {
     spendResources(cost);
     planet.buildings[key] = level + 1;
     game.stats.buildingsBuilt++;
+    updateQuestProgress('builds');
     playSound('build');
 
     return true;
@@ -124,6 +129,9 @@ export function captureFragment(fragment) {
     }
     game.combo.lastClick = now;
 
+    // Reset missed fragments counter on successful catch
+    game.combo.missedFragments = 0;
+
     // Add resources
     addResources({ lumen: value });
 
@@ -131,7 +139,12 @@ export function captureFragment(fragment) {
     game.stats.totalClicks++;
     game.stats.fragmentsCaught++;
 
-    playSound('catch');
+    // Update quests
+    updateQuestProgress('clicks');
+    updateQuestProgress('fragmentsCaught');
+    updateQuestProgress('lumenCollected', value);
+
+    playSound('capture');
 
     return { lumen: value, combo: game.combo.count };
 }
@@ -305,7 +318,7 @@ export function claimDailyReward(day) {
  */
 export function openFreeLootbox() {
     const now = Date.now();
-    const cooldown = 2 * 60 * 60 * 1000; // 2 hours
+    const cooldown = 15 * 60 * 1000; // 15 minutes
 
     if (now - game.freeLootbox.lastOpen < cooldown) {
         return null;
@@ -322,4 +335,202 @@ export function openFreeLootbox() {
     playSound('success');
 
     return rewards;
+}
+
+/**
+ * Initialize/regenerate 3 random quests
+ */
+export function generateDailyQuests() {
+    const allQuests = Object.keys(questData.daily);
+
+    // Shuffle and pick 3 quests
+    const shuffled = allQuests.sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, 3);
+
+    game.quests.active = selected.map(key => ({
+        key,
+        progress: 0,
+        completed: false,
+        claimed: false
+    }));
+
+    game.quests.lastReset = Date.now();
+    game.quests.sessionProgress = {
+        clicks: 0,
+        builds: 0,
+        lumenCollected: 0,
+        fragmentsCaught: 0
+    };
+}
+
+/**
+ * Update quest progress based on player actions
+ * @param {string} stat - The stat to update (clicks, builds, lumenCollected, fragmentsCaught)
+ * @param {number} amount - Amount to add
+ */
+export function updateQuestProgress(stat, amount = 1) {
+    if (!game.quests.sessionProgress[stat]) return;
+
+    game.quests.sessionProgress[stat] += amount;
+
+    // Update active quests
+    game.quests.active.forEach(quest => {
+        if (quest.completed || quest.claimed) return;
+
+        const data = questData.daily[quest.key];
+        if (data.stat === stat) {
+            quest.progress = game.quests.sessionProgress[stat];
+            if (quest.progress >= data.requirement) {
+                quest.completed = true;
+            }
+        }
+    });
+}
+
+/**
+ * Claim quest reward
+ * @param {number} questIndex - Index of quest in active array (0-2)
+ * @returns {Object|null} Rewards or null if can't claim
+ */
+export function claimQuestReward(questIndex) {
+    const quest = game.quests.active[questIndex];
+    if (!quest || !quest.completed || quest.claimed) return null;
+
+    const data = questData.daily[quest.key];
+
+    addResources(data.reward);
+    quest.claimed = true;
+    playSound('success');
+
+    return data.reward;
+}
+
+/**
+ * Check if quests should be reset (every 15 mins)
+ * Called in game loop
+ */
+export function checkQuestReset() {
+    const now = Date.now();
+    const timeSinceReset = now - game.quests.lastReset;
+    const RESET_INTERVAL = 15 * 60 * 1000; // 15 minutes
+
+    if (timeSinceReset >= RESET_INTERVAL) {
+        // Check if all quests are completed
+        const allCompleted = game.quests.active.every(q => q.completed);
+
+        if (allCompleted) {
+            generateDailyQuests();
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Check and unlock achievements
+ * @returns {Array} Array of newly unlocked achievements
+ */
+export function checkAchievements() {
+    const unlocked = [];
+
+    for (const [key, data] of Object.entries(achievementData)) {
+        // Skip if already unlocked
+        if (game.achievements[key]) continue;
+
+        let requirementMet = false;
+
+        switch (data.category) {
+            case 'clicks':
+                requirementMet = game.stats.totalClicks >= data.requirement;
+                break;
+
+            case 'collection':
+                requirementMet = game.totalResources[data.resource] >= data.requirement;
+                break;
+
+            case 'buildings':
+                requirementMet = game.stats.buildingsBuilt >= data.requirement;
+                break;
+
+            case 'tech':
+                const techCount = Object.values(game.technologies).filter(t => t > 0).length;
+                requirementMet = techCount >= data.requirement;
+                break;
+
+            case 'planets':
+                if (typeof data.requirement === 'string') {
+                    // Specific planet check
+                    requirementMet = game.planets[data.requirement]?.unlocked || false;
+                } else {
+                    // Count unlocked planets
+                    const planetsUnlocked = Object.values(game.planets).filter(p => p.unlocked).length;
+                    requirementMet = planetsUnlocked >= data.requirement;
+                }
+                break;
+
+            case 'prestige':
+                requirementMet = game.prestige.level >= data.requirement;
+                break;
+        }
+
+        if (requirementMet) {
+            game.achievements[key] = true;
+            addResources(data.reward);
+            unlocked.push({ key, data });
+            playSound('success');
+        }
+    }
+
+    return unlocked;
+}
+
+/**
+ * Activate a boost
+ * @param {string} boostKey - Boost key from boostData
+ * @returns {boolean} True if boost was activated
+ */
+export function activateBoost(boostKey) {
+    const data = boostData[boostKey];
+    if (!data) return false;
+
+    if (!canAfford(data.cost)) return false;
+
+    spendResources(data.cost);
+
+    const endTime = data.duration === -1 ? -1 : Date.now() + data.duration;
+
+    game.activeBoosts.push({
+        key: boostKey,
+        endTime,
+        effect: data.effect
+    });
+
+    playSound('success');
+    return true;
+}
+
+/**
+ * Activate an event
+ * @param {string} eventKey - Event key from eventData
+ * @returns {boolean} True if event was activated
+ */
+export function activateEvent(eventKey) {
+    const data = eventData[eventKey];
+    if (!data) return false;
+
+    if (!canAfford(data.cost)) return false;
+
+    spendResources(data.cost);
+
+    const endTime = Date.now() + data.duration;
+
+    game.activeEvents.push({
+        key: eventKey,
+        endTime,
+        effect: data.effect
+    });
+
+    playSound('success');
+    return true;
 }
