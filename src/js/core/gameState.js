@@ -13,14 +13,30 @@ import { techData } from '../data/technologies.js';
  */
 export function createDefaultGameState() {
     return {
+        // Player Profile
         username: 'Commandant',
+        playerTier: 'FREE', // FREE, SUPPORTER, FAST_PASS
+        badges: [],
+        settings: {
+            soundEnabled: true,
+            musicEnabled: true,
+            hapticsEnabled: true,
+            language: 'fr',
+            volumeSFX: 0.5,
+            volumeMusic: 0.3,
+            uiAutoHide: true
+        },
+
+        // Gameplay
         currentPlanet: 'earth',
         planets: {
             earth: {
                 name: 'Terre',
                 unlocked: true,
                 bonus: { lumen: 1, energy: 1 },
-                buildings: {}
+                buildings: {
+                    lumenMine: 1  // Start with 1 free mine for better early game
+                }
             },
             mars: {
                 name: 'Mars',
@@ -61,7 +77,13 @@ export function createDefaultGameState() {
         prestige: {
             level: 0,
             totalLumenEarned: 0,
-            popupDismissed: false
+            popupDismissed: false,
+            paths: {
+                builder: 0,    // Number of times chosen
+                clicker: 0,
+                researcher: 0
+            },
+            artifacts: []      // Unlocked artifacts from prestige
         },
         activeBoosts: [],
         activeEvents: [],
@@ -123,6 +145,16 @@ export function createDefaultGameState() {
         storyEvents: {
             lastEvent: 0,
             activeEvent: null
+        },
+        // Tutorial & First Time
+        firstTime: true,
+        tutorialCompleted: false,
+        manifestoSeen: false,
+        // Leaderboard data (will sync with Firebase)
+        leaderboard: {
+            totalScore: 0,
+            seasonScore: 0,
+            lastSubmit: 0
         }
     };
 }
@@ -200,6 +232,15 @@ export function loadGameState(savedState) {
     if (!game.storyEvents) game.storyEvents = defaultState.storyEvents;
     if (!game.combo) game.combo = defaultState.combo;
     if (!game.astraDialogue) game.astraDialogue = defaultState.astraDialogue;
+    if (!game.playerTier) game.playerTier = defaultState.playerTier;
+    if (!game.badges) game.badges = defaultState.badges;
+    if (!game.settings) game.settings = defaultState.settings;
+    if (!game.prestige.paths) game.prestige.paths = defaultState.prestige.paths;
+    if (!game.prestige.artifacts) game.prestige.artifacts = defaultState.prestige.artifacts;
+    if (game.firstTime === undefined) game.firstTime = false; // Existing players
+    if (!game.tutorialCompleted) game.tutorialCompleted = false;
+    if (!game.manifestoSeen) game.manifestoSeen = false;
+    if (!game.leaderboard) game.leaderboard = defaultState.leaderboard;
 
     initializePlanetBuildings();
     initializeTechnologies();

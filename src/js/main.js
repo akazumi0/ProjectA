@@ -14,7 +14,7 @@ import {
     loadGameState,
     resetGameState
 } from './core/gameState.js';
-import { TIMING, CANVAS } from './core/constants.js';
+import { TIMING, CANVAS, FRAGMENT_SPAWN } from './core/constants.js';
 
 // Data imports
 import { buildingData, defenseData } from './data/buildings.js';
@@ -27,6 +27,7 @@ import { astraDialogues } from './data/dialogues.js';
 // System imports
 import { initAudio, playSound, resumeAudio, playBackgroundMusic, toggleMusic, toggleSound } from './systems/audio.js';
 import { loadGame, saveGame, processOfflineEarnings, setupAutoSave } from './systems/storage.js';
+import { initializeSettingsUI } from './systems/settings.js';
 import {
     buyDefense,
     buyBuilding,
@@ -61,7 +62,7 @@ import {
 
 // Utility imports
 import { formatNumber, formatCost, formatCostColored, formatLevel } from './utils/formatters.js';
-import { getCost, checkRequires, calculateClickPower, canAfford } from './utils/calculations.js';
+import { getCost, canAfford, checkRequires, calculateClickPower } from './utils/calculations.js';
 
 /**
  * Canvas and rendering variables
@@ -80,6 +81,47 @@ let uiUpdateInterval = null;
 let autoSaveInterval = null;
 
 /**
+ * Initialization flags
+ */
+let gameInitialized = false;
+let canvasInitialized = false;
+
+/**
+ * Selected tier (set from welcome screen)
+ */
+let selectedTier = 'FREE';
+
+/**
+ * Select a player tier
+ * @param {string} tier - FREE, SUPPORTER, or FAST_PASS
+ */
+window.selectTier = function(tier) {
+    selectedTier = tier;
+    // Update UI
+    document.querySelectorAll('.tier-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.closest('.tier-btn').classList.add('active');
+};
+
+/**
+ * Show full manifesto
+ */
+window.showManifesto = function() {
+    document.getElementById('welcomeMain').style.display = 'none';
+    document.getElementById('welcomeManifesto').style.display = 'block';
+    game.manifestoSeen = true;
+};
+
+/**
+ * Hide full manifesto
+ */
+window.hideManifesto = function() {
+    document.getElementById('welcomeMain').style.display = 'block';
+    document.getElementById('welcomeManifesto').style.display = 'none';
+};
+
+/**
  * Initialize the game
  * Called after user enters username
  */
@@ -90,6 +132,10 @@ export function startGame() {
     if (usernameInput && usernameInput.value.trim()) {
         game.username = usernameInput.value.trim();
     }
+
+    // Save selected tier
+    game.playerTier = selectedTier;
+    game.firstTime = false;
 
     if (welcomeScreen) {
         welcomeScreen.style.display = 'none';
@@ -137,8 +183,8 @@ function initCanvas() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Initialize stars background
-    for (let i = 0; i < CANVAS.STAR_COUNT; i++) {
+    // Initialize simple stars background
+    for (let i = 0; i < 100; i++) {
         stars.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
@@ -164,103 +210,107 @@ function resizeCanvas() {
  * Main render loop for canvas
  */
 function renderLoop() {
-    if (!ctx || !canvas) return;
+    if (!ctx || !canvas || !canvasInitialized) return;
 
-    // Get current combo level for visual effects
-    const comboCount = game.combo.count;
-    const comboLevel = comboCount >= 30 ? 3 : comboCount >= 15 ? 2 : comboCount >= 8 ? 1 : 0;
+    try {
+        // Get current combo level for visual effects
+        const comboCount = game.combo.count;
+        const comboLevel = comboCount >= 30 ? 3 : comboCount >= 15 ? 2 : comboCount >= 8 ? 1 : 0;
 
-    // Clear canvas
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Clear canvas
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw stars
-    stars.forEach(star => {
-        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
-        ctx.fillRect(star.x, star.y, star.size, star.size);
+        // Draw stars
+        stars.forEach(star => {
+            ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+            ctx.fillRect(star.x, star.y, star.size, star.size);
 
-        // Twinkle effect
-        star.opacity += (Math.random() - 0.5) * 0.05;
-        star.opacity = Math.max(0.1, Math.min(1, star.opacity));
-    });
+            // Twinkle effect
+            star.opacity += (Math.random() - 0.5) * 0.05;
+            star.opacity = Math.max(0.1, Math.min(1, star.opacity));
+        });
 
-    // Draw fragments
-    fragments.forEach((fragment, index) => {
-        fragment.y += fragment.speed;
-        fragment.rotation += fragment.rotSpeed;
+        // Draw fragments
+        fragments.forEach((fragment, index) => {
+            fragment.y += fragment.speed;
+            fragment.rotation += fragment.rotSpeed;
 
-        // Remove if out of bounds and handle missed fragment
-        if (fragment.y > canvas.height) {
-            fragments.splice(index, 1);
+            // Remove if out of bounds and handle missed fragment
+            if (fragment.y > canvas.height) {
+                fragments.splice(index, 1);
 
-            // Increment missed fragments counter
-            game.combo.missedFragments++;
+                // Increment missed fragments counter
+                game.combo.missedFragments++;
 
-            // Reset combo if 3 fragments missed
-            if (game.combo.missedFragments >= 3) {
-                // Show notification if there was an active combo
-                if (game.combo.count > 0) {
-                    showNotification('❌ Combo perdu !');
+                // Reset combo if 3 fragments missed
+                if (game.combo.missedFragments >= 3) {
+                    // Show notification if there was an active combo
+                    if (game.combo.count > 0) {
+                        showNotification('❌ Combo perdu !');
+                    }
+
+                    // Reset combo
+                    game.combo.count = 0;
+                    game.combo.multiplier = 1;
+                    game.combo.missedFragments = 0;
                 }
 
-                // Reset combo
-                game.combo.count = 0;
-                game.combo.multiplier = 1;
-                game.combo.missedFragments = 0;
+                return;
             }
 
-            return;
-        }
+            // Calculate fire color based on combo level
+            let fragmentColor = fragment.baseColor || '#00d4ff';
+            if (comboLevel === 1) {
+                fragmentColor = '#ffaa00'; // Orange
+            } else if (comboLevel === 2) {
+                fragmentColor = '#ff6600'; // Orange-red
+            } else if (comboLevel === 3) {
+                fragmentColor = '#ff3300'; // Red fire
+            }
 
-        // Calculate fire color based on combo level
-        let fragmentColor = fragment.baseColor || '#00d4ff';
-        if (comboLevel === 1) {
-            fragmentColor = '#ffaa00'; // Orange
-        } else if (comboLevel === 2) {
-            fragmentColor = '#ff6600'; // Orange-red
-        } else if (comboLevel === 3) {
-            fragmentColor = '#ff3300'; // Red fire
-        }
+            // Draw star fragment
+            ctx.save();
+            ctx.translate(fragment.x, fragment.y);
+            ctx.rotate(fragment.rotation);
+            ctx.shadowBlur = comboLevel > 0 ? 30 : 20;
+            ctx.shadowColor = fragmentColor;
+            ctx.fillStyle = fragmentColor;
 
-        // Draw star fragment
-        ctx.save();
-        ctx.translate(fragment.x, fragment.y);
-        ctx.rotate(fragment.rotation);
-        ctx.shadowBlur = comboLevel > 0 ? 30 : 20;
-        ctx.shadowColor = fragmentColor;
-        ctx.fillStyle = fragmentColor;
+            // Draw 5-pointed star
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+                const x = Math.cos(angle) * fragment.size;
+                const y = Math.sin(angle) * fragment.size;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
 
-        // Draw 5-pointed star
-        ctx.beginPath();
-        for (let i = 0; i < 5; i++) {
-            const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
-            const x = Math.cos(angle) * fragment.size;
-            const y = Math.sin(angle) * fragment.size;
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-        ctx.fill();
+            ctx.restore();
+        });
 
-        ctx.restore();
-    });
+        // Draw particles (simple version)
+        particles.forEach((particle, index) => {
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.life--;
 
-    // Draw particles
-    particles.forEach((particle, index) => {
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-        particle.life--;
+            if (particle.life <= 0) {
+                particles.splice(index, 1);
+                return;
+            }
 
-        if (particle.life <= 0) {
-            particles.splice(index, 1);
-            return;
-        }
-
-        // Change particle color during combo
-        let particleColor = comboLevel >= 2 ? '255, 100, 0' : '0, 212, 255';
-        ctx.fillStyle = `rgba(${particleColor}, ${particle.life / 30})`;
-        ctx.fillRect(particle.x, particle.y, 2, 2);
-    });
+            // Change particle color during combo
+            let particleColor = comboLevel >= 2 ? '255, 100, 0' : '0, 212, 255';
+            ctx.fillStyle = `rgba(${particleColor}, ${particle.life / 30})`;
+            ctx.fillRect(particle.x, particle.y, 2, 2);
+        });
+    } catch (error) {
+        console.error('Render loop error:', error);
+    }
 
     animationFrameId = requestAnimationFrame(renderLoop);
 }
@@ -294,6 +344,11 @@ function spawnFragment() {
  * Handle canvas click/tap
  */
 function handleCanvasClick(event) {
+    // Safety check: ensure canvas and context are initialized
+    if (!canvas || !ctx || !gameInitialized) {
+        return;
+    }
+
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -328,8 +383,8 @@ function handleCanvasClick(event) {
                 particles.push({
                     x: fragment.x,
                     y: fragment.y,
-                    vx: (Math.random() - 0.5) * 5,
-                    vy: (Math.random() - 0.5) * 5,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
                     life: 30
                 });
             }
@@ -357,7 +412,13 @@ function handleCanvasClick(event) {
 /**
  * Initialize event listeners
  */
+let eventListenersInitialized = false;
+
 function initEventListeners() {
+    // Prevent duplicate event listeners
+    if (eventListenersInitialized) return;
+    eventListenersInitialized = true;
+
     // Canvas click
     if (canvas) {
         canvas.addEventListener('click', handleCanvasClick);
@@ -429,24 +490,41 @@ function updateSpawnRate() {
  * Start game loops (logic, UI updates, fragment spawning)
  */
 function startGameLoops() {
+    // Prevent multiple game loops
+    if (gameLoopInterval) return;
+
+    // Ensure canvas is initialized before starting loops
+    if (!canvasInitialized || !canvas) {
+        console.warn('Cannot start game loops: canvas not initialized');
+        return;
+    }
+
     // Main game loop (10 ticks per second)
     gameLoopInterval = setInterval(() => {
-        updateGame(TIMING.TICK_RATE / 1000);
+        try {
+            updateGame(TIMING.TICK_RATE / 1000);
+        } catch (error) {
+            console.error('Game loop error:', error);
+        }
     }, TIMING.TICK_RATE);
 
     // UI update loop (every 500ms)
     uiUpdateInterval = setInterval(() => {
-        updateResources();
-        updateComboDisplay();
-        updateLootboxTimer();
-        updateComboVisuals();
-        checkQuestReset();
+        try {
+            updateResources();
+            updateComboDisplay();
+            updateLootboxTimer();
+            updateComboVisuals();
+            checkQuestReset();
 
-        // Check for new achievements
-        const newAchievements = checkAchievements();
-        newAchievements.forEach(({ key, data }) => {
-            showNotification(`🏆 ${data.name} débloqué !`);
-        });
+            // Check for new achievements
+            const newAchievements = checkAchievements();
+            newAchievements.forEach(({ key, data }) => {
+                showNotification(`🏆 ${data.name} débloqué !`);
+            });
+        } catch (error) {
+            console.error('UI update error:', error);
+        }
     }, 500);
 
     // Spawn rate update loop (every 100ms for responsiveness)
@@ -538,7 +616,7 @@ function renderTechnologiesTab() {
 }
 
 /**
- * Create item card element
+ * Create item card element with hold-to-upgrade functionality
  */
 function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
     const card = document.createElement('div');
@@ -566,7 +644,7 @@ function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
         <div class="item-cost">${costHTML}</div>
     `;
 
-    // Make card clickable if not locked and not maxed
+    // Make card clickable with hold-to-upgrade if not locked and not maxed
     if (!locked && level < data.max) {
         card.style.cursor = 'pointer';
 
@@ -624,7 +702,14 @@ function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
 window.startGame = startGame;
 window.switchTab = switchTab;
 window.openModal = (id) => {
+    // Initialize settings UI when opening settings modal
+    if (id === 'settings') {
+        initializeSettingsUI();
+    }
+
     toggleModal(id + 'Modal', true);
+
+    // Render content for specific modals
     if (id === 'quests') {
         renderQuests();
     } else if (id === 'achievements') {
@@ -1045,9 +1130,6 @@ function updateProfileModal() {
 window.addEventListener('DOMContentLoaded', () => {
     // Initialize audio
     initAudio();
-
-    // Resume audio on first interaction (iOS requirement)
-    document.addEventListener('click', resumeAudio, { once: true });
 
     // Initialize game state
     initializePlanetBuildings();

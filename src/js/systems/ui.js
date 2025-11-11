@@ -166,6 +166,10 @@ export function triggerSuccessAnimation(elementId) {
     }, 500);
 }
 
+// Store current dialogue timeout
+let astraTimeoutId = null;
+let astraClickHandler = null;
+
 /**
  * Show ASTRA dialogue
  * @param {string} text - Dialogue text
@@ -176,6 +180,14 @@ export function showAstraDialogue(text, duration = 0) {
     const textElement = document.getElementById('astraText');
 
     if (!dialogue || !textElement) return;
+
+    // Clear any existing timeout and handler
+    if (astraTimeoutId) {
+        clearTimeout(astraTimeoutId);
+    }
+    if (astraClickHandler) {
+        dialogue.removeEventListener('click', astraClickHandler);
+    }
 
     textElement.textContent = text;
 
