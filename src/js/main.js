@@ -190,9 +190,13 @@ export function startGame() {
  */
 function initCanvas() {
     canvas = document.getElementById('gameCanvas');
-    if (!canvas) return;
+    if (!canvas) {
+        console.error('❌ Canvas element not found!');
+        return;
+    }
 
     ctx = canvas.getContext('2d');
+    console.log('✅ Canvas initialized:', canvas.width, 'x', canvas.height);
 
     // Set canvas size
     resizeCanvas();
@@ -200,12 +204,15 @@ function initCanvas() {
 
     // Initialize multi-layer starfield with parallax
     initStarfield();
+    console.log('✅ Starfield initialized with', stars.length, 'stars');
 
     // Mark canvas as initialized (CRITICAL for game loops to start)
     canvasInitialized = true;
+    console.log('✅ canvasInitialized flag set to TRUE');
 
     // Start render loop
     renderLoop();
+    console.log('✅ Render loop started');
 }
 
 /**
@@ -661,6 +668,7 @@ function spawnFragment() {
     };
 
     fragments.push(fragment);
+    console.log('⭐ Fragment spawned at x:', Math.round(fragment.x), 'y:', fragment.y, '| Total fragments:', fragments.length);
 }
 
 /**
@@ -825,14 +833,26 @@ function updateSpawnRate() {
  * Start game loops (logic, UI updates, fragment spawning)
  */
 function startGameLoops() {
+    console.log('🎮 startGameLoops() called');
+    console.log('   - gameLoopInterval:', gameLoopInterval);
+    console.log('   - canvasInitialized:', canvasInitialized);
+    console.log('   - canvas:', canvas);
+
     // Prevent multiple game loops
-    if (gameLoopInterval) return;
+    if (gameLoopInterval) {
+        console.warn('⚠️ Game loops already running, skipping');
+        return;
+    }
 
     // Ensure canvas is initialized before starting loops
     if (!canvasInitialized || !canvas) {
-        console.warn('Cannot start game loops: canvas not initialized');
+        console.error('❌ Cannot start game loops: canvas not initialized');
+        console.error('   - canvasInitialized:', canvasInitialized);
+        console.error('   - canvas:', canvas);
         return;
     }
+
+    console.log('✅ Starting game loops...');
 
     // Main game loop (10 ticks per second)
     gameLoopInterval = setInterval(() => {
@@ -842,6 +862,7 @@ function startGameLoops() {
             console.error('Game loop error:', error);
         }
     }, TIMING.TICK_RATE);
+    console.log('✅ Main game loop started (tick rate:', TIMING.TICK_RATE, 'ms)');
 
     // UI update loop (every 500ms)
     uiUpdateInterval = setInterval(() => {
@@ -864,17 +885,21 @@ function startGameLoops() {
             console.error('UI update error:', error);
         }
     }, 500);
+    console.log('✅ UI update loop started (500ms)');
 
     // Spawn rate update loop (every 100ms for responsiveness)
     setInterval(() => {
         updateSpawnRate();
     }, 100);
+    console.log('✅ Spawn rate update loop started (100ms)');
 
     // Initial fragment spawn - rate will be managed dynamically
     currentSpawnInterval = baseSpawnInterval;
     window.spawnIntervalId = setInterval(() => {
         spawnFragment();
     }, baseSpawnInterval);
+    console.log('✅ Fragment spawn interval started (interval:', baseSpawnInterval, 'ms)');
+    console.log('🎉 All game loops started successfully!');
 }
 
 /**
