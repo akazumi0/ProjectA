@@ -84,9 +84,44 @@
 }
 
 .resource-value {
-    font-size: var(--font-size-large);
+    font-size: 16px;  /* Increased from 14px for better readability */
     font-weight: bold;
     color: var(--color-primary);
+    transition: all 0.3s ease;
+    text-shadow: 0 0 8px currentColor;
+}
+
+/* Specific colors for each resource */
+#lumenVal {
+    color: #FFD700;  /* Gold for Lumen */
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+#energyVal {
+    color: #00D4FF;  /* Cyan electric for Energy */
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.6), 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+#antimatterVal {
+    color: #FF00FF;  /* Magenta for Antimatter */
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.6), 0 0 20px rgba(255, 0, 255, 0.3);
+}
+
+/* Pulse animation for resource values when they change */
+@keyframes resourcePulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.resource-value.pulse {
+    animation: resourcePulse 0.3s ease;
 }
 
 .resource-rate {
@@ -502,6 +537,7 @@
 }
 
 /* Combo level variants */
+/* Level 1: x3-5 Cyan */
 #comboDisplay[data-level="1"] {
     background: linear-gradient(90deg,
         transparent 0%,
@@ -509,34 +545,69 @@
         rgba(0, 212, 255, 0.6) 50%,
         rgba(0, 212, 255, 0.4) 80%,
         transparent 100%);
-    border-bottom-color: rgba(0, 212, 255, 0.8);
+    border-bottom: 2px solid rgba(0, 212, 255, 0.8);
+    border-top-color: rgba(0, 212, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+    transform: translateX(-50%) scale(1.0);
 }
 
+/* Level 2: x6-10 Green */
 #comboDisplay[data-level="2"] {
     background: linear-gradient(90deg,
         transparent 0%,
-        rgba(255, 170, 0, 0.4) 20%,
-        rgba(255, 170, 0, 0.7) 50%,
-        rgba(255, 170, 0, 0.4) 80%,
+        rgba(74, 222, 128, 0.4) 20%,
+        rgba(74, 222, 128, 0.7) 50%,
+        rgba(74, 222, 128, 0.4) 80%,
         transparent 100%);
-    border-bottom: 3px solid rgba(255, 170, 0, 0.9);
-    border-top-color: rgba(255, 170, 0, 0.5);
-    box-shadow: 0 4px 20px rgba(255, 170, 0, 0.5);
+    border-bottom: 3px solid rgba(74, 222, 128, 0.9);
+    border-top-color: rgba(74, 222, 128, 0.5);
+    box-shadow: 0 5px 20px rgba(74, 222, 128, 0.6);
     transform: translateX(-50%) scale(1.05);
 }
 
+/* Level 3: x11-15 Gold */
 #comboDisplay[data-level="3"] {
     background: linear-gradient(90deg,
         transparent 0%,
-        rgba(255, 50, 0, 0.5) 15%,
-        rgba(255, 100, 0, 0.8) 50%,
-        rgba(255, 50, 0, 0.5) 85%,
+        rgba(255, 215, 0, 0.5) 15%,
+        rgba(255, 215, 0, 0.8) 50%,
+        rgba(255, 215, 0, 0.5) 85%,
         transparent 100%);
-    border-bottom: 4px solid rgba(255, 200, 0, 1);
-    border-top: 2px solid rgba(255, 100, 0, 0.8);
-    box-shadow: 0 6px 30px rgba(255, 100, 0, 0.8), 0 0 50px rgba(255, 50, 0, 0.5);
+    border-bottom: 4px solid rgba(255, 215, 0, 1);
+    border-top: 2px solid rgba(255, 215, 0, 0.8);
+    box-shadow: 0 6px 25px rgba(255, 215, 0, 0.7), 0 0 40px rgba(255, 215, 0, 0.5);
     transform: translateX(-50%) scale(1.1);
-    animation: slideDown 0.3s ease, comboShake 0.15s ease infinite, comboGlow 1s ease-in-out infinite;
+    animation: slideDown 0.3s ease, comboPulse 0.5s ease infinite, comboGlow 1s ease-in-out infinite;
+}
+
+/* Level 4: x16-20 Orange Fire */
+#comboDisplay[data-level="4"] {
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 140, 0, 0.5) 15%,
+        rgba(255, 100, 0, 0.8) 50%,
+        rgba(255, 140, 0, 0.5) 85%,
+        transparent 100%);
+    border-bottom: 4px solid rgba(255, 140, 0, 1);
+    border-top: 2px solid rgba(255, 100, 0, 0.8);
+    box-shadow: 0 6px 30px rgba(255, 100, 0, 0.8), 0 0 50px rgba(255, 100, 0, 0.6);
+    transform: translateX(-50%) scale(1.15);
+    animation: slideDown 0.3s ease, comboShake 0.15s ease infinite, comboGlow 0.8s ease-in-out infinite;
+}
+
+/* Level 5: x21+ LEGENDARY - Red/Purple Fire */
+#comboDisplay[data-level="5"] {
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 0, 100, 0.6) 10%,
+        rgba(255, 50, 150, 0.9) 50%,
+        rgba(255, 0, 100, 0.6) 90%,
+        transparent 100%);
+    border-bottom: 5px solid rgba(255, 50, 150, 1);
+    border-top: 3px solid rgba(255, 0, 100, 1);
+    box-shadow: 0 8px 40px rgba(255, 50, 150, 1), 0 0 80px rgba(255, 0, 100, 0.8), inset 0 0 30px rgba(255, 100, 200, 0.4);
+    transform: translateX(-50%) scale(1.2);
+    animation: slideDown 0.3s ease, comboShake 0.1s ease infinite, comboGlow 0.5s ease-in-out infinite, legendaryPulse 1s ease-in-out infinite;
 }
 
 .combo-text {
@@ -555,14 +626,26 @@
 }
 
 #comboDisplay[data-level="2"] .combo-text {
-    color: #ffaa00;
+    color: #4ade80;
     font-size: 20px;
 }
 
 #comboDisplay[data-level="3"] .combo-text {
-    color: #ff3300;
+    color: #ffd700;
     font-size: 24px;
     animation: comboTextPulse 0.3s ease infinite;
+}
+
+#comboDisplay[data-level="4"] .combo-text {
+    color: #ff8c00;
+    font-size: 28px;
+    animation: comboTextPulse 0.25s ease infinite;
+}
+
+#comboDisplay[data-level="5"] .combo-text {
+    color: #ff3296;
+    font-size: 32px;
+    animation: comboTextPulse 0.2s ease infinite, legendaryTextShine 2s ease-in-out infinite;
 }
 
 .combo-multiplier {
@@ -575,14 +658,26 @@
 }
 
 #comboDisplay[data-level="2"] .combo-multiplier {
-    font-size: 18px;
-    color: #ffe066;
+    font-size: 17px;
+    color: #4ade80;
 }
 
 #comboDisplay[data-level="3"] .combo-multiplier {
-    font-size: 20px;
-    color: #ffee00;
+    font-size: 18px;
+    color: #ffd700;
     animation: multiplierGlow 0.5s ease infinite;
+}
+
+#comboDisplay[data-level="4"] .combo-multiplier {
+    font-size: 20px;
+    color: #ff8c00;
+    animation: multiplierGlow 0.4s ease infinite;
+}
+
+#comboDisplay[data-level="5"] .combo-multiplier {
+    font-size: 22px;
+    color: #ff3296;
+    animation: multiplierGlow 0.3s ease infinite, legendaryTextShine 2s ease-in-out infinite;
 }
 
 @keyframes slideDown {
@@ -623,6 +718,50 @@
     }
     50% {
         box-shadow: 0 8px 40px rgba(255, 100, 0, 1), 0 0 70px rgba(255, 50, 0, 0.8);
+    }
+}
+
+@keyframes legendaryPulse {
+    0%, 100% {
+        box-shadow: 0 8px 40px rgba(255, 50, 150, 1), 0 0 80px rgba(255, 0, 100, 0.8), inset 0 0 30px rgba(255, 100, 200, 0.4);
+    }
+    50% {
+        box-shadow: 0 12px 60px rgba(255, 50, 150, 1), 0 0 120px rgba(255, 0, 100, 1), inset 0 0 50px rgba(255, 100, 200, 0.6);
+    }
+}
+
+@keyframes legendaryTextShine {
+    0% {
+        text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px rgba(255, 50, 150, 0.8);
+    }
+    50% {
+        text-shadow: 0 0 20px currentColor, 0 0 40px currentColor, 0 0 60px rgba(255, 50, 150, 1), 0 0 80px rgba(255, 0, 100, 0.8);
+    }
+    100% {
+        text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px rgba(255, 50, 150, 0.8);
+    }
+}
+
+@keyframes comboBreak {
+    0% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+    25% {
+        transform: translateX(-50%) scale(1.1) rotate(2deg);
+        opacity: 0.8;
+    }
+    50% {
+        transform: translateX(-50%) scale(0.95) rotate(-2deg);
+        opacity: 0.6;
+    }
+    75% {
+        transform: translateX(-50%) scale(1.05) rotate(1deg);
+        opacity: 0.4;
+    }
+    100% {
+        transform: translateX(-50%) scale(0.8) translateY(-10px);
+        opacity: 0;
     }
 }
 
