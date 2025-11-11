@@ -140,20 +140,29 @@ export function startGame() {
     document.getElementById('leftIconBar').style.display = 'block';
     document.getElementById('bottomUI').style.display = 'block';
 
-    // Initialize systems
+    // Initialize systems in sequence
     initCanvas();
     initEventListeners();
-    startGameLoops();
 
-    // Auto-save setup
-    autoSaveInterval = setupAutoSave(TIMING.SAVE_INTERVAL);
+    // Wait for next frame before starting game loops
+    requestAnimationFrame(() => {
+        startGameLoops();
 
-    // Show welcome dialogue
-    showAstraDialogue(astraDialogues[0].text);
+        // Resume audio on next user interaction (iOS requirement)
+        document.addEventListener('click', resumeAudio, { once: true });
 
-    // Initial UI update
-    updateAllUI();
-    renderAllTabs();
+        // Auto-save setup
+        autoSaveInterval = setupAutoSave(TIMING.SAVE_INTERVAL);
+
+        // Show welcome dialogue
+        setTimeout(() => {
+            showAstraDialogue(astraDialogues[0].text);
+        }, 500);
+
+        // Initial UI update
+        updateAllUI();
+        renderAllTabs();
+    });
 }
 
 /**
@@ -200,57 +209,61 @@ function resizeCanvas() {
  * Main render loop for canvas
  */
 function renderLoop() {
-    if (!ctx || !canvas) return;
+    if (!ctx || !canvas || !canvasInitialized) return;
 
-    // Clear canvas
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    try {
+        // Clear canvas
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw stars
-    stars.forEach(star => {
-        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
-        ctx.fillRect(star.x, star.y, star.size, star.size);
+        // Draw stars
+        stars.forEach(star => {
+            ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+            ctx.fillRect(star.x, star.y, star.size, star.size);
 
-        // Twinkle effect
-        star.opacity += (Math.random() - 0.5) * 0.05;
-        star.opacity = Math.max(0.1, Math.min(1, star.opacity));
-    });
+            // Twinkle effect
+            star.opacity += (Math.random() - 0.5) * 0.05;
+            star.opacity = Math.max(0.1, Math.min(1, star.opacity));
+        });
 
-    // Draw fragments
-    fragments.forEach((fragment, index) => {
-        fragment.y += fragment.speed;
+        // Draw fragments
+        fragments.forEach((fragment, index) => {
+            fragment.y += fragment.speed;
 
-        // Remove if out of bounds
-        if (fragment.y > canvas.height) {
-            fragments.splice(index, 1);
-            return;
-        }
+            // Remove if out of bounds
+            if (fragment.y > canvas.height) {
+                fragments.splice(index, 1);
+                return;
+            }
 
-        // Draw fragment
-        ctx.save();
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = fragment.color;
-        ctx.fillStyle = fragment.color;
-        ctx.beginPath();
-        ctx.arc(fragment.x, fragment.y, fragment.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-    });
+            // Draw fragment
+            ctx.save();
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = fragment.color;
+            ctx.fillStyle = fragment.color;
+            ctx.beginPath();
+            ctx.arc(fragment.x, fragment.y, fragment.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
 
-    // Draw particles (simple version)
-    particles.forEach((particle, index) => {
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-        particle.life--;
+        // Draw particles (simple version)
+        particles.forEach((particle, index) => {
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.life--;
 
-        if (particle.life <= 0) {
-            particles.splice(index, 1);
-            return;
-        }
+            if (particle.life <= 0) {
+                particles.splice(index, 1);
+                return;
+            }
 
-        ctx.fillStyle = `rgba(0, 212, 255, ${particle.life / 30})`;
-        ctx.fillRect(particle.x, particle.y, 2, 2);
-    });
+            ctx.fillStyle = `rgba(0, 212, 255, ${particle.life / 30})`;
+            ctx.fillRect(particle.x, particle.y, 2, 2);
+        });
+    } catch (error) {
+        console.error('Render loop error:', error);
+    }
 
     animationFrameId = requestAnimationFrame(renderLoop);
 }
@@ -279,6 +292,11 @@ function spawnFragment() {
  * Handle canvas click/tap
  */
 function handleCanvasClick(event) {
+    // Safety check: ensure canvas and context are initialized
+    if (!canvas || !ctx || !gameInitialized) {
+        return;
+    }
+
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -348,21 +366,35 @@ function startGameLoops() {
     // Prevent multiple game loops
     if (gameLoopInterval) return;
 
+    // Ensure canvas is initialized before starting loops
+    if (!canvasInitialized || !canvas) {
+        console.warn('Cannot start game loops: canvas not initialized');
+        return;
+    }
+
     // Main game loop (10 ticks per second)
     gameLoopInterval = setInterval(() => {
-        updateGame(TIMING.TICK_RATE / 1000);
+        try {
+            updateGame(TIMING.TICK_RATE / 1000);
+        } catch (error) {
+            console.error('Game loop error:', error);
+        }
     }, TIMING.TICK_RATE);
 
     // UI update loop (every 500ms)
     uiUpdateInterval = setInterval(() => {
-        updateResources();
-        updateComboDisplay();
-        updateLootboxTimer();
+        try {
+            updateResources();
+            updateComboDisplay();
+            updateLootboxTimer();
+        } catch (error) {
+            console.error('UI update error:', error);
+        }
     }, 500);
 
     // Fragment spawn loop
     setInterval(() => {
-        if (Math.random() < FRAGMENT_SPAWN.BASE_CHANCE && fragments.length < FRAGMENT_SPAWN.MAX_ON_SCREEN) {
+        if (canvas && Math.random() < FRAGMENT_SPAWN.BASE_CHANCE && fragments.length < FRAGMENT_SPAWN.MAX_ON_SCREEN) {
             spawnFragment();
         }
     }, FRAGMENT_SPAWN.CHECK_INTERVAL);
@@ -582,9 +614,6 @@ function updateProfileModal() {
 window.addEventListener('DOMContentLoaded', () => {
     // Initialize audio
     initAudio();
-
-    // Resume audio on first interaction (iOS requirement)
-    document.addEventListener('click', resumeAudio, { once: true });
 
     // Initialize game state
     initializePlanetBuildings();
