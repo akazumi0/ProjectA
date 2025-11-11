@@ -275,11 +275,24 @@ function initStarfield() {
 
 /**
  * Resize canvas to window size
+ * Note: We set canvas internal resolution to match display size 1:1
+ * This ensures click coordinates align perfectly with visual positions
  */
 function resizeCanvas() {
     if (!canvas) return;
+
+    // Set canvas internal resolution to match window size exactly
+    // This ensures 1:1 pixel mapping for accurate hit detection
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
+    console.log('📐 Canvas resized to:', canvas.width, 'x', canvas.height);
+
+    // Reinitialize starfield after resize to match new canvas dimensions
+    if (stars.length > 0) {
+        initStarfield();
+        console.log('🌟 Starfield reinitialized after resize');
+    }
 }
 
 /**
@@ -633,6 +646,13 @@ function renderLoop() {
             ctx.closePath();
             ctx.fill();
 
+            // DEBUG: Draw hitbox circle (semi-transparent)
+            ctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, fragment.size * 3, 0, Math.PI * 2); // 3x hitbox
+            ctx.stroke();
+
             ctx.restore();
         });
 
@@ -684,14 +704,20 @@ function handleCanvasClick(event) {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Check if clicked on a fragment (hitbox 2x larger for easier clicking)
+    console.log('🖱️ Click at:', Math.round(x), Math.round(y), '| Fragments on screen:', fragments.length);
+
+    // Check if clicked on a fragment (hitbox 3x larger for easier clicking on mobile)
+    let hitDetected = false;
     for (let i = fragments.length - 1; i >= 0; i--) {
         const fragment = fragments[i];
         const dx = x - fragment.x;
         const dy = y - fragment.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+        const hitboxRadius = fragment.size * 3; // Increased from 2x to 3x for easier tapping
 
-        if (distance < fragment.size * 2) {
+        if (distance < hitboxRadius) {
+            hitDetected = true;
+            console.log('✅ HIT! Fragment at:', Math.round(fragment.x), Math.round(fragment.y), '| Distance:', Math.round(distance), '| Hitbox:', hitboxRadius);
             // Capture fragment
             const result = captureFragment(fragment);
 
@@ -749,6 +775,16 @@ function handleCanvasClick(event) {
 
             break;
         }
+    }
+
+    if (!hitDetected && fragments.length > 0) {
+        console.log('❌ MISS! No fragment hit. Closest fragments:');
+        fragments.slice(0, 3).forEach((f, idx) => {
+            const dx = x - f.x;
+            const dy = y - f.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            console.log(`   [${idx}] at (${Math.round(f.x)}, ${Math.round(f.y)}) - distance: ${Math.round(dist)}px`);
+        });
     }
 }
 
