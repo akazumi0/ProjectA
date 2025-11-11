@@ -116,10 +116,6 @@ window.hideManifesto = function() {
  * Called after user enters username
  */
 export function startGame() {
-    // Prevent multiple initializations
-    if (gameInitialized) return;
-    gameInitialized = true;
-
     const usernameInput = document.getElementById('usernameInput');
     const welcomeScreen = document.getElementById('welcome');
 
@@ -140,39 +136,26 @@ export function startGame() {
     document.getElementById('leftIconBar').style.display = 'block';
     document.getElementById('bottomUI').style.display = 'block';
 
-    // Initialize systems in sequence
+    // Initialize systems
     initCanvas();
     initEventListeners();
+    startGameLoops();
 
-    // Wait for next frame before starting game loops
-    requestAnimationFrame(() => {
-        startGameLoops();
+    // Auto-save setup
+    autoSaveInterval = setupAutoSave(TIMING.SAVE_INTERVAL);
 
-        // Resume audio on next user interaction (iOS requirement)
-        document.addEventListener('click', resumeAudio, { once: true });
+    // Show welcome dialogue
+    showAstraDialogue(astraDialogues[0].text);
 
-        // Auto-save setup
-        autoSaveInterval = setupAutoSave(TIMING.SAVE_INTERVAL);
-
-        // Show welcome dialogue
-        setTimeout(() => {
-            showAstraDialogue(astraDialogues[0].text);
-        }, 500);
-
-        // Initial UI update
-        updateAllUI();
-        renderAllTabs();
-    });
+    // Initial UI update
+    updateAllUI();
+    renderAllTabs();
 }
 
 /**
  * Initialize canvas and rendering
  */
 function initCanvas() {
-    // Prevent multiple initializations
-    if (canvasInitialized) return;
-    canvasInitialized = true;
-
     canvas = document.getElementById('gameCanvas');
     if (!canvas) return;
 
