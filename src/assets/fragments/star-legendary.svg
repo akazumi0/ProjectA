@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <style>
+      .pixel { shape-rendering: crispEdges; }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+      .pulse { animation: pulse 0.5s infinite; }
+    </style>
+  </defs>
+
+  <!-- Legendary rainbow star - biggest -->
+  <rect class="pixel" x="15" y="3" width="2" height="2" fill="#FFFFFF"/>
+  <rect class="pixel" x="15" y="27" width="2" height="2" fill="#FFFFFF"/>
+  <rect class="pixel" x="3" y="15" width="2" height="2" fill="#FFFFFF"/>
+  <rect class="pixel" x="27" y="15" width="2" height="2" fill="#FFFFFF"/>
+
+  <!-- Outer layer - multicolor -->
+  <rect class="pixel" x="11" y="7" width="10" height="2" fill="#FF8800"/>
+  <rect class="pixel" x="11" y="23" width="10" height="2" fill="#FF00FF"/>
+  <rect class="pixel" x="7" y="11" width="2" height="10" fill="#00FF88"/>
+  <rect class="pixel" x="23" y="11" width="2" height="10" fill="#8800FF"/>
+
+  <!-- Middle layer -->
+  <rect class="pixel" x="9" y="9" width="14" height="14" fill="#FFD700"/>
+  <rect class="pixel" x="11" y="11" width="10" height="10" fill="#FFAA00"/>
+
+  <!-- Inner bright core -->
+  <rect class="pixel" x="13" y="13" width="6" height="6" fill="#FFFF00"/>
+  <rect class="pixel" x="14" y="14" width="4" height="4" fill="#FFFFFF"/>
+
+  <!-- Diagonal corners -->
+  <rect class="pixel" x="8" y="8" width="2" height="2" fill="#FF00FF"/>
+  <rect class="pixel" x="22" y="8" width="2" height="2" fill="#00FFFF"/>
+  <rect class="pixel" x="8" y="22" width="2" height="2" fill="#00FF00"/>
+  <rect class="pixel" x="22" y="22" width="2" height="2" fill="#FF0088"/>
+
+  <!-- Extra sparkles -->
+  <rect class="pixel pulse" x="6" y="6" width="1" height="1" fill="#FFFFFF"/>
+  <rect class="pixel pulse" x="25" y="6" width="1" height="1" fill="#FFFFFF"/>
+  <rect class="pixel pulse" x="6" y="25" width="1" height="1" fill="#FFFFFF"/>
+  <rect class="pixel pulse" x="25" y="25" width="1" height="1" fill="#FFFFFF"/>
+  <rect class="pixel pulse" x="16" y="1" width="1" height="1" fill="#FFFFFF"/>
+  <rect class="pixel pulse" x="16" y="30" width="1" height="1" fill="#FFFFFF"/>
+  <rect class="pixel pulse" x="1" y="16" width="1" height="1" fill="#FFFFFF"/>
+  <rect class="pixel pulse" x="30" y="16" width="1" height="1" fill="#FFFFFF"/>
+</svg>

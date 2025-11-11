@@ -90,6 +90,17 @@ let stars = [];
 let animationFrameId = null;
 
 /**
+ * Sprite images for pixel art stars
+ */
+let starSprites = {
+    normal: null,
+    golden: null,
+    rare: null,
+    legendary: null,
+    loaded: false
+};
+
+/**
  * Game loop intervals
  */
 let gameLoopInterval = null;
@@ -141,7 +152,7 @@ window.hideManifesto = function() {
  * Initialize the game
  * Called after user enters username
  */
-export function startGame() {
+export async function startGame() {
     const usernameInput = document.getElementById('usernameInput');
     const welcomeScreen = document.getElementById('welcome');
 
@@ -162,8 +173,8 @@ export function startGame() {
     document.getElementById('leftIconBar').style.display = 'block';
     document.getElementById('bottomUI').style.display = 'block';
 
-    // Initialize systems
-    initCanvas();
+    // Initialize systems (await canvas init for sprite loading)
+    await initCanvas();
     initEventListeners();
     startGameLoops();
 
@@ -203,9 +214,46 @@ export function startGame() {
 }
 
 /**
+ * Load star sprite images
+ */
+function loadStarSprites() {
+    return new Promise((resolve) => {
+        let loadedCount = 0;
+        const totalSprites = 4;
+
+        const spriteMap = {
+            normal: '/src/assets/fragments/star-pixel.svg',
+            golden: '/src/assets/fragments/star-golden.svg',
+            rare: '/src/assets/fragments/star-rare.svg',
+            legendary: '/src/assets/fragments/star-legendary.svg'
+        };
+
+        function onSpriteLoad() {
+            loadedCount++;
+            if (loadedCount === totalSprites) {
+                starSprites.loaded = true;
+                console.log('✅ All star sprites loaded');
+                resolve();
+            }
+        }
+
+        for (const [key, path] of Object.entries(spriteMap)) {
+            const img = new Image();
+            img.onload = onSpriteLoad;
+            img.onerror = () => {
+                console.warn(`⚠️ Failed to load sprite: ${path}, using fallback`);
+                onSpriteLoad(); // Continue even if one fails
+            };
+            img.src = path;
+            starSprites[key] = img;
+        }
+    });
+}
+
+/**
  * Initialize canvas and rendering
  */
-function initCanvas() {
+async function initCanvas() {
     canvas = document.getElementById('gameCanvas');
     if (!canvas) {
         console.error('❌ Canvas element not found!');
@@ -214,6 +262,10 @@ function initCanvas() {
 
     ctx = canvas.getContext('2d');
     console.log('✅ Canvas initialized:', canvas.width, 'x', canvas.height);
+
+    // Load star sprites
+    await loadStarSprites();
+    console.log('✅ Star sprites loaded');
 
     // Set canvas size
     resizeCanvas();
@@ -711,113 +763,79 @@ function renderLoop() {
                 return;
             }
 
-            // Calculate display color based on combo level and fragment rarity
-            let fragmentColor = fragment.baseColor || '#00d4ff';
-            if (comboLevel === 1 && fragment.type === 'normal') {
-                fragmentColor = '#ffaa00'; // Orange for combo
-            } else if (comboLevel === 2 && fragment.type === 'normal') {
-                fragmentColor = '#ff6600'; // Orange-red for higher combo
-            } else if (comboLevel === 3 && fragment.type === 'normal') {
-                fragmentColor = '#ff3300'; // Red fire for max combo
-            }
+            // Use pixel art sprites if loaded, otherwise fallback to simple rendering
+            if (starSprites.loaded && starSprites[fragment.type]) {
+                // Calculate rarity-based size multipliers
+                const rarityMultipliers = {
+                    'normal': 1.0,
+                    'golden': 1.3,
+                    'rare': 1.5,
+                    'legendary': 1.8
+                };
+                const sizeMultiplier = rarityMultipliers[fragment.type] || 1.0;
+                const spriteSize = 32 * sizeMultiplier;
 
-            // Calculate rarity-based effects
-            const rarityMultipliers = {
-                'normal': { size: 1.0, glow: 1.0, pulseSpeed: 0 },
-                'golden': { size: 1.3, glow: 1.5, pulseSpeed: 0.003 },
-                'rare': { size: 1.5, glow: 2.0, pulseSpeed: 0.005 },
-                'legendary': { size: 1.8, glow: 2.5, pulseSpeed: 0.007 }
-            };
-            const rarityEffect = rarityMultipliers[fragment.type] || rarityMultipliers.normal;
+                ctx.save();
+                ctx.translate(fragment.x, fragment.y);
+                ctx.rotate(fragment.rotation);
 
-            // Pulsing effect for rare fragments
-            const pulse = rarityEffect.pulseSpeed > 0 ? (Math.sin(Date.now() * rarityEffect.pulseSpeed) * 0.2 + 1) : 1;
-            const effectiveSize = fragment.size * rarityEffect.size * pulse;
-
-            // Draw enhanced star fragment with glow and inner detail
-            ctx.save();
-            ctx.translate(fragment.x, fragment.y);
-            ctx.rotate(fragment.rotation);
-
-            // Outer glow (larger for rare fragments)
-            const baseGlowSize = comboLevel > 0 ? 40 : 25;
-            const glowSize = baseGlowSize * rarityEffect.glow;
-            const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, effectiveSize + glowSize);
-            glowGradient.addColorStop(0, fragmentColor);
-            glowGradient.addColorStop(0.3, fragmentColor.replace(')', ', 0.6)').replace('rgb', 'rgba'));
-            glowGradient.addColorStop(0.6, fragmentColor.replace(')', ', 0.2)').replace('rgb', 'rgba'));
-            glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = glowGradient;
-            ctx.beginPath();
-            ctx.arc(0, 0, effectiveSize + glowSize, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Additional rings for legendary fragments
-            if (fragment.type === 'legendary') {
-                const ringPulse = Math.sin(Date.now() * 0.004) * 0.5 + 0.5;
-                ctx.strokeStyle = `rgba(255, 136, 0, ${ringPulse * 0.6})`;
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(0, 0, effectiveSize + 30, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.arc(0, 0, effectiveSize + 40, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-
-            // Main star body with gradient
-            const starGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, effectiveSize);
-            starGradient.addColorStop(0, '#ffffff');
-            starGradient.addColorStop(0.3, fragmentColor);
-            starGradient.addColorStop(1, fragmentColor);
-            ctx.fillStyle = starGradient;
-
-            // Draw star shape (more points for rarer fragments)
-            const starPoints = fragment.type === 'legendary' ? 7 : fragment.type === 'rare' ? 6 : 5;
-            ctx.beginPath();
-            for (let i = 0; i < starPoints; i++) {
-                const angle = (i * 2 * Math.PI) / starPoints - Math.PI / 2;
-                const radius = i % 2 === 0 ? effectiveSize : effectiveSize * 0.5;
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.closePath();
-            ctx.fill();
-
-            // Inner white core for sparkle effect
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.beginPath();
-            for (let i = 0; i < starPoints; i++) {
-                const angle = (i * 2 * Math.PI) / starPoints - Math.PI / 2;
-                const radius = i % 2 === 0 ? effectiveSize * 0.3 : effectiveSize * 0.15;
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.closePath();
-            ctx.fill();
-
-            // Sparkle particles for golden+ fragments
-            if (fragment.type !== 'normal') {
-                const sparkleCount = fragment.type === 'legendary' ? 4 : 2;
-                for (let i = 0; i < sparkleCount; i++) {
-                    const angle = (Date.now() * 0.002 + i * Math.PI * 2 / sparkleCount) % (Math.PI * 2);
-                    const distance = effectiveSize * 1.5;
-                    const sparkleX = Math.cos(angle) * distance;
-                    const sparkleY = Math.sin(angle) * distance;
-                    const sparkleAlpha = Math.sin(Date.now() * 0.01 + i) * 0.5 + 0.5;
-
-                    ctx.fillStyle = `rgba(255, 255, 255, ${sparkleAlpha * 0.8})`;
-                    ctx.beginPath();
-                    ctx.arc(sparkleX, sparkleY, 2, 0, Math.PI * 2);
-                    ctx.fill();
+                // Draw sprite centered
+                const sprite = starSprites[fragment.type];
+                if (sprite && sprite.complete) {
+                    ctx.drawImage(sprite, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
                 }
-            }
 
-            ctx.restore();
+                ctx.restore();
+            } else {
+                // Fallback: simple rendering for performance
+                let fragmentColor = fragment.baseColor || '#00d4ff';
+                if (comboLevel === 1 && fragment.type === 'normal') {
+                    fragmentColor = '#ffaa00';
+                } else if (comboLevel === 2 && fragment.type === 'normal') {
+                    fragmentColor = '#ff6600';
+                } else if (comboLevel === 3 && fragment.type === 'normal') {
+                    fragmentColor = '#ff3300';
+                }
+
+                const rarityMultipliers = {
+                    'normal': 1.0,
+                    'golden': 1.3,
+                    'rare': 1.5,
+                    'legendary': 1.8
+                };
+                const sizeMultiplier = rarityMultipliers[fragment.type] || 1.0;
+                const effectiveSize = fragment.size * sizeMultiplier;
+
+                ctx.save();
+                ctx.translate(fragment.x, fragment.y);
+                ctx.rotate(fragment.rotation);
+
+                // Simple glow
+                const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, effectiveSize + 15);
+                glowGradient.addColorStop(0, fragmentColor);
+                glowGradient.addColorStop(0.5, fragmentColor.replace(')', ', 0.3)').replace('rgb', 'rgba'));
+                glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = glowGradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, effectiveSize + 15, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Simple star shape
+                ctx.fillStyle = fragmentColor;
+                ctx.beginPath();
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+                    const radius = i % 2 === 0 ? effectiveSize : effectiveSize * 0.5;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.restore();
+            }
         });
 
         // Draw particles with enhanced rendering
@@ -916,13 +934,13 @@ function spawnFragment() {
         x: playableLeft + Math.random() * playableWidth,
         y: playableTop,
         size: CANVAS.FRAGMENT_SIZE,
-        speed: 1.0 + Math.random() * 0.8,  // Reduced from 1.5-2.5 to 1.0-1.8 (20-30% slower)
+        speed: 2.5 + Math.random() * 1.5,  // Increased from 1.0-1.8 to 2.5-4.0 (faster!)
         value: fragmentValue,
         type: fragmentType.type,
         baseColor: fragmentType.color,
         color: fragmentType.color,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.1,
+        rotSpeed: (Math.random() - 0.5) * 0.15,  // Slightly faster rotation
         id: Date.now() + Math.random()
     };
 
