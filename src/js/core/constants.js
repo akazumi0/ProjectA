@@ -84,8 +84,9 @@ export const FRAGMENTS = {
 export const CANVAS = {
     FRAGMENT_SIZE: 20,
     FRAGMENT_GLOW: 10,
-    PARTICLE_COUNT: 50,
-    STAR_COUNT: 100,
+    PARTICLE_COUNT: 150, // Increased from 50
+    STAR_COUNT: 300, // Increased from 100
+    STAR_LAYERS: 3, // Parallax layers
     PLAYABLE_MARGIN_TOP: 90, // Header height
     PLAYABLE_MARGIN_BOTTOM: 200 // Bottom UI height
 };

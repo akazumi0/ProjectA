@@ -10,6 +10,7 @@ import { techData } from '../data/technologies.js';
 import { getCost, canAfford, checkRequires, calculateProduction, calculateClickPower } from '../utils/calculations.js';
 import { playSound } from './audio.js';
 import { saveGame } from './storage.js';
+import { lightHaptic, mediumHaptic, heavyHaptic, successHaptic, errorHaptic } from '../utils/haptics.js';
 
 /**
  * Spend resources from game state
@@ -44,15 +45,22 @@ export function buyDefense(key) {
     const level = game.defense[key] || 0;
     const data = defenseData[key];
 
-    if (level >= data.max) return false;
+    if (level >= data.max) {
+        errorHaptic();
+        return false;
+    }
 
     const cost = getCost(data, level);
-    if (!canAfford(cost)) return false;
+    if (!canAfford(cost)) {
+        errorHaptic();
+        return false;
+    }
 
     spendResources(cost);
     game.defense[key] = level + 1;
     game.stats.buildingsBuilt++;
     playSound('build');
+    mediumHaptic();
 
     return true;
 }
@@ -67,16 +75,26 @@ export function buyBuilding(key) {
     const level = planet.buildings[key] || 0;
     const data = buildingData[key];
 
-    if (level >= data.max) return false;
-    if (!checkRequires(data)) return false;
+    if (level >= data.max) {
+        errorHaptic();
+        return false;
+    }
+    if (!checkRequires(data)) {
+        errorHaptic();
+        return false;
+    }
 
     const cost = getCost(data, level, 'building');
-    if (!canAfford(cost)) return false;
+    if (!canAfford(cost)) {
+        errorHaptic();
+        return false;
+    }
 
     spendResources(cost);
     planet.buildings[key] = level + 1;
     game.stats.buildingsBuilt++;
     playSound('build');
+    mediumHaptic();
 
     return true;
 }
@@ -90,16 +108,26 @@ export function buyTechnology(key) {
     const level = game.technologies[key] || 0;
     const data = techData[key];
 
-    if (level >= data.max) return false;
-    if (!checkRequires(data)) return false;
+    if (level >= data.max) {
+        errorHaptic();
+        return false;
+    }
+    if (!checkRequires(data)) {
+        errorHaptic();
+        return false;
+    }
 
     const cost = getCost(data, level, 'tech');
-    if (!canAfford(cost)) return false;
+    if (!canAfford(cost)) {
+        errorHaptic();
+        return false;
+    }
 
     spendResources(cost);
     game.technologies[key] = level + 1;
     game.stats.techsUnlocked++;
     playSound('success');
+    heavyHaptic(); // Technologies are important!
 
     return true;
 }
@@ -132,6 +160,7 @@ export function captureFragment(fragment) {
     game.stats.fragmentsCaught++;
 
     playSound('catch');
+    lightHaptic(); // Light feedback for each click
 
     return { lumen: value, combo: game.combo.count };
 }
@@ -208,6 +237,7 @@ export function performPrestige() {
 
     saveGame();
     playSound('success');
+    successHaptic(); // Big celebration for prestige!
 
     return {
         success: true,

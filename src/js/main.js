@@ -60,6 +60,8 @@ let canvas, ctx;
 let fragments = [];
 let particles = [];
 let stars = [];
+let starLayers = []; // Parallax star layers
+let nebula = null; // Nebula effect
 let animationFrameId = null;
 
 /**
@@ -158,15 +160,32 @@ function initCanvas() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Initialize stars background
-    for (let i = 0; i < CANVAS.STAR_COUNT; i++) {
-        stars.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            size: Math.random() * 2,
-            opacity: Math.random()
-        });
+    // Initialize parallax star layers
+    for (let layer = 0; layer < CANVAS.STAR_LAYERS; layer++) {
+        const starsInLayer = [];
+        const starCount = Math.floor(CANVAS.STAR_COUNT / CANVAS.STAR_LAYERS);
+
+        for (let i = 0; i < starCount; i++) {
+            starsInLayer.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: (layer + 1) * 0.5, // Far stars are smaller
+                opacity: 0.3 + (layer * 0.3), // Far stars are dimmer
+                speed: (layer + 1) * 0.02 // Parallax speed
+            });
+        }
+
+        starLayers.push(starsInLayer);
     }
+
+    // Initialize nebula effect
+    nebula = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        radius: Math.max(canvas.width, canvas.height),
+        hue: 270, // Purple
+        animationOffset: 0
+    };
 
     // Start render loop
     renderLoop();
@@ -187,18 +206,50 @@ function resizeCanvas() {
 function renderLoop() {
     if (!ctx || !canvas) return;
 
-    // Clear canvas
-    ctx.fillStyle = '#000';
+    // Clear canvas with deep space black
+    ctx.fillStyle = '#0a0a15';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw stars
-    stars.forEach(star => {
-        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
-        ctx.fillRect(star.x, star.y, star.size, star.size);
+    // Draw nebula effect
+    if (nebula) {
+        nebula.animationOffset += 0.001;
+        const gradient = ctx.createRadialGradient(
+            nebula.x, nebula.y, 0,
+            nebula.x, nebula.y, nebula.radius
+        );
 
-        // Twinkle effect
-        star.opacity += (Math.random() - 0.5) * 0.05;
-        star.opacity = Math.max(0.1, Math.min(1, star.opacity));
+        const hue = nebula.hue + Math.sin(nebula.animationOffset) * 20;
+        gradient.addColorStop(0, `hsla(${hue}, 80%, 40%, 0.15)`);
+        gradient.addColorStop(0.3, `hsla(${hue + 30}, 70%, 30%, 0.08)`);
+        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Draw parallax star layers (back to front)
+    starLayers.forEach((layer, layerIndex) => {
+        ctx.globalAlpha = 0.3 + (layerIndex * 0.3);
+
+        layer.forEach(star => {
+            // Twinkle effect
+            star.opacity += (Math.random() - 0.5) * 0.05;
+            star.opacity = Math.max(0.3, Math.min(1, star.opacity));
+
+            ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Slow parallax movement (optional subtle effect)
+            star.y += star.speed;
+            if (star.y > canvas.height) {
+                star.y = 0;
+                star.x = Math.random() * canvas.width;
+            }
+        });
+
+        ctx.globalAlpha = 1; // Reset
     });
 
     // Draw fragments
@@ -224,17 +275,30 @@ function renderLoop() {
 
     // Draw particles
     particles.forEach((particle, index) => {
+        // Physics
         particle.x += particle.vx;
         particle.y += particle.vy;
+        particle.vy += 0.1; // Gravity effect
         particle.life--;
+        particle.scale = particle.life / particle.maxLife; // Shrink over time
 
         if (particle.life <= 0) {
             particles.splice(index, 1);
             return;
         }
 
-        ctx.fillStyle = `rgba(0, 212, 255, ${particle.life / 30})`;
-        ctx.fillRect(particle.x, particle.y, 2, 2);
+        // Draw with glow and trail
+        const alpha = particle.life / particle.maxLife;
+        const size = particle.size * particle.scale;
+
+        ctx.save();
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = particle.color;
+        ctx.fillStyle = particle.color.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
     });
 
     animationFrameId = requestAnimationFrame(renderLoop);
@@ -279,14 +343,29 @@ function handleCanvasClick(event) {
             // Capture fragment
             const result = captureFragment(fragment);
 
-            // Create particle effect
-            for (let p = 0; p < 10; p++) {
+            // Create enhanced particle effect
+            const particleCount = 20 + Math.floor(Math.random() * 10); // 20-30 particles
+            const colors = [
+                'rgb(0, 212, 255)',  // Cyan
+                'rgb(78, 236, 196)', // Turquoise
+                'rgb(255, 217, 61)', // Yellow
+                'rgb(147, 51, 234)'  // Purple
+            ];
+
+            for (let p = 0; p < particleCount; p++) {
+                const angle = (Math.PI * 2 * p) / particleCount;
+                const speed = 2 + Math.random() * 4;
+
                 particles.push({
                     x: fragment.x,
                     y: fragment.y,
-                    vx: (Math.random() - 0.5) * 5,
-                    vy: (Math.random() - 0.5) * 5,
-                    life: 30
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 40 + Math.random() * 20,
+                    maxLife: 60,
+                    size: 2 + Math.random() * 2,
+                    scale: 1,
+                    color: colors[Math.floor(Math.random() * colors.length)]
                 });
             }
 
