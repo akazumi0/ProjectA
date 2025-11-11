@@ -101,6 +101,13 @@ let starSprites = {
 };
 
 /**
+ * Building visuals
+ */
+let buildingVisuals = [];
+let defenseBeams = [];
+let productionParticles = [];
+
+/**
  * Game loop intervals
  */
 let gameLoopInterval = null;
@@ -616,6 +623,261 @@ function renderEarth() {
 }
 
 /**
+ * Calculate building positions based on their level and type
+ */
+function calculateBuildingPositions() {
+    const planet = game.planets[game.currentPlanet];
+    const positions = [];
+
+    // Bottom area for production buildings (20% of screen height)
+    const buildingAreaY = canvas.height * 0.85;
+    const buildingSpacing = 60;
+    let buildingIndex = 0;
+
+    // Add each building that has been built
+    for (const [key, level] of Object.entries(planet.buildings)) {
+        if (level > 0) {
+            const data = buildingData[key];
+            positions.push({
+                key,
+                icon: data.icon,
+                level,
+                x: 50 + (buildingIndex * buildingSpacing),
+                y: buildingAreaY,
+                production: data.production(level)
+            });
+            buildingIndex++;
+        }
+    }
+
+    return positions;
+}
+
+/**
+ * Create production particles from buildings
+ */
+function createProductionParticle(building) {
+    // Production intensity based on building level
+    const intensity = Math.min(building.level / 10, 1.0);
+
+    productionParticles.push({
+        x: building.x + (Math.random() - 0.5) * 30,
+        y: building.y - 10,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: -1 - Math.random() * 1.5, // Upward
+        life: 60 + Math.random() * 40,
+        maxLife: 60 + Math.random() * 40,
+        size: 2 + Math.random() * 2 * intensity,
+        color: '#ffd700',
+        alpha: 0.8
+    });
+}
+
+/**
+ * Render building visuals
+ */
+function renderBuildings() {
+    if (!canvas || !ctx) return;
+
+    const positions = calculateBuildingPositions();
+
+    // Spawn production particles periodically
+    positions.forEach((building, idx) => {
+        // Spawn rate based on building level (higher = more particles)
+        const spawnChance = Math.min(building.level * 0.02, 0.5);
+        if (Math.random() < spawnChance) {
+            createProductionParticle(building);
+        }
+    });
+
+    // Update and render production particles
+    productionParticles.forEach((particle, index) => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.life--;
+
+        if (particle.life <= 0) {
+            productionParticles.splice(index, 1);
+            return;
+        }
+
+        const alpha = (particle.life / particle.maxLife) * particle.alpha;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = particle.color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = particle.color;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    });
+
+    // Draw building icons with level indicators
+    positions.forEach(building => {
+        ctx.save();
+
+        // Building platform (simple rectangle)
+        const platformWidth = 50;
+        const platformHeight = 8;
+        const gradient = ctx.createLinearGradient(
+            building.x - platformWidth / 2,
+            building.y - platformHeight,
+            building.x - platformWidth / 2,
+            building.y
+        );
+        gradient.addColorStop(0, '#444');
+        gradient.addColorStop(1, '#222');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(
+            building.x - platformWidth / 2,
+            building.y - platformHeight,
+            platformWidth,
+            platformHeight
+        );
+
+        // Icon
+        ctx.font = 'bold 32px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = 'rgba(255, 215, 0, 0.5)';
+        ctx.fillText(building.icon, building.x, building.y - platformHeight);
+
+        // Level indicator
+        ctx.shadowBlur = 0;
+        ctx.font = 'bold 10px Arial';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText(`Lv ${building.level}`, building.x, building.y + 12);
+
+        ctx.restore();
+    });
+}
+
+/**
+ * Fire defense beam from sides to destroy fragments
+ */
+function fireDefenseBeam() {
+    if (fragments.length === 0) return;
+
+    const autoLevel = game.defense.autoCapture || 0;
+    if (autoLevel === 0) return;
+
+    // Find a random fragment to target
+    const targetFragment = fragments[Math.floor(Math.random() * fragments.length)];
+
+    // Alternate between left and right cannons
+    const fromLeft = Math.random() > 0.5;
+    const startX = fromLeft ? 30 : canvas.width - 30;
+    const startY = canvas.height / 2;
+
+    defenseBeams.push({
+        startX,
+        startY,
+        endX: targetFragment.x,
+        endY: targetFragment.y,
+        target: targetFragment,
+        life: 10,
+        color: fromLeft ? '#00ffff' : '#ff00ff',
+        damage: autoLevel * 10
+    });
+}
+
+/**
+ * Render defense beams
+ */
+function renderDefenseBeams() {
+    if (!ctx) return;
+
+    // Auto-fire based on auto-capture level
+    const autoLevel = game.defense.autoCapture || 0;
+    if (autoLevel > 0 && Math.random() < autoLevel * 0.05) {
+        fireDefenseBeam();
+    }
+
+    // Render and update beams
+    defenseBeams.forEach((beam, index) => {
+        beam.life--;
+
+        if (beam.life <= 0) {
+            defenseBeams.splice(index, 1);
+            return;
+        }
+
+        // Check if target still exists
+        const targetExists = fragments.includes(beam.target);
+        if (targetExists) {
+            beam.endX = beam.target.x;
+            beam.endY = beam.target.y;
+        }
+
+        ctx.save();
+        const alpha = beam.life / 10;
+        ctx.globalAlpha = alpha;
+
+        // Beam glow
+        ctx.strokeStyle = beam.color;
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = beam.color;
+        ctx.beginPath();
+        ctx.moveTo(beam.startX, beam.startY);
+        ctx.lineTo(beam.endX, beam.endY);
+        ctx.stroke();
+
+        // Inner beam
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.shadowBlur = 5;
+        ctx.beginPath();
+        ctx.moveTo(beam.startX, beam.startY);
+        ctx.lineTo(beam.endX, beam.endY);
+        ctx.stroke();
+
+        ctx.restore();
+
+        // Impact effect at the end
+        if (beam.life === 9 && targetExists) {
+            createParticleBurst(particles, beam.endX, beam.endY, beam.color, 8, 0.8);
+        }
+    });
+
+    // Draw cannon indicators on the sides
+    const autoLevel = game.defense.autoCapture || 0;
+    if (autoLevel > 0) {
+        const cannonY = canvas.height / 2;
+
+        // Left cannon
+        ctx.save();
+        ctx.fillStyle = '#00ffff';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#00ffff';
+        ctx.beginPath();
+        ctx.arc(30, cannonY, 8 + autoLevel, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚡', 30, cannonY);
+        ctx.restore();
+
+        // Right cannon
+        ctx.save();
+        ctx.fillStyle = '#ff00ff';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ff00ff';
+        ctx.beginPath();
+        ctx.arc(canvas.width - 30, cannonY, 8 + autoLevel, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚡', canvas.width - 30, cannonY);
+        ctx.restore();
+    }
+}
+
+/**
  * Main render loop for canvas
  */
 function renderLoop() {
@@ -663,6 +925,12 @@ function renderLoop() {
 
         // Draw Earth (enhanced procedural rendering)
         renderEarth();
+
+        // Draw buildings and their production effects
+        renderBuildings();
+
+        // Draw defense beams (before fragments)
+        renderDefenseBeams();
 
         // Draw power-ups (before fragments so fragments appear on top)
         renderPowerups();
