@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="./src/css/layout.css">
     <link rel="stylesheet" href="./src/css/ui.css">
     <link rel="stylesheet" href="./src/css/modals.css">
+    <link rel="stylesheet" href="./src/css/welcome.css">
 </head>
 <body>
     <!-- Game Canvas -->
@@ -89,11 +90,74 @@
 
     <!-- Welcome Screen -->
     <div id="welcome">
-        <h1>⭐ FALLING STARS ⭐</h1>
-        <div class="subtitle">Foundations of Light</div>
-        <p style="font-size: 11px; color: #aaa; margin-bottom: 15px;">Choisissez votre nom de Commandant :</p>
-        <input type="text" id="usernameInput" placeholder="Commandant..." maxlength="15">
-        <button onclick="startGame()">⚡ INITIALISER ASTRA</button>
+        <div id="welcomeMain">
+            <h1>⭐ FALLING STARS ⭐</h1>
+            <div class="subtitle">The Last Honest Idle Game</div>
+
+            <div class="manifesto-box">
+                <p class="manifesto-text">Un jeu mobile peut-il être à la fois fun ET éthique ?</p>
+                <div class="manifesto-list">
+                    <div class="manifesto-item">✓ <strong>ZÉRO</strong> publicité</div>
+                    <div class="manifesto-item">✓ <strong>Fair Play</strong> garanti (leaderboards séparés)</div>
+                    <div class="manifesto-item">✓ <strong>Transparent</strong> (formules visibles)</div>
+                    <div class="manifesto-item">✓ <strong>Éducatif</strong> (vraie science spatiale)</div>
+                </div>
+            </div>
+
+            <div class="tier-choice">
+                <p style="font-size: 12px; color: #aaa; margin: 15px 0 10px;">Choisissez votre expérience :</p>
+                <button class="tier-btn free-tier active" onclick="selectTier('FREE')">
+                    <div class="tier-badge">🆓</div>
+                    <div class="tier-name">Free Player</div>
+                    <div class="tier-desc">Jeu complet gratuit</div>
+                </button>
+                <button class="tier-btn supporter-tier" onclick="selectTier('SUPPORTER')" disabled>
+                    <div class="tier-badge">⭐</div>
+                    <div class="tier-name">Supporter</div>
+                    <div class="tier-desc">$2.99 • Cosmétiques + QoL</div>
+                    <div class="tier-coming">Bientôt disponible</div>
+                </button>
+                <button class="tier-btn fast-tier" onclick="selectTier('FAST_PASS')" disabled>
+                    <div class="tier-badge">⏱️</div>
+                    <div class="tier-name">Time Traveler</div>
+                    <div class="tier-desc">$4.99 • Time-savers</div>
+                    <div class="tier-coming">Bientôt disponible</div>
+                </button>
+            </div>
+
+            <div class="username-section">
+                <p style="font-size: 11px; color: #aaa; margin-bottom: 8px;">Votre nom de Commandant :</p>
+                <input type="text" id="usernameInput" placeholder="Commandant..." maxlength="15">
+            </div>
+
+            <button class="start-btn" onclick="startGame()">⚡ COMMENCER L'AVENTURE</button>
+
+            <div class="manifesto-link" onclick="showManifesto()">📖 Lire notre manifeste complet</div>
+        </div>
+
+        <!-- Manifesto Full Screen -->
+        <div id="welcomeManifesto" style="display: none;">
+            <h2>Notre Manifeste</h2>
+            <div class="manifesto-full">
+                <h3>Pourquoi "The Last Honest Idle Game" ?</h3>
+                <p>Le marché mobile est saturé de jeux qui exploitent les joueurs avec des publicités invasives, des achats pay-to-win, et des mécaniques manipulatrices.</p>
+
+                <h3>Nos Engagements</h3>
+                <ul>
+                    <li><strong>Transparence Totale</strong> : Toutes les formules du jeu sont accessibles. Pas de boîte noire.</li>
+                    <li><strong>Fair Play</strong> : Les joueurs Free, Supporter et Fast Pass ont des leaderboards séparés.</li>
+                    <li><strong>Pas de Dark Patterns</strong> : Pas de FOMO artificiel, pas de timers agressifs, pas de lootboxes payantes.</li>
+                    <li><strong>Éducatif</strong> : Chaque technologie est basée sur de vraie science. Apprenez en jouant.</li>
+                    <li><strong>Community-Driven</strong> : Vos retours comptent. Le jeu évolue avec vous.</li>
+                </ul>
+
+                <h3>Monétisation Éthique</h3>
+                <p>Si vous aimez le jeu, vous pouvez devenir <strong>Supporter</strong> (cosmétiques) ou <strong>Time Traveler</strong> (time-savers). Mais le jeu complet est 100% gratuit.</p>
+
+                <p style="margin-top: 20px; font-style: italic; color: #888;">Fait avec ❤️ par 2 développeurs indépendants qui croient qu'un autre gaming mobile est possible.</p>
+            </div>
+            <button class="start-btn" onclick="hideManifesto()">← RETOUR</button>
+        </div>
     </div>
 
     <!-- Profile Modal -->
@@ -172,6 +236,7 @@
         <div class="icon-button" onclick="openModal('artifacts')" id="artifactsIcon">💎</div>
         <div class="icon-button" onclick="openModal('events')" id="eventsIcon">🌟</div>
         <div class="icon-button" onclick="openModal('shop')" id="shopIcon">🏪</div>
+        <div class="icon-button" onclick="openModal('settings')" id="settingsIcon">⚙️</div>
     </div>
 
     <!-- Modals -->
@@ -281,6 +346,107 @@
             <div class="modal-header">🏪 BOUTIQUE</div>
             <div class="modal-body" id="shopBody" style="max-height: 60vh; overflow-y: auto;">
                 <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px;">
+            <button class="modal-close" onclick="closeModal('settings')">✕</button>
+            <div class="modal-header">⚙️ PARAMÈTRES</div>
+            <div class="modal-body">
+                <!-- Sound Settings -->
+                <div class="settings-section">
+                    <div class="settings-header">🔊 AUDIO</div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Son activé</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="soundToggle" checked onchange="toggleSoundSetting()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Volume SFX</label>
+                        <input type="range" id="volumeSFX" class="volume-slider" min="0" max="100" value="50" oninput="updateVolumeSFX(this.value)">
+                        <span class="volume-value" id="volumeSFXValue">50%</span>
+                    </div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Musique activée</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="musicToggle" checked onchange="toggleMusicSetting()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Volume Musique</label>
+                        <input type="range" id="volumeMusic" class="volume-slider" min="0" max="100" value="30" oninput="updateVolumeMusic(this.value)">
+                        <span class="volume-value" id="volumeMusicValue">30%</span>
+                    </div>
+                </div>
+
+                <!-- Haptics Settings -->
+                <div class="settings-section">
+                    <div class="settings-header">📳 VIBRATIONS</div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Retour haptique</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="hapticsToggle" checked onchange="toggleHapticsSetting()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Interface Settings -->
+                <div class="settings-section">
+                    <div class="settings-header">🎨 INTERFACE</div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Langue</label>
+                        <select id="languageSelect" class="settings-select" onchange="changeLanguage(this.value)">
+                            <option value="fr" selected>Français</option>
+                            <option value="en">English (Soon)</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Auto-hide UI</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="uiAutoHideToggle" checked onchange="toggleUIAutoHide()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Data Management -->
+                <div class="settings-section">
+                    <div class="settings-header">💾 DONNÉES</div>
+
+                    <div class="setting-row">
+                        <button class="settings-btn" onclick="exportSave()">📤 Exporter Sauvegarde</button>
+                        <button class="settings-btn" onclick="importSave()">📥 Importer Sauvegarde</button>
+                    </div>
+
+                    <div class="setting-row">
+                        <button class="settings-btn danger" onclick="confirmResetSave()">🗑️ Réinitialiser Jeu</button>
+                    </div>
+                </div>
+
+                <!-- About -->
+                <div class="settings-section">
+                    <div class="settings-header">ℹ️ À PROPOS</div>
+                    <div style="font-size: 10px; color: #aaa; text-align: center; padding: 10px;">
+                        <p><strong>Falling Stars v1.0.0</strong></p>
+                        <p>The Last Honest Idle Game</p>
+                        <p style="margin-top: 10px;">Fait avec ❤️ par 2 développeurs indépendants</p>
+                        <p style="margin-top: 5px;">Zero pub • Fair Play • Open Source</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
