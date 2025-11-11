@@ -14,7 +14,7 @@ import {
     loadGameState,
     resetGameState
 } from './core/gameState.js';
-import { TIMING, CANVAS, FRAGMENT_SPAWN } from './core/constants.js';
+import { TIMING, CANVAS, FRAGMENT_SPAWN, FRAGMENTS, POWERUPS, COMPANIONS, SPECIAL_EVENTS, METEORS } from './core/constants.js';
 
 // Data imports
 import { buildingData, defenseData } from './data/buildings.js';
@@ -67,11 +67,24 @@ import { formatNumber, formatCost, formatCostColored, formatLevel } from './util
 import { getCost, canAfford, checkRequires, calculateClickPower } from './utils/calculations.js';
 import { screenShake, flashEffect, createParticleBurst, createSparkles, renderParticles } from './utils/screenEffects.js';
 
+// Companion imports
+import {
+    processCompanionCollection,
+    getCompanionPosition,
+    getCompanionCooldown,
+    unlockCompanion,
+    activateCompanion as activateCompanionLogic,
+    renderCompanionsUI
+} from './systems/companions.js';
+
 /**
  * Canvas and rendering variables
  */
 let canvas, ctx;
 let fragments = [];
+let powerups = [];  // Power-ups falling on screen
+let meteors = [];  // Meteors during special events
+let bosses = [];  // Boss entities during events
 let particles = [];
 let stars = [];
 let animationFrameId = null;
@@ -592,74 +605,181 @@ function renderLoop() {
         // Draw Earth (enhanced procedural rendering)
         renderEarth();
 
+        // Draw power-ups (before fragments so fragments appear on top)
+        renderPowerups();
+
+        // Auto-collect fragments if Magnet power-up is active
+        const magnetActive = isPowerupActive('magnet');
+        if (magnetActive) {
+            fragments.forEach((fragment, index) => {
+                // Check if fragment is in lower half of screen
+                if (fragment.y > canvas.height * 0.4) {
+                    // Auto-collect this fragment
+                    const result = captureFragment(fragment);
+
+                    if (result) {
+                        // Visual effects
+                        const fragmentColor = fragment.baseColor || '#00d4ff';
+                        createParticleBurst(particles, fragment.x, fragment.y, fragmentColor, 10, 1);
+                        createFloatingText(`+${formatNumber(result.lumen)}`, fragment.x, fragment.y, fragmentColor);
+
+                        // Remove fragment
+                        fragments.splice(index, 1);
+
+                        // Update UI
+                        updateResources();
+                        updateComboDisplay();
+                    }
+                }
+            });
+        }
+
+        // Companion auto-collection
+        const companionResult = processCompanionCollection(fragments);
+        if (companionResult.collected > 0) {
+            const companionPos = getCompanionPosition(canvas);
+
+            for (let i = 0; i < companionResult.collected && fragments.length > 0; i++) {
+                // Find closest fragment to companion
+                let closestIndex = 0;
+                let closestDist = Infinity;
+
+                fragments.forEach((fragment, index) => {
+                    const dx = fragment.x - companionPos.x;
+                    const dy = fragment.y - companionPos.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < closestDist) {
+                        closestDist = dist;
+                        closestIndex = index;
+                    }
+                });
+
+                const fragment = fragments[closestIndex];
+                if (!fragment) continue;
+
+                // Collect fragment
+                const result = captureFragment(fragment);
+                if (result) {
+                    // Visual effects - beam from companion to fragment
+                    const fragmentColor = fragment.baseColor || '#00d4ff';
+                    createParticleBurst(particles, fragment.x, fragment.y, fragmentColor, 8, 1);
+                    createFloatingText(`+${formatNumber(result.lumen)}`, fragment.x, fragment.y, fragmentColor);
+
+                    // Remove fragment
+                    fragments.splice(closestIndex, 1);
+                }
+            }
+
+            if (companionResult.collected > 0) {
+                updateResources();
+                updateComboDisplay();
+            }
+        }
+
         // Draw fragments
         fragments.forEach((fragment, index) => {
-            fragment.y += fragment.speed;
+            // Apply Slow Time power-up effect
+            const speedMultiplier = isPowerupActive('slow_time') ? 0.5 : 1.0;
+            fragment.y += fragment.speed * speedMultiplier;
             fragment.rotation += fragment.rotSpeed;
 
             // Remove if out of bounds and handle missed fragment
             if (fragment.y > canvas.height) {
                 fragments.splice(index, 1);
 
-                // Increment missed fragments counter
-                game.combo.missedFragments++;
+                // Check if Shield power-up is active
+                const shieldActive = isPowerupActive('shield');
 
-                // Reset combo if 3 fragments missed
-                if (game.combo.missedFragments >= 3) {
-                    // Show notification if there was an active combo
-                    if (game.combo.count > 0) {
-                        showNotification('❌ Combo perdu !');
+                if (!shieldActive) {
+                    // Increment missed fragments counter
+                    game.combo.missedFragments++;
+
+                    // Reset combo if 3 fragments missed
+                    if (game.combo.missedFragments >= 3) {
+                        // Show notification if there was an active combo
+                        if (game.combo.count > 0) {
+                            showNotification('❌ Combo perdu !');
+                        }
+
+                        // Reset combo
+                        game.combo.count = 0;
+                        game.combo.multiplier = 1;
+                        game.combo.missedFragments = 0;
                     }
-
-                    // Reset combo
-                    game.combo.count = 0;
-                    game.combo.multiplier = 1;
-                    game.combo.missedFragments = 0;
                 }
 
                 return;
             }
 
-            // Calculate fire color based on combo level
+            // Calculate display color based on combo level and fragment rarity
             let fragmentColor = fragment.baseColor || '#00d4ff';
-            if (comboLevel === 1) {
-                fragmentColor = '#ffaa00'; // Orange
-            } else if (comboLevel === 2) {
-                fragmentColor = '#ff6600'; // Orange-red
-            } else if (comboLevel === 3) {
-                fragmentColor = '#ff3300'; // Red fire
+            if (comboLevel === 1 && fragment.type === 'normal') {
+                fragmentColor = '#ffaa00'; // Orange for combo
+            } else if (comboLevel === 2 && fragment.type === 'normal') {
+                fragmentColor = '#ff6600'; // Orange-red for higher combo
+            } else if (comboLevel === 3 && fragment.type === 'normal') {
+                fragmentColor = '#ff3300'; // Red fire for max combo
             }
+
+            // Calculate rarity-based effects
+            const rarityMultipliers = {
+                'normal': { size: 1.0, glow: 1.0, pulseSpeed: 0 },
+                'golden': { size: 1.3, glow: 1.5, pulseSpeed: 0.003 },
+                'rare': { size: 1.5, glow: 2.0, pulseSpeed: 0.005 },
+                'legendary': { size: 1.8, glow: 2.5, pulseSpeed: 0.007 }
+            };
+            const rarityEffect = rarityMultipliers[fragment.type] || rarityMultipliers.normal;
+
+            // Pulsing effect for rare fragments
+            const pulse = rarityEffect.pulseSpeed > 0 ? (Math.sin(Date.now() * rarityEffect.pulseSpeed) * 0.2 + 1) : 1;
+            const effectiveSize = fragment.size * rarityEffect.size * pulse;
 
             // Draw enhanced star fragment with glow and inner detail
             ctx.save();
             ctx.translate(fragment.x, fragment.y);
             ctx.rotate(fragment.rotation);
 
-            // Outer glow (largest)
-            const glowSize = comboLevel > 0 ? 40 : 25;
-            const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, fragment.size + glowSize);
+            // Outer glow (larger for rare fragments)
+            const baseGlowSize = comboLevel > 0 ? 40 : 25;
+            const glowSize = baseGlowSize * rarityEffect.glow;
+            const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, effectiveSize + glowSize);
             glowGradient.addColorStop(0, fragmentColor);
             glowGradient.addColorStop(0.3, fragmentColor.replace(')', ', 0.6)').replace('rgb', 'rgba'));
             glowGradient.addColorStop(0.6, fragmentColor.replace(')', ', 0.2)').replace('rgb', 'rgba'));
             glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
             ctx.fillStyle = glowGradient;
             ctx.beginPath();
-            ctx.arc(0, 0, fragment.size + glowSize, 0, Math.PI * 2);
+            ctx.arc(0, 0, effectiveSize + glowSize, 0, Math.PI * 2);
             ctx.fill();
 
+            // Additional rings for legendary fragments
+            if (fragment.type === 'legendary') {
+                const ringPulse = Math.sin(Date.now() * 0.004) * 0.5 + 0.5;
+                ctx.strokeStyle = `rgba(255, 136, 0, ${ringPulse * 0.6})`;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, effectiveSize + 30, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(0, 0, effectiveSize + 40, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
             // Main star body with gradient
-            const starGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, fragment.size);
+            const starGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, effectiveSize);
             starGradient.addColorStop(0, '#ffffff');
             starGradient.addColorStop(0.3, fragmentColor);
             starGradient.addColorStop(1, fragmentColor);
             ctx.fillStyle = starGradient;
 
-            // Draw 5-pointed star
+            // Draw star shape (more points for rarer fragments)
+            const starPoints = fragment.type === 'legendary' ? 7 : fragment.type === 'rare' ? 6 : 5;
             ctx.beginPath();
-            for (let i = 0; i < 5; i++) {
-                const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
-                const x = Math.cos(angle) * fragment.size;
-                const y = Math.sin(angle) * fragment.size;
+            for (let i = 0; i < starPoints; i++) {
+                const angle = (i * 2 * Math.PI) / starPoints - Math.PI / 2;
+                const radius = i % 2 === 0 ? effectiveSize : effectiveSize * 0.5;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
@@ -669,28 +789,83 @@ function renderLoop() {
             // Inner white core for sparkle effect
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.beginPath();
-            for (let i = 0; i < 5; i++) {
-                const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
-                const x = Math.cos(angle) * fragment.size * 0.3;
-                const y = Math.sin(angle) * fragment.size * 0.3;
+            for (let i = 0; i < starPoints; i++) {
+                const angle = (i * 2 * Math.PI) / starPoints - Math.PI / 2;
+                const radius = i % 2 === 0 ? effectiveSize * 0.3 : effectiveSize * 0.15;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
             ctx.closePath();
             ctx.fill();
 
-            // DEBUG: Draw hitbox circle (semi-transparent) - remove this later
-            ctx.strokeStyle = 'rgba(0, 255, 0, 0.2)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.arc(0, 0, fragment.size * 3, 0, Math.PI * 2); // 3x hitbox
-            ctx.stroke();
+            // Sparkle particles for golden+ fragments
+            if (fragment.type !== 'normal') {
+                const sparkleCount = fragment.type === 'legendary' ? 4 : 2;
+                for (let i = 0; i < sparkleCount; i++) {
+                    const angle = (Date.now() * 0.002 + i * Math.PI * 2 / sparkleCount) % (Math.PI * 2);
+                    const distance = effectiveSize * 1.5;
+                    const sparkleX = Math.cos(angle) * distance;
+                    const sparkleY = Math.sin(angle) * distance;
+                    const sparkleAlpha = Math.sin(Date.now() * 0.01 + i) * 0.5 + 0.5;
+
+                    ctx.fillStyle = `rgba(255, 255, 255, ${sparkleAlpha * 0.8})`;
+                    ctx.beginPath();
+                    ctx.arc(sparkleX, sparkleY, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
 
             ctx.restore();
         });
 
         // Draw particles with enhanced rendering
         renderParticles(ctx, particles);
+
+        // Draw active companion
+        const companionPos = getCompanionPosition(canvas);
+        if (companionPos) {
+            ctx.save();
+            ctx.translate(companionPos.x, companionPos.y);
+            ctx.scale(companionPos.scale, companionPos.scale);
+
+            // Draw companion glow
+            const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 50);
+            glowGradient.addColorStop(0, 'rgba(0, 255, 200, 0.4)');
+            glowGradient.addColorStop(1, 'rgba(0, 255, 200, 0)');
+            ctx.fillStyle = glowGradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, 50, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw companion icon (emoji)
+            ctx.font = 'bold 48px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(companionPos.icon, 0, 0);
+
+            // Draw collection cooldown indicator
+            const cooldown = getCompanionCooldown();
+            if (cooldown && !cooldown.ready) {
+                // Cooldown arc
+                ctx.strokeStyle = 'rgba(0, 255, 200, 0.6)';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(0, 0, 30, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * cooldown.progress), false);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+
+            // Draw companion name label
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(companionPos.x - 60, companionPos.y + 35, 120, 20);
+            ctx.fillStyle = '#00ffcc';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(companionPos.name, companionPos.x, companionPos.y + 47);
+        }
     } catch (error) {
         console.error('Render loop error:', error);
     }
@@ -699,7 +874,32 @@ function renderLoop() {
 }
 
 /**
- * Spawn a new fragment
+ * Get fragment type based on weighted random
+ * @returns {Object} Fragment type data
+ */
+function getRandomFragmentType() {
+    const random = Math.random();
+    let cumulativeWeight = 0;
+
+    // Import FRAGMENTS from constants
+    const types = [
+        { data: FRAGMENTS.NORMAL, threshold: FRAGMENTS.NORMAL.weight },
+        { data: FRAGMENTS.GOLDEN, threshold: FRAGMENTS.NORMAL.weight + FRAGMENTS.GOLDEN.weight },
+        { data: FRAGMENTS.RARE, threshold: FRAGMENTS.NORMAL.weight + FRAGMENTS.GOLDEN.weight + FRAGMENTS.RARE.weight },
+        { data: FRAGMENTS.LEGENDARY, threshold: 1.0 }
+    ];
+
+    for (const type of types) {
+        if (random <= type.threshold) {
+            return type.data;
+        }
+    }
+
+    return FRAGMENTS.NORMAL; // Fallback
+}
+
+/**
+ * Spawn a new fragment with rarity system
  */
 function spawnFragment() {
     const playableTop = CANVAS.PLAYABLE_MARGIN_TOP;
@@ -708,20 +908,243 @@ function spawnFragment() {
     const playableRight = canvas.width - CANVAS.PLAYABLE_MARGIN_RIGHT;
     const playableWidth = playableRight - playableLeft;
 
+    // Get random fragment type based on rarity weights
+    const fragmentType = getRandomFragmentType();
+    const fragmentValue = Math.floor(Math.random() * (fragmentType.valueMax - fragmentType.valueMin + 1)) + fragmentType.valueMin;
+
     const fragment = {
         x: playableLeft + Math.random() * playableWidth,
         y: playableTop,
         size: CANVAS.FRAGMENT_SIZE,
         speed: 1.0 + Math.random() * 0.8,  // Reduced from 1.5-2.5 to 1.0-1.8 (20-30% slower)
-        value: Math.floor(Math.random() * 15) + 5,  // Increased value from 1-10 to 5-19
-        color: '#00d4ff',
+        value: fragmentValue,
+        type: fragmentType.type,
+        baseColor: fragmentType.color,
+        color: fragmentType.color,
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.1,
         id: Date.now() + Math.random()
     };
 
     fragments.push(fragment);
-    console.log('⭐ Fragment spawned at x:', Math.round(fragment.x), 'y:', fragment.y, '| Total fragments:', fragments.length);
+    console.log(`⭐ ${fragmentType.type.toUpperCase()} fragment spawned (value: ${fragmentValue}) at x:`, Math.round(fragment.x), 'y:', fragment.y, '| Total fragments:', fragments.length);
+}
+
+/**
+ * Get random power-up type based on spawn chances
+ * @returns {Object} Power-up type data
+ */
+function getRandomPowerupType() {
+    const types = Object.values(POWERUPS);
+    const random = Math.random();
+    let cumulativeChance = 0;
+
+    for (const type of types) {
+        cumulativeChance += type.spawnChance;
+        if (random <= cumulativeChance) {
+            return type;
+        }
+    }
+
+    return types[0]; // Fallback to first power-up
+}
+
+/**
+ * Spawn a new power-up
+ */
+function spawnPowerup() {
+    // Don't spawn too many power-ups at once
+    if (powerups.length >= 2) return;
+
+    const playableTop = CANVAS.PLAYABLE_MARGIN_TOP;
+    const playableLeft = CANVAS.PLAYABLE_MARGIN_LEFT;
+    const playableRight = canvas.width - CANVAS.PLAYABLE_MARGIN_RIGHT;
+    const playableWidth = playableRight - playableLeft;
+
+    const powerupType = getRandomPowerupType();
+
+    const powerup = {
+        x: playableLeft + Math.random() * playableWidth,
+        y: playableTop,
+        size: 30,
+        speed: 0.8,  // Slower than fragments
+        type: powerupType.type,
+        icon: powerupType.icon,
+        color: powerupType.color,
+        rotation: 0,
+        rotSpeed: 0.02,
+        pulsePhase: Math.random() * Math.PI * 2,
+        id: Date.now() + Math.random()
+    };
+
+    powerups.push(powerup);
+    console.log(`⚡ ${powerupType.type.toUpperCase()} power-up spawned!`);
+}
+
+/**
+ * Render power-ups on canvas
+ */
+function renderPowerups() {
+    powerups.forEach((powerup, index) => {
+        powerup.y += powerup.speed;
+        powerup.rotation += powerup.rotSpeed;
+        powerup.pulsePhase += 0.05;
+
+        // Remove if out of bounds
+        if (powerup.y > canvas.height) {
+            powerups.splice(index, 1);
+            return;
+        }
+
+        // Pulsing effect
+        const pulse = Math.sin(powerup.pulsePhase) * 0.2 + 1;
+        const effectiveSize = powerup.size * pulse;
+
+        ctx.save();
+        ctx.translate(powerup.x, powerup.y);
+        ctx.rotate(powerup.rotation);
+
+        // Outer glow
+        const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, effectiveSize + 40);
+        glowGradient.addColorStop(0, powerup.color);
+        glowGradient.addColorStop(0.5, powerup.color.replace(')', ', 0.4)').replace('rgb', 'rgba'));
+        glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = glowGradient;
+        ctx.beginPath();
+        ctx.arc(0, 0, effectiveSize + 40, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Main circle background
+        const bgGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, effectiveSize);
+        bgGradient.addColorStop(0, powerup.color);
+        bgGradient.addColorStop(1, powerup.color.replace(')', ', 0.6)').replace('rgb', 'rgba'));
+        ctx.fillStyle = bgGradient;
+        ctx.beginPath();
+        ctx.arc(0, 0, effectiveSize, 0, Math.PI * 2);
+        ctx.fill();
+
+        // White border
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, effectiveSize, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Draw icon
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(powerup.icon, 0, 0);
+
+        ctx.restore();
+    });
+}
+
+/**
+ * Activate a power-up effect
+ * @param {string} type - Power-up type
+ */
+function activatePowerup(type) {
+    const powerupData = Object.values(POWERUPS).find(p => p.type === type);
+    if (!powerupData) return;
+
+    // Check if power-up is already active
+    const existing = game.activePowerups.find(p => p.type === type);
+    if (existing) {
+        // Extend duration
+        existing.startTime = Date.now();
+        showNotification(`⚡ ${powerupData.effect} prolongé !`);
+    } else {
+        // Add new power-up
+        game.activePowerups.push({
+            type: type,
+            startTime: Date.now(),
+            duration: powerupData.duration
+        });
+        showNotification(`⚡ ${powerupData.effect} activé !`);
+    }
+
+    // Play sound
+    playSound('success');
+
+    // Update UI
+    updatePowerupDisplay();
+}
+
+/**
+ * Update power-up display in UI
+ */
+function updatePowerupDisplay() {
+    const now = Date.now();
+
+    // Remove expired power-ups
+    game.activePowerups = game.activePowerups.filter(powerup => {
+        return (now - powerup.startTime) < powerup.duration;
+    });
+
+    // Update or create power-up display
+    let powerupContainer = document.getElementById('activePowerupsDisplay');
+    if (!powerupContainer) {
+        powerupContainer = document.createElement('div');
+        powerupContainer.id = 'activePowerupsDisplay';
+        powerupContainer.style.position = 'fixed';
+        powerupContainer.style.top = '200px';
+        powerupContainer.style.right = '20px';
+        powerupContainer.style.display = 'flex';
+        powerupContainer.style.flexDirection = 'column';
+        powerupContainer.style.gap = '10px';
+        powerupContainer.style.zIndex = '1000';
+        document.body.appendChild(powerupContainer);
+    }
+
+    powerupContainer.innerHTML = '';
+
+    game.activePowerups.forEach(powerup => {
+        const powerupData = Object.values(POWERUPS).find(p => p.type === powerup.type);
+        if (!powerupData) return;
+
+        const timeLeft = powerup.duration - (now - powerup.startTime);
+        const seconds = Math.ceil(timeLeft / 1000);
+
+        const powerupElement = document.createElement('div');
+        powerupElement.style.cssText = `
+            background: linear-gradient(135deg, ${powerupData.color}44, ${powerupData.color}22);
+            border: 2px solid ${powerupData.color};
+            border-radius: 10px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 0 20px ${powerupData.color}66;
+            animation: powerupPulse 1s infinite;
+        `;
+
+        powerupElement.innerHTML = `
+            <span style="font-size: 24px;">${powerupData.icon}</span>
+            <div style="flex: 1;">
+                <div style="font-weight: bold; font-size: 12px; text-transform: uppercase;">${powerupData.type.replace('_', ' ')}</div>
+                <div style="font-size: 11px; opacity: 0.8;">${seconds}s</div>
+            </div>
+        `;
+
+        powerupContainer.appendChild(powerupElement);
+    });
+}
+
+/**
+ * Check if a power-up is active
+ * @param {string} type - Power-up type
+ * @returns {boolean} Whether the power-up is active
+ */
+function isPowerupActive(type) {
+    const now = Date.now();
+    return game.activePowerups.some(powerup => {
+        return powerup.type === type && (now - powerup.startTime) < powerup.duration;
+    });
 }
 
 /**
@@ -737,7 +1160,34 @@ function handleCanvasClick(event) {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    console.log('🖱️ Click at:', Math.round(x), Math.round(y), '| Fragments on screen:', fragments.length);
+    console.log('🖱️ Click at:', Math.round(x), Math.round(y), '| Fragments:', fragments.length, '| Power-ups:', powerups.length);
+
+    // Check if clicked on a power-up first (priority over fragments)
+    for (let i = powerups.length - 1; i >= 0; i--) {
+        const powerup = powerups[i];
+        const dx = x - powerup.x;
+        const dy = y - powerup.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const hitboxRadius = powerup.size * 2; // Generous hitbox
+
+        if (distance < hitboxRadius) {
+            console.log('✅ POWER-UP COLLECTED!', powerup.type);
+
+            // Activate power-up
+            activatePowerup(powerup.type);
+
+            // Create particle burst
+            createParticleBurst(particles, powerup.x, powerup.y, powerup.color, 30, 2);
+
+            // Screen shake
+            screenShake(canvas, 5, 200);
+
+            // Remove power-up
+            powerups.splice(i, 1);
+
+            return; // Don't check for fragments if power-up was clicked
+        }
+    }
 
     // Check if clicked on a fragment (hitbox 3x larger for easier clicking on mobile)
     let hitDetected = false;
@@ -966,8 +1416,30 @@ function startGameLoops() {
     currentSpawnInterval = baseSpawnInterval;
     window.spawnIntervalId = setInterval(() => {
         spawnFragment();
+
+        // Spawn extra fragments if Fragment Rain is active
+        if (isPowerupActive('fragment_rain')) {
+            spawnFragment();
+            spawnFragment();
+        }
     }, baseSpawnInterval);
     console.log('✅ Fragment spawn interval started (interval:', baseSpawnInterval, 'ms)');
+
+    // Power-up spawn interval (every 20-30 seconds)
+    setInterval(() => {
+        const spawnChance = 0.4; // 40% chance every check
+        if (Math.random() < spawnChance) {
+            spawnPowerup();
+        }
+    }, 25000); // Check every 25 seconds
+    console.log('✅ Power-up spawn interval started');
+
+    // Power-up display update loop (every 100ms for smooth countdown)
+    setInterval(() => {
+        updatePowerupDisplay();
+    }, 100);
+    console.log('✅ Power-up display update loop started');
+
     console.log('🎉 All game loops started successfully!');
 }
 
@@ -1148,6 +1620,8 @@ window.openModal = (id) => {
         renderAchievements();
     } else if (id === 'events') {
         renderEvents();
+    } else if (id === 'companions') {
+        renderCompanionsModal();
     }
 };
 window.closeModal = (id) => toggleModal(id + 'Modal', false);
@@ -1542,6 +2016,43 @@ window.buyTech = (key) => {
         setTimeout(() => triggerSuccessAnimation(`tech-${key}`), 10);
     }
 };
+
+/**
+ * Buy and unlock a companion
+ */
+window.buyCompanion = (companionId) => {
+    if (unlockCompanion(companionId)) {
+        const companion = COMPANIONS[companionId.toUpperCase()];
+        showNotification(`✓ ${companion.name} débloqué !`);
+        renderCompanionsModal();
+        updateResources();
+        playSound('achievement');
+    } else {
+        showNotification('❌ Ressources insuffisantes !');
+    }
+};
+
+/**
+ * Activate a companion
+ */
+window.activateCompanion = (companionId) => {
+    if (activateCompanionLogic(companionId)) {
+        const companion = COMPANIONS[companionId.toUpperCase()];
+        showNotification(`✓ ${companion.name} activé !`);
+        renderCompanionsModal();
+        playSound('success');
+    }
+};
+
+/**
+ * Render companions modal content
+ */
+function renderCompanionsModal() {
+    const companionsBody = document.getElementById('companionsBody');
+    if (!companionsBody) return;
+
+    companionsBody.innerHTML = renderCompanionsUI();
+}
 
 /**
  * Update profile modal

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <defs>
+    <radialGradient id="rareGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#ff00ff;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#cc00cc;stop-opacity:0.5" />
+    </radialGradient>
+    <filter id="rareBlur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" />
+    </filter>
+  </defs>
+
+  <!-- Multiple glow layers -->
+  <circle cx="60" cy="60" r="50" fill="url(#rareGlow)" opacity="0.5" filter="url(#rareBlur)" />
+  <circle cx="60" cy="60" r="55" fill="#ff00ff" opacity="0.2" filter="url(#rareBlur)" />
+
+  <!-- Main star (7 points) -->
+  <path d="M 60 10 L 66 42 L 98 42 L 72 60 L 80 92 L 60 74 L 40 92 L 48 60 L 22 42 L 54 42 Z"
+        fill="url(#rareGlow)" stroke="#ffffff" stroke-width="3" />
+
+  <!-- Inner star layer -->
+  <path d="M 60 25 L 64 48 L 88 48 L 69 62 L 75 86 L 60 72 L 45 86 L 51 62 L 32 48 L 56 48 Z"
+        fill="#ff66ff" opacity="0.7" />
+
+  <!-- Central core -->
+  <circle cx="60" cy="60" r="12" fill="#ffffff" opacity="0.95" />
+
+  <!-- Orbiting sparkles -->
+  <circle cx="60" cy="20" r="4" fill="#ffffff">
+    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="3s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="100" cy="60" r="4" fill="#ffffff">
+    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="3s" repeatCount="indefinite" />
+  </circle>
+
+  <!-- Pulse animation -->
+  <circle cx="60" cy="60" r="40" fill="none" stroke="#ff00ff" stroke-width="2" opacity="0.6">
+    <animate attributeName="r" values="40;50;40" dur="2s" repeatCount="indefinite" />
+    <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite" />
+  </circle>
+</svg>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+  <defs>
+    <radialGradient id="shieldGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#00ff88;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#00ff88;stop-opacity:0" />
+    </radialGradient>
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ffaa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00cc88;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Glow effect -->
+  <circle cx="40" cy="40" r="35" fill="url(#shieldGlow)" />
+
+  <!-- Shield shape -->
+  <path d="M 40 15 L 60 25 L 60 45 Q 60 60 40 68 Q 20 60 20 45 L 20 25 Z"
+        fill="url(#shieldGradient)" stroke="#ffffff" stroke-width="3" />
+
+  <!-- Shield details -->
+  <path d="M 40 20 L 55 28 L 55 45 Q 55 56 40 62 Q 25 56 25 45 L 25 28 Z"
+        fill="none" stroke="#ffffff" stroke-width="1" opacity="0.5" />
+
+  <!-- Center emblem -->
+  <circle cx="40" cy="40" r="8" fill="#ffffff" opacity="0.8" />
+  <path d="M 36 40 L 39 43 L 44 36" stroke="#00cc88" stroke-width="2" fill="none" stroke-linecap="round" />
+
+  <!-- Energy shield effect -->
+  <path d="M 40 15 L 60 25 L 60 45 Q 60 60 40 68 Q 20 60 20 45 L 20 25 Z"
+        fill="none" stroke="#00ffaa" stroke-width="2" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.3;0.6" dur="1.5s" repeatCount="indefinite" />
+  </path>
+
+  <!-- Protective arcs -->
+  <path d="M 30 30 Q 25 40 30 50" stroke="#ffffff" stroke-width="1" fill="none" opacity="0.4" />
+  <path d="M 50 30 Q 55 40 50 50" stroke="#ffffff" stroke-width="1" fill="none" opacity="0.4" />
+</svg>

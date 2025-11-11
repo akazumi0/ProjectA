@@ -158,7 +158,15 @@ export function buyTechnology(key) {
  */
 export function captureFragment(fragment) {
     const clickPower = calculateClickPower();
-    const value = fragment.value * clickPower;
+    let value = fragment.value * clickPower;
+
+    // Apply DOUBLE_POINTS power-up bonus
+    const doublePointsActive = game.activePowerups?.some(p => {
+        return p.type === 'double_points' && (Date.now() - p.startTime) < p.duration;
+    });
+    if (doublePointsActive) {
+        value *= 2;
+    }
 
     // Update combo
     const now = Date.now();

@@ -238,6 +238,17 @@ body {
     }
 }
 
+@keyframes powerupPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 20px currentColor;
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 30px currentColor, 0 0 40px currentColor;
+    }
+}
+
 /* Utility Classes */
 .text-center { text-align: center; }
 .text-bold { font-weight: bold; }

@@ -610,3 +610,119 @@
         transform: scale(1.15);
     }
 }
+
+
+/* Companions System Styles */
+.companions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.companion-card {
+    background: rgba(0, 30, 60, 0.6);
+    border: 2px solid rgba(0, 212, 255, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.3s ease;
+}
+
+.companion-card:hover {
+    background: rgba(0, 50, 100, 0.7);
+    border-color: rgba(0, 212, 255, 0.6);
+    transform: translateX(5px);
+}
+
+.companion-card.locked {
+    opacity: 0.6;
+}
+
+.companion-card.active {
+    background: linear-gradient(135deg, rgba(0, 255, 200, 0.2), rgba(0, 200, 150, 0.2));
+    border-color: rgba(0, 255, 200, 0.8);
+    box-shadow: 0 0 20px rgba(0, 255, 200, 0.4);
+}
+
+.companion-icon {
+    font-size: 48px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.5));
+}
+
+.companion-card.active .companion-icon {
+    animation: companionFloat 2s ease-in-out infinite;
+}
+
+.companion-info {
+    flex: 1;
+}
+
+.companion-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #00d4ff;
+    margin-bottom: 5px;
+}
+
+.companion-desc {
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.companion-requirement {
+    font-size: 10px;
+    color: #ff6666;
+    margin-top: 5px;
+}
+
+.companion-cost {
+    font-size: 11px;
+    color: #ffd700;
+    margin-top: 5px;
+}
+
+.companion-btn {
+    background: linear-gradient(135deg, #00d4ff, #0099cc);
+    border: none;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.companion-btn:hover:not(.disabled) {
+    background: linear-gradient(135deg, #00ffdd, #00aaff);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+}
+
+.companion-btn.disabled {
+    background: linear-gradient(135deg, #333, #222);
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.companion-active-badge {
+    background: linear-gradient(135deg, #00ff88, #00cc66);
+    color: #000;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+@keyframes companionFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}

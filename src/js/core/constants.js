@@ -271,6 +271,204 @@ export const BADGES = {
 };
 
 /**
+ * Power-up types and properties
+ * @constant
+ */
+export const POWERUPS = {
+    MAGNET: {
+        type: 'magnet',
+        icon: '🧲',
+        color: '#ff0066',
+        duration: 10000, // 10 seconds
+        spawnChance: 0.05, // 5% chance
+        effect: 'Auto-collect fragments'
+    },
+    DOUBLE_POINTS: {
+        type: 'double_points',
+        icon: '×2',
+        color: '#ffdd00',
+        duration: 15000, // 15 seconds
+        spawnChance: 0.04,
+        effect: 'Double all Lumen gains'
+    },
+    SLOW_TIME: {
+        type: 'slow_time',
+        icon: '⏱️',
+        color: '#00ddff',
+        duration: 12000, // 12 seconds
+        spawnChance: 0.03,
+        effect: 'Fragments fall 50% slower'
+    },
+    FRAGMENT_RAIN: {
+        type: 'fragment_rain',
+        icon: '🌧️',
+        color: '#ff8800',
+        duration: 8000, // 8 seconds
+        spawnChance: 0.02,
+        effect: 'Spawn fragments 3x faster'
+    },
+    SHIELD: {
+        type: 'shield',
+        icon: '🛡️',
+        color: '#00ff88',
+        duration: 20000, // 20 seconds
+        spawnChance: 0.03,
+        effect: 'Missed fragments don\'t break combo'
+    }
+};
+
+/**
+ * Companion/Pet types and properties
+ * @constant
+ */
+export const COMPANIONS = {
+    DRONE: {
+        id: 'drone',
+        name: 'Drone Collecteur',
+        icon: '🤖',
+        description: 'Collecte automatiquement 1 fragment toutes les 10 secondes',
+        cost: { lumen: 10000 },
+        collectInterval: 10000, // 10 seconds
+        unlockLevel: 0
+    },
+    SATELLITE: {
+        id: 'satellite',
+        name: 'Satellite Gardien',
+        icon: '🛰️',
+        description: 'Collecte 2 fragments toutes les 8 secondes',
+        cost: { lumen: 50000, energy: 100 },
+        collectInterval: 8000, // 8 seconds
+        collectAmount: 2,
+        unlockLevel: 1
+    },
+    PHOENIX: {
+        id: 'phoenix',
+        name: 'Phénix Stellaire',
+        icon: '🔥',
+        description: 'Collecte 3 fragments toutes les 5 secondes et donne +10% Lumen',
+        cost: { lumen: 200000, energy: 500, antimatter: 2 },
+        collectInterval: 5000, // 5 seconds
+        collectAmount: 3,
+        bonusMultiplier: 1.1,
+        unlockLevel: 3
+    },
+    COSMIC_CAT: {
+        id: 'cosmic_cat',
+        name: 'Chat Cosmique',
+        icon: '😺',
+        description: 'Attire les fragments rares, collecte 5 fragments toutes les 7 secondes',
+        cost: { lumen: 500000, energy: 1000, antimatter: 5 },
+        collectInterval: 7000,
+        collectAmount: 5,
+        attractsRares: true,
+        unlockLevel: 5
+    },
+    VOID_DRAGON: {
+        id: 'void_dragon',
+        name: 'Dragon du Vide',
+        icon: '🐉',
+        description: 'Ultra-puissant ! Collecte 10 fragments toutes les 4 secondes, +25% Lumen',
+        cost: { lumen: 2000000, energy: 5000, antimatter: 20 },
+        collectInterval: 4000,
+        collectAmount: 10,
+        bonusMultiplier: 1.25,
+        unlockLevel: 10
+    }
+};
+
+/**
+ * Special Events and Mini-Boss types
+ * @constant
+ */
+export const SPECIAL_EVENTS = {
+    METEOR_SHOWER: {
+        id: 'meteor_shower',
+        name: 'Pluie de Météores',
+        icon: '☄️',
+        description: 'Évitez les météores ! Cliquez-les pour les détruire',
+        duration: 30000, // 30 seconds
+        spawnChance: 0.15,
+        meteorSpawnRate: 1500, // Spawn meteor every 1.5s
+        meteorDamage: 50 // Lumen lost if meteor hits Earth
+    },
+    COSMIC_WHALE: {
+        id: 'cosmic_whale',
+        name: 'Baleine Cosmique',
+        icon: '🐋',
+        description: 'Une baleine cosmique apparaît ! Cliquez-la pour des récompenses massives',
+        duration: 20000,
+        spawnChance: 0.1,
+        health: 100,
+        rewardMultiplier: 5
+    },
+    VOID_KRAKEN: {
+        id: 'void_kraken',
+        name: 'Kraken du Vide',
+        icon: '🦑',
+        description: 'BOSS ! Détruisez le Kraken avant qu\'il ne vole vos ressources !',
+        duration: 45000,
+        spawnChance: 0.08,
+        health: 500,
+        rewardMultiplier: 20,
+        resourceDrain: 10 // Drains 10 Lumen per second
+    },
+    FRAGMENT_STORM: {
+        id: 'fragment_storm',
+        name: 'Tempête de Fragments',
+        icon: '🌪️',
+        description: 'Une tempête de fragments rares ! Collectez-en un maximum !',
+        duration: 25000,
+        spawnChance: 0.12,
+        fragmentMultiplier: 3,
+        rareChance: 0.5 // 50% chance for rare+ fragments
+    },
+    ALIEN_MERCHANT: {
+        id: 'alien_merchant',
+        name: 'Marchand Alien',
+        icon: '👽',
+        description: 'Un marchand offre des échanges temporaires',
+        duration: 40000,
+        spawnChance: 0.1,
+        offers: [
+            { cost: { lumen: 1000 }, reward: { energy: 200 } },
+            { cost: { energy: 500 }, reward: { antimatter: 2 } },
+            { cost: { lumen: 5000 }, reward: { lumen: 10000 } } // Investment
+        ]
+    }
+};
+
+/**
+ * Meteor types
+ * @constant
+ */
+export const METEORS = {
+    SMALL: {
+        type: 'small',
+        size: 20,
+        speed: 2,
+        damage: 20,
+        health: 1,
+        color: '#8b4513'
+    },
+    MEDIUM: {
+        type: 'medium',
+        size: 35,
+        speed: 1.5,
+        damage: 50,
+        health: 3,
+        color: '#cd5c5c'
+    },
+    LARGE: {
+        type: 'large',
+        size: 50,
+        speed: 1,
+        damage: 100,
+        health: 5,
+        color: '#ff4500'
+    }
+};
+
+/**
  * Debug mode flag
  * Set to true for development, false for production
  * @constant

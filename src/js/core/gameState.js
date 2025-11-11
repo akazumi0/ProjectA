@@ -130,6 +130,21 @@ export function createDefaultGameState() {
             multiplier: 1,
             missedFragments: 0
         },
+        activePowerups: [],  // Array of active power-ups { type, startTime, duration }
+        companions: {
+            unlocked: [],  // Array of companion IDs
+            active: null,  // Currently active companion ID
+            lastCollect: {}  // Last collect timestamp for each companion
+        },
+        specialEvent: {
+            active: false,
+            type: null,
+            startTime: 0,
+            duration: 0,
+            boss: null,  // Boss data { health, maxHealth, position }
+            meteors: [],  // Active meteors
+            lastEventTime: 0
+        },
         flashMission: {
             active: false,
             type: null,

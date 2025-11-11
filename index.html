@@ -233,6 +233,7 @@
         <div class="icon-button" onclick="openModal('daily')" id="dailyIcon">🎁</div>
         <div class="icon-button" onclick="openModal('quests')" id="questsIcon">📜</div>
         <div class="icon-button" onclick="openModal('achievements')" id="achievementsIcon">🏆</div>
+        <div class="icon-button" onclick="openModal('companions')" id="companionsIcon">🐾</div>
         <div class="icon-button" onclick="openModal('artifacts')" id="artifactsIcon">💎</div>
         <div class="icon-button" onclick="openModal('events')" id="eventsIcon">🌟</div>
         <div class="icon-button" onclick="openModal('shop')" id="shopIcon">🏪</div>
@@ -295,6 +296,17 @@
             <button class="modal-close" onclick="closeModal('events')">✕</button>
             <div class="modal-header">🌟 ÉVÉNEMENTS & BOOSTS</div>
             <div class="modal-body" id="eventsBody" style="max-height: 60vh; overflow-y: auto;">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Companions Modal -->
+    <div id="companionsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close" onclick="closeModal('companions')">✕</button>
+            <div class="modal-header">🐾 COMPAGNONS</div>
+            <div class="modal-body" id="companionsBody" style="max-height: 60vh; overflow-y: auto;">
                 <!-- Populated by JS -->
             </div>
         </div>

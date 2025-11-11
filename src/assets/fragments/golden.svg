@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="goldenGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="40%" style="stop-color:#ffd700;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#ffaa00;stop-opacity:0.4" />
+    </radialGradient>
+    <filter id="goldenBlur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+    </filter>
+  </defs>
+
+  <!-- Large outer glow -->
+  <circle cx="50" cy="50" r="45" fill="url(#goldenGlow)" opacity="0.4" filter="url(#goldenBlur)" />
+
+  <!-- Main star (larger, 6 points) -->
+  <path d="M 50 8 L 56 38 L 87 38 L 63 56 L 70 87 L 50 68 L 30 87 L 37 56 L 13 38 L 44 38 Z"
+        fill="url(#goldenGlow)" stroke="#ffffff" stroke-width="2.5" />
+
+  <!-- Secondary rays -->
+  <path d="M 50 20 L 52 45 L 80 45 L 57 58 L 62 80 L 50 65 L 38 80 L 43 58 L 20 45 L 48 45 Z"
+        fill="#ffdd44" opacity="0.6" />
+
+  <!-- Inner sparkle -->
+  <circle cx="50" cy="50" r="10" fill="#ffffff" opacity="0.95" />
+
+  <!-- Sparkle accents -->
+  <circle cx="50" cy="20" r="3" fill="#ffffff" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="1s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="75" cy="50" r="3" fill="#ffffff" opacity="0.8">
+    <animate attributeName="opacity" values="1;0.8;1" dur="1s" repeatCount="indefinite" />
+  </circle>
+</svg>

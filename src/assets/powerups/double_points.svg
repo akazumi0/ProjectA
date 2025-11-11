@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+  <defs>
+    <radialGradient id="doubleGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffdd00;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#ffdd00;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Glow effect -->
+  <circle cx="40" cy="40" r="35" fill="url(#doubleGlow)" />
+
+  <!-- Gold coin background -->
+  <circle cx="40" cy="40" r="28" fill="#ffdd00" stroke="#ffffff" stroke-width="3" />
+  <circle cx="40" cy="40" r="24" fill="#ffaa00" opacity="0.5" />
+
+  <!-- ×2 Text -->
+  <text x="40" y="50" fill="#ffffff" font-size="24" font-weight="bold" text-anchor="middle"
+        stroke="#ff8800" stroke-width="1">×2</text>
+
+  <!-- Sparkles -->
+  <circle cx="20" cy="20" r="3" fill="#ffffff">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="60" cy="20" r="3" fill="#ffffff">
+    <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="20" cy="60" r="3" fill="#ffffff">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="60" cy="60" r="3" fill="#ffffff">
+    <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" repeatCount="indefinite" />
+  </circle>
+</svg>

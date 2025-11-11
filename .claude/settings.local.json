@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nFIX: Corriger les instructions GitHub Pages - branche main\n\nCorrection de la branche de déploiement dans la documentation.\nLa branche ''claude/ios-game-tech-discussion-011CUocgaShPuwdSTPCTyziz'' n''existe pas.\nUtilise maintenant la branche ''main'' pour GitHub Pages.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git config:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nFIX: Corriger les instructions GitHub Pages - branche main\n\nCorrection de la branche de déploiement dans la documentation.\nLa branche inexistante a été remplacée par ''main''.\nUtilise maintenant la branche ''main'' pour GitHub Pages.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git merge origin/dev -m \"$(cat <<''EOF''\nMERGE: Intégrer la branche dev dans main\n\nMerge de tous les changements de la branche dev pour consolider le code.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(node:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:akazumi0.github.io)",
+      "Bash(git commit:*)",
+      "Bash(mkdir:*)",
+      "WebSearch",
+      "Bash(if exist \"D:\\github\\ProjectA\\icon.svg\" copy \"D:\\github\\ProjectA\\icon.svg\" \"D:\\github\\ProjectA\\src\\assets\\icon.svg\")",
+      "Bash(echo:*)",
+      "Bash(\"D:\\github\\ProjectA\\src\\css\\ui.css\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
