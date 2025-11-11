@@ -169,6 +169,10 @@ export function triggerSuccessAnimation(elementId) {
     }, 500);
 }
 
+// Store current dialogue timeout
+let astraTimeoutId = null;
+let astraClickHandler = null;
+
 /**
  * Show ASTRA dialogue
  * @param {string} text - Dialogue text
@@ -180,12 +184,38 @@ export function showAstraDialogue(text, duration = 5000) {
 
     if (!dialogue || !textElement) return;
 
+    // Clear any existing timeout and handler
+    if (astraTimeoutId) {
+        clearTimeout(astraTimeoutId);
+    }
+    if (astraClickHandler) {
+        dialogue.removeEventListener('click', astraClickHandler);
+    }
+
     textElement.textContent = text;
     dialogue.classList.add('show');
 
-    setTimeout(() => {
+    // Auto-dismiss after duration
+    astraTimeoutId = setTimeout(() => {
         dialogue.classList.remove('show');
+        if (astraClickHandler) {
+            dialogue.removeEventListener('click', astraClickHandler);
+            astraClickHandler = null;
+        }
     }, duration);
+
+    // Add click handler to dismiss immediately
+    astraClickHandler = () => {
+        dialogue.classList.remove('show');
+        if (astraTimeoutId) {
+            clearTimeout(astraTimeoutId);
+            astraTimeoutId = null;
+        }
+        dialogue.removeEventListener('click', astraClickHandler);
+        astraClickHandler = null;
+    };
+
+    dialogue.addEventListener('click', astraClickHandler);
 }
 
 /**

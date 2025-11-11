@@ -52,7 +52,7 @@ import {
 
 // Utility imports
 import { formatNumber, formatCost, formatLevel } from './utils/formatters.js';
-import { getCost, checkRequires, calculateClickPower } from './utils/calculations.js';
+import { getCost, canAfford, checkRequires, calculateClickPower } from './utils/calculations.js';
 
 /**
  * Canvas and rendering variables
@@ -281,21 +281,33 @@ function renderLoop() {
         particle.y += particle.vy;
         particle.vy += 0.1; // Gravity effect
         particle.life--;
-        particle.scale = particle.life / particle.maxLife; // Shrink over time
 
         if (particle.life <= 0) {
             particles.splice(index, 1);
             return;
         }
 
-        // Draw with glow and trail
-        const alpha = particle.life / particle.maxLife;
-        const size = particle.size * particle.scale;
+        // Calculate scale and alpha
+        const maxLife = particle.maxLife || 60;
+        const scale = particle.scale !== undefined ? particle.life / maxLife : 1;
+        const alpha = particle.life / maxLife;
+        const size = (particle.size || 2) * scale;
 
+        // Draw with glow
         ctx.save();
         ctx.shadowBlur = 10;
-        ctx.shadowColor = particle.color;
-        ctx.fillStyle = particle.color.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
+        ctx.shadowColor = particle.color || '#00d4ff';
+
+        // Create RGBA color with alpha
+        let fillColor = particle.color || 'rgb(0, 212, 255)';
+        if (fillColor.startsWith('rgb(')) {
+            fillColor = fillColor.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`);
+        } else {
+            // Fallback for other color formats
+            ctx.globalAlpha = alpha;
+        }
+
+        ctx.fillStyle = fillColor;
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, size, 0, Math.PI * 2);
         ctx.fill();
