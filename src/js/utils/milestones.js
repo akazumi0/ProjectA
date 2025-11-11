@@ -205,24 +205,30 @@ function createCelebrationModal(milestone) {
         flashEffect(document.body, `${milestone.color}33`, 200);
     }, 100);
 
-    // Close button handler
-    const closeBtn = document.getElementById('closeCelebration');
-    closeBtn.addEventListener('click', () => {
+    // Close function
+    const closeMilestone = () => {
+        if (!overlay.parentNode) return;
         overlay.style.animation = 'fadeOut 0.3s ease-out';
         setTimeout(() => {
             overlay.remove();
         }, 300);
+    };
+
+    // Close button handler
+    const closeBtn = document.getElementById('closeCelebration');
+    closeBtn.addEventListener('click', closeMilestone);
+
+    // Click anywhere to close
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            closeMilestone();
+        }
     });
 
-    // Auto-close after 8 seconds
+    // Auto-close after 3 seconds (reduced from 8s)
     setTimeout(() => {
-        if (overlay.parentNode) {
-            overlay.style.animation = 'fadeOut 0.3s ease-out';
-            setTimeout(() => {
-                overlay.remove();
-            }, 300);
-        }
-    }, 8000);
+        closeMilestone();
+    }, 3000);
 }
 
 /**

@@ -183,15 +183,26 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+    animation: buttonPulse 2s ease-in-out infinite;
 }
 
 .start-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 30px rgba(0, 212, 255, 0.5);
+    animation: none;
 }
 
 .start-btn:active {
     transform: translateY(-1px);
+}
+
+@keyframes buttonPulse {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 30px rgba(0, 212, 255, 0.6);
+    }
 }
 
 /* Manifesto Link */
