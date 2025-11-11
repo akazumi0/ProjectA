@@ -198,18 +198,69 @@ function initCanvas() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Initialize simple stars background
+    // Initialize multi-layer starfield with parallax
+    initStarfield();
+
+    // Start render loop
+    renderLoop();
+}
+
+/**
+ * Initialize immersive starfield with multiple layers and nebulae
+ */
+function initStarfield() {
+    stars.length = 0; // Clear existing stars
+
+    // Star colors for variety
+    const starColors = [
+        '#ffffff', // White (most common)
+        '#ffffff',
+        '#ffffff',
+        '#ffe9c4', // Warm white
+        '#cce0ff', // Cool blue-white
+        '#ffccaa', // Orange tint
+        '#ccddff', // Blue tint
+    ];
+
+    // Layer 1: Distant stars (slowest, smallest, faintest)
+    for (let i = 0; i < 150; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 0.8 + 0.2, // 0.2-1.0
+            opacity: Math.random() * 0.4 + 0.2, // 0.2-0.6
+            layer: 1,
+            color: starColors[Math.floor(Math.random() * starColors.length)],
+            twinkleSpeed: Math.random() * 0.02 + 0.01
+        });
+    }
+
+    // Layer 2: Mid-distance stars (medium)
     for (let i = 0; i < 100; i++) {
         stars.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
-            size: Math.random() * 2,
-            opacity: Math.random()
+            size: Math.random() * 1.2 + 0.8, // 0.8-2.0
+            opacity: Math.random() * 0.5 + 0.4, // 0.4-0.9
+            layer: 2,
+            color: starColors[Math.floor(Math.random() * starColors.length)],
+            twinkleSpeed: Math.random() * 0.03 + 0.02
         });
     }
 
-    // Start render loop
-    renderLoop();
+    // Layer 3: Close stars (brightest, largest)
+    for (let i = 0; i < 50; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 1.5 + 1.5, // 1.5-3.0
+            opacity: Math.random() * 0.4 + 0.6, // 0.6-1.0
+            layer: 3,
+            color: starColors[Math.floor(Math.random() * starColors.length)],
+            twinkleSpeed: Math.random() * 0.05 + 0.03,
+            glow: true // Close stars have glow
+        });
+    }
 }
 
 /**
@@ -219,6 +270,250 @@ function resizeCanvas() {
     if (!canvas) return;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+}
+
+/**
+ * Earth rendering variables
+ */
+let earthRotation = 0;
+let cloudOffset = 0;
+
+/**
+ * Render cosmic nebulae in background
+ */
+function renderNebulae() {
+    // Nebula 1: Purple-pink nebula (top-left)
+    const nebula1 = ctx.createRadialGradient(
+        canvas.width * 0.15,
+        canvas.height * 0.2,
+        0,
+        canvas.width * 0.15,
+        canvas.height * 0.2,
+        canvas.width * 0.4
+    );
+    nebula1.addColorStop(0, 'rgba(138, 43, 226, 0.08)');  // Violet
+    nebula1.addColorStop(0.3, 'rgba(147, 51, 234, 0.05)');
+    nebula1.addColorStop(0.6, 'rgba(219, 39, 119, 0.03)');
+    nebula1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+    ctx.fillStyle = nebula1;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Nebula 2: Blue-cyan nebula (top-right)
+    const nebula2 = ctx.createRadialGradient(
+        canvas.width * 0.8,
+        canvas.height * 0.25,
+        0,
+        canvas.width * 0.8,
+        canvas.height * 0.25,
+        canvas.width * 0.35
+    );
+    nebula2.addColorStop(0, 'rgba(0, 212, 255, 0.06)');  // Cyan
+    nebula2.addColorStop(0.3, 'rgba(59, 130, 246, 0.04)');
+    nebula2.addColorStop(0.6, 'rgba(99, 102, 241, 0.02)');
+    nebula2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+    ctx.fillStyle = nebula2;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Nebula 3: Orange-red nebula (mid-left)
+    const nebula3 = ctx.createRadialGradient(
+        canvas.width * 0.1,
+        canvas.height * 0.6,
+        0,
+        canvas.width * 0.1,
+        canvas.height * 0.6,
+        canvas.width * 0.3
+    );
+    nebula3.addColorStop(0, 'rgba(251, 146, 60, 0.05)');  // Orange
+    nebula3.addColorStop(0.3, 'rgba(249, 115, 22, 0.03)');
+    nebula3.addColorStop(0.6, 'rgba(234, 88, 12, 0.02)');
+    nebula3.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+    ctx.fillStyle = nebula3;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Nebula 4: Magenta-purple nebula (center-right)
+    const nebula4 = ctx.createRadialGradient(
+        canvas.width * 0.75,
+        canvas.height * 0.55,
+        0,
+        canvas.width * 0.75,
+        canvas.height * 0.55,
+        canvas.width * 0.28
+    );
+    nebula4.addColorStop(0, 'rgba(236, 72, 153, 0.07)');  // Pink
+    nebula4.addColorStop(0.3, 'rgba(219, 39, 119, 0.04)');
+    nebula4.addColorStop(0.6, 'rgba(190, 24, 93, 0.02)');
+    nebula4.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+    ctx.fillStyle = nebula4;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+/**
+ * Render Earth with procedural texture, clouds, and atmospheric glow
+ */
+function renderEarth() {
+    const earthRadius = 120;
+    const earthX = canvas.width / 2;
+    const earthY = canvas.height - earthRadius + 20; // Partially visible at bottom
+
+    // Increment rotation for spinning effect (very slow)
+    earthRotation += 0.0003;
+    cloudOffset += 0.0005;
+
+    ctx.save();
+    ctx.translate(earthX, earthY);
+
+    // === Atmospheric Glow (outer) ===
+    const glowGradient = ctx.createRadialGradient(0, 0, earthRadius, 0, 0, earthRadius + 40);
+    glowGradient.addColorStop(0, 'rgba(100, 200, 255, 0)');
+    glowGradient.addColorStop(0.7, 'rgba(100, 200, 255, 0.1)');
+    glowGradient.addColorStop(0.85, 'rgba(100, 200, 255, 0.3)');
+    glowGradient.addColorStop(1, 'rgba(100, 200, 255, 0)');
+
+    ctx.fillStyle = glowGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, earthRadius + 40, 0, Math.PI * 2);
+    ctx.fill();
+
+    // === Clip to circle for Earth surface ===
+    ctx.beginPath();
+    ctx.arc(0, 0, earthRadius, 0, Math.PI * 2);
+    ctx.clip();
+
+    // === Base ocean (blue gradient) ===
+    const oceanGradient = ctx.createRadialGradient(-30, -30, 0, 0, 0, earthRadius);
+    oceanGradient.addColorStop(0, '#4a90e2');  // Bright ocean
+    oceanGradient.addColorStop(0.5, '#2171b5'); // Medium blue
+    oceanGradient.addColorStop(1, '#084594');   // Deep ocean
+
+    ctx.fillStyle = oceanGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, earthRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // === Procedural continents (green patches) ===
+    const continents = [
+        { x: -50, y: -20, size: 40, angle: 0.3 },
+        { x: 30, y: -40, size: 35, angle: -0.2 },
+        { x: -20, y: 30, size: 45, angle: 0.5 },
+        { x: 60, y: 20, size: 30, angle: -0.4 },
+        { x: -70, y: -50, size: 25, angle: 0.8 }
+    ];
+
+    continents.forEach(continent => {
+        // Apply earth rotation to continent position
+        const rotatedX = continent.x * Math.cos(earthRotation) - continent.y * Math.sin(earthRotation);
+        const rotatedY = continent.x * Math.sin(earthRotation) + continent.y * Math.cos(earthRotation);
+
+        // Only draw if on visible hemisphere
+        if (rotatedX > -earthRadius * 0.8) {
+            ctx.save();
+            ctx.translate(rotatedX, rotatedY);
+            ctx.rotate(continent.angle);
+
+            // Land gradient (green-brown)
+            const landGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, continent.size);
+            landGradient.addColorStop(0, '#7cb342');    // Bright green
+            landGradient.addColorStop(0.6, '#558b2f');  // Forest green
+            landGradient.addColorStop(1, '#33691e');    // Dark green
+
+            ctx.fillStyle = landGradient;
+
+            // Organic blob shape
+            ctx.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                const variance = 0.7 + Math.sin(i * 2.3) * 0.3;
+                const radius = continent.size * variance;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+        }
+    });
+
+    // === Ice caps (white) ===
+    // North pole
+    const iceCap = ctx.createRadialGradient(0, -earthRadius + 20, 0, 0, -earthRadius + 20, 35);
+    iceCap.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+    iceCap.addColorStop(1, 'rgba(200, 230, 255, 0.3)');
+    ctx.fillStyle = iceCap;
+    ctx.beginPath();
+    ctx.arc(0, -earthRadius + 20, 35, 0, Math.PI * 2);
+    ctx.fill();
+
+    // South pole
+    const iceCapSouth = ctx.createRadialGradient(0, earthRadius - 20, 0, 0, earthRadius - 20, 30);
+    iceCapSouth.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+    iceCapSouth.addColorStop(1, 'rgba(200, 230, 255, 0.2)');
+    ctx.fillStyle = iceCapSouth;
+    ctx.beginPath();
+    ctx.arc(0, earthRadius - 20, 30, 0, Math.PI * 2);
+    ctx.fill();
+
+    // === Animated clouds (white swirls) ===
+    const clouds = [
+        { x: -40 + cloudOffset * 100, y: -30, size: 25 },
+        { x: 20 + cloudOffset * 120, y: -50, size: 20 },
+        { x: -60 + cloudOffset * 80, y: 10, size: 30 },
+        { x: 40 + cloudOffset * 150, y: 35, size: 18 },
+        { x: -10 + cloudOffset * 110, y: -60, size: 22 }
+    ];
+
+    clouds.forEach(cloud => {
+        // Wrap clouds around Earth (modulo)
+        let wrappedX = cloud.x % (earthRadius * 2.5);
+        if (wrappedX > earthRadius) wrappedX -= earthRadius * 2.5;
+        if (wrappedX < -earthRadius) wrappedX += earthRadius * 2.5;
+
+        // Only draw if within Earth bounds
+        if (Math.sqrt(wrappedX * wrappedX + cloud.y * cloud.y) < earthRadius - 5) {
+            const cloudGradient = ctx.createRadialGradient(wrappedX, cloud.y, 0, wrappedX, cloud.y, cloud.size);
+            cloudGradient.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+            cloudGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
+            cloudGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+            ctx.fillStyle = cloudGradient;
+            ctx.beginPath();
+            ctx.arc(wrappedX, cloud.y, cloud.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
+
+    // === Shadow for 3D effect (terminator line) ===
+    ctx.globalCompositeOperation = 'multiply';
+    const shadowGradient = ctx.createRadialGradient(30, -20, 0, 0, 0, earthRadius);
+    shadowGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    shadowGradient.addColorStop(0.6, 'rgba(0, 0, 0, 0.2)');
+    shadowGradient.addColorStop(1, 'rgba(0, 0, 0, 0.6)');
+    ctx.fillStyle = shadowGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, earthRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+
+    ctx.restore();
+
+    // === Atmospheric rim light (inner glow) ===
+    ctx.save();
+    ctx.translate(earthX, earthY);
+    ctx.strokeStyle = 'rgba(100, 200, 255, 0.4)';
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = 'rgba(100, 200, 255, 0.8)';
+    ctx.beginPath();
+    ctx.arc(0, 0, earthRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
 }
 
 /**
@@ -232,19 +527,43 @@ function renderLoop() {
         const comboCount = game.combo.count;
         const comboLevel = comboCount >= 30 ? 3 : comboCount >= 15 ? 2 : comboCount >= 8 ? 1 : 0;
 
-        // Clear canvas
-        ctx.fillStyle = '#000';
+        // Clear canvas with deep space color
+        ctx.fillStyle = '#020814';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw stars
-        stars.forEach(star => {
-            ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
-            ctx.fillRect(star.x, star.y, star.size, star.size);
+        // === Draw nebulae (background cosmic clouds) ===
+        renderNebulae();
 
-            // Twinkle effect
-            star.opacity += (Math.random() - 0.5) * 0.05;
-            star.opacity = Math.max(0.1, Math.min(1, star.opacity));
+        // === Draw multi-layer starfield with parallax ===
+        stars.forEach(star => {
+            // Enhanced twinkle effect
+            const twinklePhase = Date.now() * star.twinkleSpeed * 0.001;
+            const twinkleFactor = 0.3 + Math.sin(twinklePhase) * 0.3;
+            const currentOpacity = star.opacity * (0.7 + twinkleFactor);
+
+            // Draw star with color
+            if (star.glow) {
+                // Bright stars with glow
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = star.color;
+                ctx.fillStyle = star.color;
+                ctx.globalAlpha = currentOpacity;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1;
+            } else {
+                // Regular stars
+                ctx.fillStyle = star.color;
+                ctx.globalAlpha = currentOpacity;
+                ctx.fillRect(star.x - star.size / 2, star.y - star.size / 2, star.size, star.size);
+                ctx.globalAlpha = 1;
+            }
         });
+
+        // Draw Earth (enhanced procedural rendering)
+        renderEarth();
 
         // Draw fragments
         fragments.forEach((fragment, index) => {

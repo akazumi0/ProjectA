@@ -3,39 +3,121 @@
  * Part of Falling Stars modular architecture
  */
 
-/* CSS Variables for theming */
+/* CSS Variables for theming - Enhanced Design System */
 :root {
-    --color-primary: #00d4ff;
-    --color-secondary: #4ecdc4;
-    --color-accent: #ffd93d;
+    /* Primary Color Palette - Space Theme */
+    --color-primary: #00d4ff;        /* Cyan stellaire */
+    --color-primary-light: #66e6ff;
+    --color-primary-dark: #0099cc;
+    --color-secondary: #4ecdc4;      /* Turquoise */
+    --color-accent: #ffd93d;         /* Jaune cosmique */
+    --color-accent-bright: #ffe066;
+
+    /* State Colors */
     --color-success: #00ff88;
     --color-danger: #ff4444;
+    --color-warning: #ffaa00;
+    --color-info: #5599ff;
+
+    /* Combo Level Colors */
+    --color-combo-1: #00d4ff;        /* Cyan */
+    --color-combo-2: #ffaa00;        /* Orange */
+    --color-combo-3: #ff3300;        /* Rouge feu */
+
+    /* Milestone Colors */
+    --color-milestone-bronze: #cd7f32;
+    --color-milestone-silver: #c0c0c0;
+    --color-milestone-gold: #ffd700;
+    --color-milestone-platinum: #e5e4e2;
+    --color-milestone-diamond: #b9f2ff;
+
+    /* Background Colors */
     --color-bg-dark: #000;
+    --color-bg-space: #020814;       /* Bleu très foncé */
     --color-bg-panel: rgba(0, 0, 0, 0.95);
+    --color-bg-panel-gradient: linear-gradient(135deg, rgba(0, 30, 60, 0.95), rgba(0, 15, 40, 0.95));
     --color-bg-card: rgba(0, 30, 60, 0.9);
+    --color-bg-card-hover: rgba(0, 50, 100, 0.9);
+
+    /* Border Colors */
     --color-border: rgba(0, 212, 255, 0.3);
     --color-border-active: rgba(0, 212, 255, 0.5);
+    --color-border-bright: rgba(0, 212, 255, 0.8);
 
+    /* Gradients - Space Theme */
+    --gradient-primary: linear-gradient(135deg, #00d4ff, #0099cc);
+    --gradient-secondary: linear-gradient(135deg, #4ecdc4, #2d9da1);
+    --gradient-accent: linear-gradient(135deg, #ffd93d, #ffaa00);
+    --gradient-success: linear-gradient(135deg, #00ff88, #00cc66);
+    --gradient-danger: linear-gradient(135deg, #ff4444, #cc0000);
+    --gradient-cosmic: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    --gradient-nebula: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    --gradient-aurora: linear-gradient(135deg, #00d4ff 0%, #5f72bd 50%, #9921e8 100%);
+
+    /* Glow Effects */
+    --glow-primary: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(0, 212, 255, 0.3);
+    --glow-primary-strong: 0 0 15px rgba(0, 212, 255, 0.8), 0 0 30px rgba(0, 212, 255, 0.5);
+    --glow-accent: 0 0 10px rgba(255, 217, 61, 0.5), 0 0 20px rgba(255, 217, 61, 0.3);
+    --glow-success: 0 0 10px rgba(0, 255, 136, 0.5), 0 0 20px rgba(0, 255, 136, 0.3);
+    --glow-combo: 0 0 15px rgba(255, 100, 0, 0.8), 0 0 30px rgba(255, 50, 0, 0.5);
+
+    /* Box Shadows - Depth */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 12px 50px rgba(0, 0, 0, 0.6);
+
+    /* Typography */
     --font-family: 'Courier New', monospace;
+    --font-family-display: 'Arial', sans-serif;
+    --font-size-tiny: 7px;
     --font-size-small: 8px;
     --font-size-normal: 10px;
     --font-size-medium: 12px;
     --font-size-large: 14px;
     --font-size-xlarge: 16px;
+    --font-size-xxlarge: 20px;
+    --font-size-huge: 28px;
 
+    /* Spacing System */
+    --spacing-xxs: 2px;
     --spacing-xs: 3px;
     --spacing-sm: 5px;
     --spacing-md: 10px;
     --spacing-lg: 15px;
     --spacing-xl: 20px;
+    --spacing-xxl: 30px;
+    --spacing-huge: 50px;
 
+    /* Border Radius */
+    --border-radius-xs: 2px;
     --border-radius-sm: 4px;
     --border-radius-md: 8px;
     --border-radius-lg: 12px;
     --border-radius-xl: 20px;
+    --border-radius-round: 50%;
 
+    /* Transitions */
+    --transition-instant: 0.1s;
     --transition-fast: 0.2s;
     --transition-normal: 0.3s;
+    --transition-slow: 0.5s;
+
+    /* Z-Index Layers */
+    --z-canvas: 1;
+    --z-overlay: 2;
+    --z-ui-base: 50;
+    --z-ui-elevated: 98;
+    --z-sidebar: 99;
+    --z-header: 100;
+    --z-modal: 150;
+    --z-notification: 2000;
+    --z-tutorial: 9998;
+
+    /* Animation Timings */
+    --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+    --ease-in-out-back: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --ease-bounce: cubic-bezier(0.68, -0.6, 0.32, 1.6);
 }
 
 /* CSS Reset */
