@@ -203,6 +203,7 @@
         <div class="icon-button" onclick="openModal('stats')" id="statsIcon">📊</div>
         <div class="icon-button" onclick="openModal('prestige')" id="prestigeIcon">🌠</div>
         <div class="icon-button" onclick="openModal('shop')" id="shopIcon">🏪</div>
+        <div class="icon-button" onclick="openModal('settings')" id="settingsIcon">⚙️</div>
     </div>
 
     <!-- Modals -->
@@ -321,6 +322,107 @@
             <div class="modal-header">🏪 BOUTIQUE</div>
             <div class="modal-body" id="shopBody" style="max-height: 60vh; overflow-y: auto;">
                 <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px;">
+            <button class="modal-close" onclick="closeModal('settings')">✕</button>
+            <div class="modal-header">⚙️ PARAMÈTRES</div>
+            <div class="modal-body">
+                <!-- Sound Settings -->
+                <div class="settings-section">
+                    <div class="settings-header">🔊 AUDIO</div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Son activé</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="soundToggle" checked onchange="toggleSoundSetting()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Volume SFX</label>
+                        <input type="range" id="volumeSFX" class="volume-slider" min="0" max="100" value="50" oninput="updateVolumeSFX(this.value)">
+                        <span class="volume-value" id="volumeSFXValue">50%</span>
+                    </div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Musique activée</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="musicToggle" checked onchange="toggleMusicSetting()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Volume Musique</label>
+                        <input type="range" id="volumeMusic" class="volume-slider" min="0" max="100" value="30" oninput="updateVolumeMusic(this.value)">
+                        <span class="volume-value" id="volumeMusicValue">30%</span>
+                    </div>
+                </div>
+
+                <!-- Haptics Settings -->
+                <div class="settings-section">
+                    <div class="settings-header">📳 VIBRATIONS</div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Retour haptique</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="hapticsToggle" checked onchange="toggleHapticsSetting()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Interface Settings -->
+                <div class="settings-section">
+                    <div class="settings-header">🎨 INTERFACE</div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Langue</label>
+                        <select id="languageSelect" class="settings-select" onchange="changeLanguage(this.value)">
+                            <option value="fr" selected>Français</option>
+                            <option value="en">English (Soon)</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-row">
+                        <label class="setting-label">Auto-hide UI</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="uiAutoHideToggle" checked onchange="toggleUIAutoHide()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Data Management -->
+                <div class="settings-section">
+                    <div class="settings-header">💾 DONNÉES</div>
+
+                    <div class="setting-row">
+                        <button class="settings-btn" onclick="exportSave()">📤 Exporter Sauvegarde</button>
+                        <button class="settings-btn" onclick="importSave()">📥 Importer Sauvegarde</button>
+                    </div>
+
+                    <div class="setting-row">
+                        <button class="settings-btn danger" onclick="confirmResetSave()">🗑️ Réinitialiser Jeu</button>
+                    </div>
+                </div>
+
+                <!-- About -->
+                <div class="settings-section">
+                    <div class="settings-header">ℹ️ À PROPOS</div>
+                    <div style="font-size: 10px; color: #aaa; text-align: center; padding: 10px;">
+                        <p><strong>Falling Stars v1.0.0</strong></p>
+                        <p>The Last Honest Idle Game</p>
+                        <p style="margin-top: 10px;">Fait avec ❤️ par 2 développeurs indépendants</p>
+                        <p style="margin-top: 5px;">Zero pub • Fair Play • Open Source</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

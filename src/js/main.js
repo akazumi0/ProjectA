@@ -24,6 +24,7 @@ import { astraDialogues } from './data/dialogues.js';
 // System imports
 import { initAudio, playSound, resumeAudio, playBackgroundMusic, toggleMusic, toggleSound } from './systems/audio.js';
 import { loadGame, saveGame, processOfflineEarnings, setupAutoSave } from './systems/storage.js';
+import { initializeSettingsUI } from './systems/settings.js';
 import {
     buyDefense,
     buyBuilding,
@@ -539,7 +540,13 @@ function createItemCard(key, data, level, cost, canBuy, type, locked = false) {
  */
 window.startGame = startGame;
 window.switchTab = switchTab;
-window.openModal = (id) => toggleModal(id + 'Modal', true);
+window.openModal = (id) => {
+    // Initialize settings UI when opening settings modal
+    if (id === 'settings') {
+        initializeSettingsUI();
+    }
+    toggleModal(id + 'Modal', true);
+};
 window.closeModal = (id) => toggleModal(id + 'Modal', false);
 
 window.switchPlanet = (key) => {
